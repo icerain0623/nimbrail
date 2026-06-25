@@ -15,7 +15,7 @@ claude-kit/
 ├── lint.sh                    # shellcheck over the hooks (needs `brew install shellcheck`)
 ├── config/
 │   ├── CLAUDE.md              # global instructions       → ~/.claude/CLAUDE.md
-│   ├── settings.template.json # permissions/sandbox/hooks → ~/.claude/settings.json (PAT is a placeholder)
+│   ├── settings.template.json # permissions/sandbox/hooks → ~/.claude/settings.json (COPIED, not linked; PAT placeholder)
 │   ├── statusline.sh          #                           → ~/.claude/statusline.sh
 │   ├── gitignore_global       # wired via core.excludesfile
 │   ├── npmrc                  # supply-chain hardening    → ~/.npmrc (ignore-scripts=true)
@@ -55,6 +55,16 @@ Then:
 ```
 
 Restart Claude Code.
+
+### Updating / re-running
+
+`./install.sh` is safe to re-run. Already-correct symlinks are skipped (no churn); a
+live file that has **diverged** from the repo is shown as a diff and **kept by default**
+— the repo version is never silently forced on you. Confirm per file to replace it, or
+run `./install.sh --yes` to take every repo change at once. Anything replaced is shelved
+to `<file>.bak.<epoch>` (never deleted), and the run ends with a summary of what was
+shelved / kept / left to reconcile. `settings.json` follows the same flow but is a
+*copy*, so your machine-local tweaks (and the real PAT in `settings.local.json`) survive.
 
 ## Workflow
 
