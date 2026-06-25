@@ -26,6 +26,7 @@ For **L3**, the progress header becomes a **section-coverage checklist** — eac
 All planning lives **outside the repo**, in the Obsidian-readable shared dir — so it never clutters the codebase or enters git, and the user can read/edit it in Obsidian. `<project>` = basename of `<project-root>`: the git repo toplevel (`git rev-parse --show-toplevel`) if inside one, otherwise the working directory you are planning in — never a parent/container dir. If the cwd is a parent that holds several projects (e.g. you were launched from `~/Developers`), establish the project directory first. Create the dir + files if missing.
 
 - `TODO.md` — idea inbox. The user dumps things they want to do here, roughly, anytime.
+- `petrichor-plan/refs/` — existing materials the user already has (requirements notes, reference docs, screenshots, prior specs). Dropped in at the start; petrichor reads them as input. Never silently decides from them — surface what they imply as proposed `## <decision point>` blocks, same as `TODO.md`.
 - `petrichor-plan/00-overview.md` — single source of truth: progress header (resume pointer) + accumulated decisions. Rewritten once per round. No separate state file.
 - `petrichor-plan/NN-topic.md` (`01-database.md`, …) — disposable working files for batched questions; user fills answers inline.
 
@@ -34,6 +35,8 @@ petrichor **reads** `TODO.md` but never silently decides from it. Each round, su
 ## On launch
 
 Ensure `~/Documents/claude-shared/<project>/` and its `TODO.md` exist (create empty if missing); read `TODO.md`.
+
+Ask **once** whether the user already has materials to feed in (existing requirements, design notes, reference docs, screenshots, a prior spec). If yes, have them drop the files in `petrichor-plan/refs/` (or point at paths to copy in there), then read them as input alongside `TODO.md`. They inform recommendations but are never decided from silently — fold what they imply into the round as proposed blocks, same as `TODO.md` items.
 
 If `petrichor-plan/00-overview.md` exists, read it. Its header gives the level, phase and open topics → resume from there, do not restart. If absent, settle the **deliverable level** first (see above; for L3 also read `requirements-jp.md`), then start Phase 0.
 

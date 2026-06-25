@@ -1,6 +1,6 @@
 ---
 name: monsoon
-description: The recurring workflow router for a repo already set up by squall. Reads .claude/project.md plus live git state (uncommitted changes, branch, tags, merged branches) and proposes the next sensible step, delegating to the right skill (check, release-note, clean-branches, session-learn) and committing via built-in harness behavior. Read-only steps run automatically; commits run autonomously; the genuinely outward/irreversible steps (push, PR, deletion, tagging) are proposed first. Invoke by name as /monsoon, or it triggers when the user asks what to do next, to advance/continue/wrap up the workflow, or "run the usual flow" without naming a specific action. If the user names a specific action (run checks, write release notes, clean branches, set up the repo), defer to that dedicated skill instead of routing through monsoon.
+description: The recurring workflow router for a repo already set up by squall. Reads .claude/project.md plus live git state (uncommitted changes, branch, tags, merged branches) and proposes the next sensible step, delegating to the right skill (check, release-note, clean-branches, sunbreak) and committing via built-in harness behavior. Read-only steps run automatically; commits run autonomously; the genuinely outward/irreversible steps (push, PR, deletion, tagging) are proposed first. Invoke by name as /monsoon, or it triggers when the user asks what to do next, to advance/continue/wrap up the workflow, or "run the usual flow" without naming a specific action. If the user names a specific action (run checks, write release notes, clean branches, set up the repo), defer to that dedicated skill instead of routing through monsoon.
 ---
 
 # monsoon
@@ -18,7 +18,7 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 3. A version bump is present (vs the last tag/release) and `opt_in.release_note: on` → invoke `release-note`. Evaluate this **before** the push/PR branch below, otherwise on a feature branch step 4 always wins (a clean tree counts as "everything committed") and the changelog is never offered. The goal is for the release note to land in the same push.
 4. On a feature branch, everything committed, checks pass → offer to push / open a PR.
 5. Branches merged into the default branch are piling up → suggest `clean-branches`.
-6. On explicit request, or when nothing else is pending → offer `session-learn`.
+6. On explicit request, or when nothing else is pending → offer `sunbreak`.
 
 ## Behavior
 - Read-only steps (check, inspecting state) run automatically.

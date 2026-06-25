@@ -24,14 +24,14 @@ claude-kit/
 │   ├── petrichor/             # plan a new project/feature (interview) — the front door
 │   ├── drizzle/               # detailed design / impl-prep (how to build) — after petrichor
 │   ├── squall/                # one-time project init → .claude/project.md (before the build)
-│   ├── downpour/              # build companion: feedback.md capture → check/verify
+│   ├── downpour/              # build entry: worktree/branch isolation + parallel coord + feedback.md
 │   ├── monsoon/               # router: read state, delegate to the right skill
 │   ├── check/                 # run lint/typecheck (+test/build), log + summarize
 │   ├── release-note/          # opt-in RELEASE_NOTE.md changelog
 │   ├── clean-branches/        # delete merged local/remote branches
 │   ├── python-setup/          # sandbox-safe Python venv onboarding
 │   ├── session-info/          # write session resume info to claude-shared
-│   └── session-learn/         # mine past transcripts into memory lessons
+│   └── sunbreak/              # mine past transcripts into an Obsidian report
 └── .claude/CLAUDE.md          # project-scoped rules for working on claude-kit itself
 ```
 
@@ -78,14 +78,14 @@ Lifecycle: `petrichor` → `drizzle` → `squall` → `downpour` → `monsoon`, 
 
 2. **Record the config — `squall`.** Once the toolchain exists (drizzle established it, or the repo already has code): detects the stack and check commands, writes `.claude/project.md` (static config that `monsoon` reads) and `.claude/CLAUDE.md` (project conventions), and enables opt-ins like release notes on confirmation. Runs *before* the build so the conventions are in force while you code.
 
-3. **Build — `downpour`.** Implement from the design in the normal coding loop, now with conventions + checks in place. A companion, not a driver: it keeps an in-flight `feedback.md` (blockers + open questions) in the shared dir, routes spec/design gaps back instead of guessing, and at checkpoints hands off to `check` then `verify`.
+3. **Build — `downpour`.** The entry to build mode (not a driver — coding stays in the normal loop). On launch it sets up isolation for this build per squall's `branch_model` — a feature branch, and a git worktree when work runs in parallel or alongside other sessions — and lays out how to partition multi-agent work so trees don't clash (vs `squall`, which only *records* the branch model; downpour *acts* on it per build). It also keeps an in-flight `feedback.md` (blockers + open questions) in the shared dir, routes spec/design gaps back instead of guessing, and at checkpoints hands off to `check` then `verify`.
 
 4. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
    - uncommitted changes → `check` (lint/typecheck), then commits autonomously on the feature branch
    - version bump + release notes enabled → `release-note` (offered before the PR, so the changelog lands in the same push)
    - feature branch with checks passing → offers to push / open a PR
    - merged branches piling up → `clean-branches`
-   - on request → `session-learn`
+   - on request → `sunbreak`
 
    Read-only steps and commits run automatically; outward or irreversible steps (push, PR, deletion) are proposed first.
 
@@ -97,7 +97,7 @@ Each authored skill works two ways — type `/<name>` to run it directly, or jus
 | `release-note` | update `RELEASE_NOTE.md` from commits since the last tag (opt-in per repo) |
 | `clean-branches` | delete merged local branches (remote on request); main/master is hook-protected |
 | `session-info` | write the resume command (`claude --resume <id>`) to `~/Documents/claude-shared/` |
-| `session-learn` | review past transcripts; propose standing rules and record error→fix lessons |
+| `sunbreak` | review past transcripts; write an Obsidian report (global vs project-specific lessons), applied later |
 | `python-setup` | set up a sandbox-safe Python venv |
 
 ## Two kinds of skills
