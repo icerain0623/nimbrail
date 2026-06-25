@@ -1,6 +1,6 @@
 ---
 name: monsoon
-description: The recurring workflow router for a repo already set up by squall. Reads .claude/project.md plus live git state (uncommitted changes, branch, tags, merged branches) and proposes the next sensible step, delegating to the right skill (check, release-note, clean-branches, sunbreak) and committing via built-in harness behavior. Read-only steps run automatically; commits run autonomously; the genuinely outward/irreversible steps (push, PR, deletion, tagging) are proposed first. Invoke by name as /monsoon, or it triggers when the user asks what to do next, to advance/continue/wrap up the workflow, or "run the usual flow" without naming a specific action. If the user names a specific action (run checks, write release notes, clean branches, set up the repo), defer to that dedicated skill instead of routing through monsoon.
+description: Recurring workflow router — read .claude/project.md + live git state and propose the next step, delegating to check / release-note / clean-branches / sunbreak.
 ---
 
 # monsoon

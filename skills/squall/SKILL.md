@@ -1,11 +1,11 @@
 ---
 name: squall
-description: One-time setup of a repo's Claude Code config — detects the stack (language, package manager, check commands), records conventions in .claude/CLAUDE.md, enables opt-in tools like release-note on confirmation, and writes the static config .claude/project.md that monsoon routes from. Invoke by name as /squall, or it triggers when the user asks to initialize, onboard, bootstrap, or "set up Claude Code" for the current repo, or when work begins in a repo that has no .claude/project.md. Idempotent — safe to re-run. Disambiguation: runs after `drizzle` establishes the toolchain (or directly on an existing-code repo), *before* the build (`downpour`), so the recorded conventions are in force while coding; for a still-unplanned greenfield project, plan it with petrichor first. Not for scaffolding the application's own code.
+description: One-time repo setup — detect the stack and check commands, write .claude/CLAUDE.md + project.md, enable opt-ins. After drizzle (or existing code), before the build. Idempotent.
 ---
 
 # squall
 
-One-time per repo. Sets up the project's Claude Code config so monsoon and the other skills can act. Idempotent — re-running reconciles, never clobbers user edits without confirmation.
+One-time per repo. Sets up the project's Claude Code config (`.claude/` only — it does not scaffold the application's own code) so monsoon and the other skills can act. Idempotent — re-running reconciles, never clobbers user edits without confirmation.
 
 ## Steps
 1. **Ensure version control exists** (defensive — `drizzle` normally runs `git init` first). If `git rev-parse --git-dir` fails, run `git init`; if it's already a git repo, do nothing. Commits follow the global Git rules (CLAUDE.md): commit autonomously at sensible checkpoints; push stays gated.

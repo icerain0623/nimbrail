@@ -1,6 +1,6 @@
 ---
 name: sunbreak
-description: Mine recent Claude Code session transcripts for patterns — instructions the user repeated across sessions (candidates for a standing rule), errors hit more than once plus the fix that worked, and general friction — then write a single Obsidian-readable Markdown report (it does NOT edit memory or CLAUDE.md in place). The report separates cross-project (global) candidates from project-specific ones, so applying them can be decided later in a dedicated review session. Use when asked to review or learn from past sessions, or periodically to consolidate lessons.
+description: Mine recent session transcripts into one Obsidian report — global vs project-specific lessons, applied later (does not edit memory/CLAUDE.md in place).
 ---
 
 # Sunbreak

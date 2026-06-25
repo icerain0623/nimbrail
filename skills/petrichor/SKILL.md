@@ -1,6 +1,6 @@
 ---
 name: petrichor
-description: Front-door for greenfield planning — interviews the user relentlessly until a new project or feature is fully specified, then hands the spec off to drizzle (detailed design) — next on the rail. Picks a deliverable level at the start — quick sketch, spec, or a full requirements definition (要件定義). Phase 0 is one-question-at-a-time chat for the overview; Phase 1+ switches to batched, document-based Q&A for independent details. Resumable — re-invoke to continue from ~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md. Invoke by name as /petrichor, or it triggers when the user wants to plan, spec out, or think through a new feature or project before building — especially when they want to be questioned thoroughly rather than handed a quick plan. Prefer this over an ad-hoc plan when the work is non-trivial and underspecified. Software/feature planning only — not for scheduling, task lists, or general life planning.
+description: Greenfield planning front-door — interview the user to a spec at a chosen depth (L1 sketch / L2 spec / L3 要件定義), then hand off to drizzle.
 ---
 
 # Petrichor

@@ -1,6 +1,6 @@
 ---
 name: drizzle
-description: Detailed-design / implementation-prep skill — turns a finished requirements spec into the "how to build" design against the real stack: dev-environment setup, coding conventions, DB physical schema, module/process design, API (OpenAPI) and sequence designs, and infra detail. Runs after petrichor (要件定義) and before the bulk of implementation. Invoke by name as /drizzle, or it triggers when the user wants 詳細設計 / detailed design / to prepare a project for implementation / to decide "how to build" once requirements are settled. Explore-first: reads the spec and existing code rather than interviewing. Not for requirements (use petrichor) or Claude Code repo config (use squall).
+description: Detailed design (how-to-build) — turn a finished spec into an implementable design against the real stack (schema, modules, OpenAPI, infra). After petrichor, before squall.
 ---
 
 # Drizzle

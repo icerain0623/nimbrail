@@ -1,6 +1,6 @@
 ---
 name: downpour
-description: Build-phase entry and parallel-work coordinator — runs when you start implementing from a finished design. Not a coding driver. On launch it sets up isolation for this build (a git worktree + feature branch, per squall's recorded branch_model) so work never clashes — especially when several agents build in parallel — and lays out how to partition that parallel work without conflicts. It also opens an in-flight feedback log (blockers + open questions) in the throwaway shared dir, routes spec/design gaps back to the spec or the user instead of guessing, and at build checkpoints hands off to check then verify. Runs after squall in the lifecycle. Invoke by name as /downpour, or it triggers when the user starts implementing / building from a finished design, wants to set up isolation for the build, coordinate multiple agents, or capture implementation blockers and open questions. Explore-first. Not for requirements (use petrichor) or detailed design (use drizzle).
+description: Build-phase entry — set up worktree/branch isolation and multi-agent partitioning, keep an in-flight feedback.md (blockers + open questions), hand off to check then verify. After squall.
 ---
 
 # downpour
