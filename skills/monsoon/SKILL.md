@@ -1,6 +1,6 @@
 ---
 name: monsoon
-description: Recurring workflow router — read .claude/project.md + live git state, triage new work by size (small → express lane; substantial → back to petrichor), and propose the next step, delegating to check / release-note / clean-branches / sunbreak.
+description: Recurring workflow router — read .claude/project.md + tasks.md + live git state, triage new work by size (small → express lane; substantial → back to petrichor), and propose the next step, delegating to check / release-note / clean-branches / sunbreak.
 disable-model-invocation: true
 ---
 
@@ -10,6 +10,7 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 
 ## Inputs
 - `.claude/project.md` (static config). If missing: suggest `petrichor` (plan) for an unplanned repo, or `squall` (detailed design + record config) once a spec exists or the repo already has code.
+- `docs/tasks.md` if present (the static task graph squall produced for a substantial build): the dependency-ordered build plan, each task carrying ID, dependencies, and a completion condition. Read it to see what's left and which tasks are unblocked. **Progress is not tracked here** — `tasks.md` is a committed static artifact; mutable done/todo lives in the session task list or the gitignored `.claude/state.json` (a clean tree plus an open task means work remaining, not "done").
 - Live state: `git status`, current branch, `git tag`, unpushed commits, branches merged into the default branch.
 - Optional hint: a gitignored `.claude/state.json` for cross-session goals — a hint only. If it conflicts with live git, live git wins.
 
@@ -17,7 +18,7 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 0. **A new piece of work is being requested** (an actual new feature/change — not "look at the state and tell me what's next"): triage by size before anything else. This is what makes the lifecycle a loop rather than a one-shot line.
    - **Trivial / small / well-understood → express lane.** Skip the planning stations (petrichor/squall); implement in the normal loop, then `check` → `verify` → commit. Don't drag a one-file fix through the full rail.
    - **Substantial / underspecified → re-enter the rail at `petrichor`** (plan → `squall` for design + config, then build in the normal loop). After one feature ships, the next substantial one comes back through here — that's the loop closing.
-   If instead the ask is "do the next sensible thing" given current state, fall through to the state-based steps below.
+   If instead the ask is "do the next sensible thing" given current state, fall through to the state-based steps below. When `docs/tasks.md` exists and a build is mid-flight, "the next sensible thing" is the next **unblocked** task (dependencies done per the session list / `state.json`); name it and its completion condition rather than guessing.
 1. No `.claude/project.md`: unplanned → suggest `petrichor` (plan it); a spec exists (`SPEC.md` or a petrichor plan), or the repo already has code, but no detailed design/config → suggest `squall`. (After `squall`, build in the normal loop — see Build discipline below.)
 2. Uncommitted changes → run `check` (default tier). If it passes, commit using the built-in commit behavior (follow the CLAUDE.md Git rules — autonomous commit is allowed); if it fails, summarize the failures and stop.
 3. A version bump is present (vs the last tag/release) and `opt_in.release_note: on` → invoke `release-note`. Evaluate this **before** the push/PR branch below, otherwise on a feature branch step 4 always wins (a clean tree counts as "everything committed") and the changelog is never offered. The goal is for the release note to land in the same push.
