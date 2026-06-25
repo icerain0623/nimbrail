@@ -22,6 +22,7 @@ claude-kit/
 │   └── hooks/*.sh             # PreToolUse hooks          → ~/.claude/hooks/
 ├── skills/                    # authored skills → ~/.claude/skills/<name>/
 │   ├── petrichor/             # plan a new project/feature (interview) — the front door
+│   ├── drizzle/               # detailed design / impl-prep (how to build) — after petrichor
 │   ├── squall/                # one-time project init → .claude/project.md
 │   ├── monsoon/               # router: read state, delegate to the right skill
 │   ├── check/                 # run lint/typecheck (+test/build), log + summarize
@@ -68,13 +69,15 @@ shelved / kept / left to reconcile. `settings.json` follows the same flow but is
 
 ## Workflow
 
-Lifecycle: `petrichor` → `squall` → `monsoon`, then `monsoon` dispatches the rest.
+Lifecycle: `petrichor` → `drizzle` → `squall` → `monsoon`, then `monsoon` dispatches the rest.
 
-0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`. The agent then implements/scaffolds from the spec via its normal coding loop — there is no dedicated implementation skill — after which you run `squall`. (Skip for a repo that already has code.)
+0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`. (Skip for a repo that already has code.)
 
-1. **Once per repo — `squall`.** Detects the stack and check commands, writes `.claude/project.md` (static config that `monsoon` reads) and `.claude/CLAUDE.md` (project conventions), and enables opt-ins like release notes on confirmation.
+1. **Prepare to build — `drizzle`.** Detailed design (how to build): reads the spec + existing code and produces repo design artifacts — dev-environment/README, coding conventions (Lint), DB physical schema, module/process design, API (OpenAPI)/sequence designs, infra detail. Explore-first, not an interview. The agent then implements from these via its normal coding loop. (Skip the parts that don't apply.)
 
-2. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
+2. **Once per repo — `squall`.** Detects the stack and check commands, writes `.claude/project.md` (static config that `monsoon` reads) and `.claude/CLAUDE.md` (project conventions), and enables opt-ins like release notes on confirmation.
+
+3. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
    - uncommitted changes → `check` (lint/typecheck), then offers to commit
    - version bump + release notes enabled → `release-note` (offered before the PR, so the changelog lands in the same push)
    - feature branch with checks passing → offers to push / open a PR
