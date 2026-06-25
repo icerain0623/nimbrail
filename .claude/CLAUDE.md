@@ -14,6 +14,7 @@ absorb runtime `/config` toggles without dirtying the repo).
   shellcheck can't) and `bash lint.sh` (shellcheck; needs `brew install shellcheck`). Add a case to
   `test-hooks.sh` for any new check.
 - Changes take effect only after a **Claude Code restart** (the symlinks are read at launch).
+- Sandbox carve-out (harness bug): git ops that **rewrite working-tree files under `config/`** (checkout/merge/reset across branches that differ there) fail in-sandbox with `Operation not permitted`. The harness-injected `.git/config` protection is missing its `.git/` prefix and mis-hits the repo's `config/` dir instead. Run just those git ops with the sandbox disabled — Edit-tool edits and commits are unaffected. It's injected by the harness, so it can't be fixed from this repo's own settings.
 
 ## Layer model (where a rule belongs)
 - **sandbox** → whether a command can run at all (network / writable paths).
