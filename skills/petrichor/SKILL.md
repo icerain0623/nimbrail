@@ -1,6 +1,7 @@
 ---
 name: petrichor
 description: Greenfield planning front-door — interview the user to a spec at a chosen depth (L1 sketch / L2 spec / L3 要件定義), then hand off to drizzle.
+disable-model-invocation: true
 ---
 
 # Petrichor

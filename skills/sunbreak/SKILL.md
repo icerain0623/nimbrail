@@ -1,6 +1,7 @@
 ---
 name: sunbreak
 description: Mine recent session transcripts into one Obsidian report — global vs project-specific lessons, applied later (does not edit memory/CLAUDE.md in place).
+disable-model-invocation: true
 ---
 
 # Sunbreak

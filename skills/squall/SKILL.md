@@ -1,6 +1,7 @@
 ---
 name: squall
 description: One-time repo setup — detect the stack and check commands, write .claude/CLAUDE.md + project.md, enable opt-ins. After drizzle (or existing code), before the build. Idempotent.
+disable-model-invocation: true
 ---
 
 # squall

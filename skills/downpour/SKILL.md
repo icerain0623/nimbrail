@@ -1,6 +1,7 @@
 ---
 name: downpour
 description: Build-phase entry — set up worktree/branch isolation and multi-agent partitioning, keep an in-flight feedback.md (blockers + open questions), hand off to check then verify. After squall.
+disable-model-invocation: true
 ---
 
 # downpour

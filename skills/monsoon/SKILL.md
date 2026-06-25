@@ -1,6 +1,7 @@
 ---
 name: monsoon
 description: Recurring workflow router — read .claude/project.md + live git state and propose the next step, delegating to check / release-note / clean-branches / sunbreak.
+disable-model-invocation: true
 ---
 
 # monsoon

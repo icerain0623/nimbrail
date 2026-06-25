@@ -1,6 +1,7 @@
 ---
 name: drizzle
 description: Detailed design (how-to-build) — turn a finished spec into an implementable design against the real stack (schema, modules, OpenAPI, infra). After petrichor, before squall.
+disable-model-invocation: true
 ---
 
 # Drizzle
