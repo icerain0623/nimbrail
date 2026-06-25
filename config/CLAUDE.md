@@ -33,5 +33,10 @@
 ## Indexing
 - Serena onboarding (`activate_project` → `onboarding`) pays off when navigating code you don't already hold — pre-existing / sizeable / cross-cutting / multi-session. Decide it when you enter the build phase; re-evaluate as you go — if the codebase grows or you catch yourself re-grepping to rebuild structure, onboard then. Skip for small repos you just wrote or fast-churning greenfield.
 
+## Build discipline
+- For substantial build work, keep an in-flight `feedback.md` in the shared dir (`~/Documents/claude-shared/<project>/feedback.md`, `<project>` = repo toplevel basename; throwaway, never committed): **Blockers** (friction that stopped/slowed you — permission/sandbox denials, missing creds, tooling gaps; a recurring one is a candidate for `fewer-permission-prompts` or a `sunbreak` lesson) and **Open questions** (spec/design gaps). Log as you go, not batched. Skip for trivial one-off edits.
+- **Don't silently guess spec/design gaps.** Route each back to the spec/design (or ask the user) and record the resolution — a material decision belongs in the spec, not buried in code.
+- At a checkpoint (a unit compiles / runs): run checks (the `check` skill), then verify real behavior (`verify`). (Serena onboarding → see Indexing; branch-first → see Git. After a unit is done, `/monsoon` routes the next step.)
+
 ## Handoff files
 - Things the user opens, copies, or runs go to `~/Documents/claude-shared/` (one place, Obsidian-readable). Don't make them copy from the terminal: write the file, `pbcopy < <file>`, then give the path. Internal-only scratch goes to the `/tmp` scratchpad.

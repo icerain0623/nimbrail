@@ -68,4 +68,4 @@ Static config only, no mutable state. Keep it small and stable:
 
 ## Done
 
-When every applicable section of `detail-design-jp.md` meets its 終了条件 and the `.claude/` config is recorded, the design, toolchain, and conventions are established. Build in the normal loop — **monsoon carries the build discipline** (Serena onboarding judgment, an in-flight `feedback.md`, routing spec/design gaps back, then `check` → `verify` at checkpoints). `monsoon` then takes over the recurring flow.
+When every applicable section of `detail-design-jp.md` meets its 終了条件 and the `.claude/` config is recorded, the design, toolchain, and conventions are established. Build in the normal loop — the build discipline (Serena onboarding judgment, an in-flight `feedback.md`, routing spec/design gaps back, branch-first, `check` → `verify` at checkpoints) is **ambient** (global CLAUDE.md), so it applies without invoking anything. At a checkpoint (a unit compiles / runs), run `/monsoon` to route the next step — `check` → commit → push / PR / release / cleanup.
