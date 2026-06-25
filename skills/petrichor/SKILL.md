@@ -1,6 +1,6 @@
 ---
 name: petrichor
-description: Front-door for greenfield planning — interviews the user relentlessly until a new project or feature is fully specified, then hands the spec off to scaffolding and squall. Picks a deliverable level at the start — quick sketch, spec, or a full requirements definition (要件定義). Phase 0 is one-question-at-a-time chat for the overview; Phase 1+ switches to batched, document-based Q&A for independent details. Resumable — re-invoke to continue from ~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md. Invoke by name as /petrichor, or it triggers when the user wants to plan, spec out, or think through a new feature or project before building — especially when they want to be questioned thoroughly rather than handed a quick plan. Prefer this over an ad-hoc plan when the work is non-trivial and underspecified. Software/feature planning only — not for scheduling, task lists, or general life planning.
+description: Front-door for greenfield planning — interviews the user relentlessly until a new project or feature is fully specified, then hands the spec off to drizzle (detailed design) — next on the rail. Picks a deliverable level at the start — quick sketch, spec, or a full requirements definition (要件定義). Phase 0 is one-question-at-a-time chat for the overview; Phase 1+ switches to batched, document-based Q&A for independent details. Resumable — re-invoke to continue from ~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md. Invoke by name as /petrichor, or it triggers when the user wants to plan, spec out, or think through a new feature or project before building — especially when they want to be questioned thoroughly rather than handed a quick plan. Prefer this over an ad-hoc plan when the work is non-trivial and underspecified. Software/feature planning only — not for scheduling, task lists, or general life planning.
 ---
 
 # Petrichor
@@ -17,7 +17,7 @@ Before Phase 0, ask **one** question: how far should this go? The answer sets in
 
 - **L1 — sketch**: the overview only (≈8–10 questions). Quick direction.
 - **L2 — spec**: overview + core functional sections (functions, screens, conceptual data, a non-functional outline).
-- **L3 — requirements definition / 要件定義**: full coverage driven by `requirements-jp.md` (sibling file) — its section set, each with start/done/review criteria; **the spec body is written in Japanese**. Heavy; choose only when a complete spec is wanted. Scope stops at 基本設計（外部設計）; 詳細設計・実装・テスト・運用 are out of scope (they belong to the implementation loop / `squall`).
+- **L3 — requirements definition / 要件定義**: full coverage driven by `requirements-jp.md` (sibling file) — its section set, each with start/done/review criteria; **the spec body is written in Japanese**. Heavy; choose only when a complete spec is wanted. Scope stops at 基本設計（外部設計）; 詳細設計・実装・テスト・運用 are out of scope (詳細設計 belongs to `drizzle`, 実装 to the `downpour` build phase).
 
 For **L3**, the progress header becomes a **section-coverage checklist** — each section of `requirements-jp.md` marked 未着手 / 進行 / 確定 — and sections that don't apply to the project are skipped with a noted reason.
 
@@ -66,6 +66,6 @@ If `petrichor-plan/00-overview.md` exists, read it. Its header gives the level, 
 
 ## Done
 
-When no open questions remain anywhere (in **L3**: every applicable section of `requirements-jp.md` meets its 終了条件): set header `Next: DONE`. The spec is `petrichor-plan/00-overview.md`. Offer **once** to copy *just that file* into the project as `<project-root>/SPEC.md` (or `docs/SPEC.md`), so the final spec is versioned with the code; the disposable `NN-topic.md` working files stay in the shared dir and are never committed. Then recommend the next step on the rail: **`drizzle`** turns this spec into the detailed / build design (how to build). After that the agent implements via its normal coding loop; once code exists, `squall` records the repo config and `monsoon` takes over the recurring flow.
+When no open questions remain anywhere (in **L3**: every applicable section of `requirements-jp.md` meets its 終了条件): set header `Next: DONE`. The spec is `petrichor-plan/00-overview.md`. Offer **once** to copy *just that file* into the project as `<project-root>/SPEC.md` (or `docs/SPEC.md`), so the final spec is versioned with the code; the disposable `NN-topic.md` working files stay in the shared dir and are never committed. Then recommend the next step on the rail: **`drizzle`** turns this spec into the detailed / build design (how to build). After that, `squall` records the repo config (before the build, so conventions are in force while coding), `downpour` drives the implementation, and `monsoon` takes over the recurring flow.
 
 Never make the user re-summarize their answers — re-read and diff the file yourself.

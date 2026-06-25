@@ -11,11 +11,11 @@ Detailed design = **how to build**. Take the finished requirements (what to buil
 
 ## Place in the flow
 
-petrichor (要件定義) → **drizzle (詳細設計 / 実装準備)** → implementation loop → `squall` → `monsoon`.
+petrichor (要件定義) → **drizzle (詳細設計 / 実装準備)** → `squall` (`.claude/` 設定) → `downpour` (実装) → `monsoon`.
 
 - **Input**: the requirements spec — `SPEC.md` in the repo if petrichor copied it there, else `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` — especially 機能要件一覧 / 画面定義 / データ設計; plus the existing code, stack, and libraries.
 - **Output**: repo artifacts (README, `docs/`, OpenAPI, schema/migrations, Lint/formatter config, IaC). Unlike petrichor's planning docs (kept out of the repo), detailed-design artifacts are code-adjacent and **belong in the repo**, versioned with the code.
-- **vs squall**: drizzle *establishes* the project's own dev setup and design; `squall` *records* the resulting conventions into `.claude/` so the agent follows them. Complementary — run `squall` once code exists.
+- **vs squall**: drizzle *establishes* the project's own dev setup and design; `squall` *records* the resulting conventions into `.claude/` so the agent follows them. Complementary — run `squall` right after drizzle, before the build (`downpour`), so those conventions are in force while you code.
 
 ## Operating principles
 
