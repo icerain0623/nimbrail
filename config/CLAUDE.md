@@ -17,6 +17,8 @@
 
 ## Git
 - Work in a git worktree on a feature branch (avoids clashes with concurrent agents). Merging to main and deleting main/master are gated by hooks.
+- Commit autonomously when it makes sense — at coherent checkpoints, before risky/irreversible operations, when a unit of work is complete — without waiting to be asked. This overrides the built-in "commit only when the user asks" default. Keep commits scoped, with a clear message.
+- Autonomy covers **commit only** — push stays gated (settings `ask`; confirm each push). Commit on the feature branch; never auto-commit directly to main/master (branch first).
 
 ## Packages
 - Prefer pnpm for Node (content-addressable store saves disk). Match an existing repo's lockfile; don't switch it.
