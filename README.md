@@ -24,7 +24,7 @@ claude-kit/
 │   ├── petrichor/             # plan a new project/feature (interview) — the front door
 │   ├── drizzle/               # detailed design / impl-prep (how to build) — after petrichor
 │   ├── squall/                # one-time project init → .claude/project.md (before the build)
-│   ├── downpour/              # build entry: worktree/branch isolation + parallel coord + feedback.md
+│   ├── downpour/              # build-phase discipline: feedback.md + route gaps back + check/verify
 │   ├── monsoon/               # router: read state, delegate to the right skill
 │   ├── check/                 # run lint/typecheck (+test/build), log + summarize
 │   ├── release-note/          # opt-in RELEASE_NOTE.md changelog
@@ -78,7 +78,7 @@ Lifecycle: `petrichor` → `drizzle` → `squall` → `downpour` → `monsoon`, 
 
 2. **Record the config — `squall`.** Once the toolchain exists (drizzle established it, or the repo already has code): detects the stack and check commands, writes `.claude/project.md` (static config that `monsoon` reads) and `.claude/CLAUDE.md` (project conventions), and enables opt-ins like release notes on confirmation. Runs *before* the build so the conventions are in force while you code.
 
-3. **Build — `downpour`.** The entry to build mode (not a driver — coding stays in the normal loop). On launch it sets up isolation for this build per squall's `branch_model` — a feature branch, and a git worktree when work runs in parallel or alongside other sessions — and lays out how to partition multi-agent work so trees don't clash (vs `squall`, which only *records* the branch model; downpour *acts* on it per build). It also keeps an in-flight `feedback.md` (blockers + open questions) in the shared dir, routes spec/design gaps back instead of guessing, and at checkpoints hands off to `check` then `verify`.
+3. **Build — `downpour`.** Not a driver — coding stays in the normal loop. downpour is the discipline you keep *while* building: branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing, and at checkpoints hand off to `check` then `verify`.
 
 4. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
    - uncommitted changes → `check` (lint/typecheck), then commits autonomously on the feature branch

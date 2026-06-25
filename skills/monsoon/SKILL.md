@@ -14,7 +14,7 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 - Optional hint: a gitignored `.claude/state.json` for cross-session goals — a hint only. If it conflicts with live git, live git wins.
 
 ## Decision (first match wins; propose, don't force)
-1. No `.claude/project.md`: unplanned → suggest `petrichor` (plan it); a spec exists (`SPEC.md` or a petrichor plan) but no detailed design/toolchain → suggest `drizzle`; design/toolchain established (drizzle done) or existing code, but not yet configured → suggest `squall`. (After `squall`, the build itself is `downpour`.)
+1. No `.claude/project.md`: unplanned → suggest `petrichor` (plan it); a spec exists (`SPEC.md` or a petrichor plan) but no detailed design/toolchain → suggest `drizzle`; design/toolchain established (drizzle done) or existing code, but not yet configured → suggest `squall`. (After `squall`, build in the normal loop with `downpour` alongside.)
 2. Uncommitted changes → run `check` (default tier). If it passes, commit using the built-in commit behavior (follow the CLAUDE.md Git rules — autonomous commit is allowed); if it fails, summarize the failures and stop.
 3. A version bump is present (vs the last tag/release) and `opt_in.release_note: on` → invoke `release-note`. Evaluate this **before** the push/PR branch below, otherwise on a feature branch step 4 always wins (a clean tree counts as "everything committed") and the changelog is never offered. The goal is for the release note to land in the same push.
 4. On a feature branch, everything committed, checks pass → offer to push / open a PR.

@@ -1,48 +1,25 @@
 ---
 name: downpour
-description: Build-phase entry — set up worktree/branch isolation and multi-agent partitioning, keep an in-flight feedback.md (blockers + open questions), hand off to check then verify. After squall.
+description: Build-phase discipline — keep an in-flight feedback.md (blockers + open questions), route spec/design gaps back instead of guessing, and hand off to check then verify at checkpoints. After squall.
 disable-model-invocation: true
 ---
 
 # downpour
 
-The build phase. The actual coding happens in the normal coding loop — **downpour does not drive it**. downpour is what you run when you *enter* build mode: it (1) sets up isolation so this build — solo or multi-agent — can't clash, (2) captures in-flight signal so it isn't lost, and (3) keeps the rail moving toward `check` / `verify`.
-
-## Place in the flow
+The build phase. Coding happens in the normal loop — **downpour does not drive it**. It is the discipline you keep *while* building: capture in-flight signal so it isn't lost, route spec/design gaps back instead of guessing, and keep moving toward `check` / `verify`.
 
 petrichor (要件定義) → drizzle (詳細設計) → squall (`.claude/` 設定) → **downpour (実装)** → monsoon (巡回).
 
-By the time downpour runs, the design exists (drizzle) and the repo's conventions + check commands are already recorded (squall). So you build with the rails in place — follow the conventions squall wrote into `.claude/`.
+By the time downpour runs, the design exists (drizzle) and the repo's conventions + check commands are recorded (squall) — so build with those rails in place.
 
-## Boundary vs squall (no overlap)
+## Before you start
 
-This is the line that keeps downpour from duplicating squall:
+- **Branch before writing code** — agent work never auto-commits to `main`/`master` (global Git rule).
+- **For parallel or concurrent-session work**, give each agent its own worktree (`Agent` tool `isolation: "worktree"`); the Workflow tool pipelines a fan-out. Partition along module / file boundaries so agents rarely touch the same file, and land shared changes (types, migrations, config) first.
 
-- **squall** runs **once** and only **records** static config into `.claude/project.md` — including `branch_model` (feature-branch / trunk) and the check commands. It never creates a branch or worktree.
-- **downpour** runs **per build** and **acts** on that record — it creates the actual worktree/branch for *this* unit of work and isolates *this* set of (possibly parallel) agents. That is per-episode and per-fan-out work, which a one-time setup skill structurally cannot do.
+## Feedback log — the core
 
-Record (squall) vs apply (downpour). If `project.md` is missing, suggest running `squall` first.
-
-## On launch — set up isolation
-
-Read `branch_model` from `.claude/project.md`, then make a clean place to build:
-
-- **Always branch before writing code.** Agent work must never auto-commit to `main`/`master` (global Git rule). For a `feature-branch` repo, cut a feature branch for this unit of work; for a `trunk` repo, still use a short-lived branch and merge it back quickly.
-- **Use a git worktree when work runs in parallel or alongside other sessions.** A worktree is a separate working directory on its own branch sharing one `.git` — so two agents editing at once never collide in the tree (global CLAUDE.md: "work in a git worktree on a feature branch — avoids clashes with concurrent agents"). For a single linear build, a plain branch is enough; reach for a worktree once there's concurrency.
-- Report in one line what you set up (branch name, worktree path if any).
-
-## Orchestrating multiple agents
-
-When the build is large enough to split across agents, coordinate so they don't fight over the tree:
-
-- **One agent = one isolated workspace.** Give each its own worktree + branch (or a separate clone/folder). The `Agent` tool's `isolation: "worktree"` does this automatically per sub-agent — prefer it for parallel fan-out.
-- **Partition to minimize overlap.** Split work along module / file boundaries so two agents rarely touch the same file. Parallelize independent workstreams; serialize anything that shares a module.
-- **Define the integration order up front.** Decide who merges, in what order, and where the seams are (shared types, migrations, config) so merges stay small. Land foundational/shared changes first, dependents after.
-- **Each agent keeps to its lane** and logs blockers/questions to the shared `feedback.md` below; the orchestrator reconciles them.
-
-## Feedback log (in-flight capture)
-
-Ensure `~/Documents/claude-shared/<project>/feedback.md` exists (`<project>` = repo toplevel basename — same throwaway dir as the petrichor plan; never committed). Two sections — log into them **as you build**, not batched at the end:
+Ensure `~/Documents/claude-shared/<project>/feedback.md` exists (`<project>` = repo toplevel basename — same throwaway dir as the petrichor plan; never committed). Log into it **as you build**, not batched at the end:
 
 ```markdown
 # Feedback — <project>
@@ -56,15 +33,9 @@ Ensure `~/Documents/claude-shared/<project>/feedback.md` exists (`<project>` = r
      then resolve. -->
 ```
 
-- **Blockers** are config/setup signal. Surface them — a recurring one is a candidate for a settings/sandbox fix (`fewer-permission-prompts`) or a standing lesson (`sunbreak`). Don't just keep suffering them silently.
-- **Open questions** are spec/design gaps, and **not** yours to guess away. Route each back to the spec (petrichor `00-overview.md` / the drizzle design) or ask the user, then record the resolution. A material decision belongs in the spec, not buried in code.
-
-## Operating principles
-
-- Explore-first: read the spec + drizzle design + existing code before asking.
-- downpour **isolates, captures, and routes**; it does not formalize the coding itself. Code in the normal loop, following the conventions squall recorded in `.claude/`.
-- Keep `feedback.md` current — it's the input that makes `sunbreak` and later config fixes possible.
+- **Blockers** are config/setup signal — a recurring one is a candidate for a settings/sandbox fix (`fewer-permission-prompts`) or a standing lesson (`sunbreak`). Don't keep suffering them silently.
+- **Open questions** are spec/design gaps, **not** yours to guess away. Route each back to the spec (petrichor `00-overview.md` / the drizzle design) or ask the user, then record the resolution. A material decision belongs in the spec, not buried in code.
 
 ## Done
 
-At a build checkpoint (a unit of work compiles / runs): hand off to **`check`** (lint/typecheck), then **`verify`** (run it and observe real behavior). Resolve or log whatever they surface. Then `monsoon` takes over the recurring flow — commit on the feature branch per the CLAUDE.md Git rules, then the gated push / PR (and merging the worktree branch back). Unresolved open questions stay in `feedback.md` and roll forward to the next round.
+At a build checkpoint (a unit of work compiles / runs): hand off to **`check`** (lint/typecheck), then **`verify`** (run it and observe real behavior). Then `monsoon` takes over the recurring flow — commit on the feature branch, then the gated push / PR (merging any worktree branch back). Unresolved open questions stay in `feedback.md` and roll forward.

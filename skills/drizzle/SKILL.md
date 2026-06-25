@@ -34,4 +34,4 @@ petrichor (要件定義) → **drizzle (詳細設計 / 実装準備)** → `squa
 
 ## Done
 
-When every applicable section of `detail-design-jp.md` meets its 終了条件, the design and toolchain are established. Next on the rail: run **`squall`** to record the conventions into `.claude/` (so they're in force during the build), then **`downpour`** to implement in the normal coding loop; `monsoon` takes over the recurring flow after that.
+When every applicable section of `detail-design-jp.md` meets its 終了条件, the design and toolchain are established. Next on the rail: run **`squall`** to record the conventions into `.claude/` (so they're in force during the build), then **`downpour`** alongside the build (the normal coding loop); `monsoon` takes over the recurring flow after that.
