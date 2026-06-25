@@ -112,18 +112,7 @@
       "WebFetch(domain:docs.claude.com)",
       "WebFetch(domain:code.claude.com)",
       "WebFetch(domain:www.anthropic.com)",
-      "mcp__pencil",
-      "Edit(~/Documents/GitHub/**)",
-      "Write(~/Documents/GitHub/**)",
-      "Read(~/Documents/GitHub/**)",
-      "Edit(~/Developers/**)",
-      "Write(~/Developers/**)",
-      "Read(~/Developers/**)",
-      "Edit(~/Documents/claude-shared/**)",
-      "Write(~/Documents/claude-shared/**)",
-      "Read(~/Documents/claude-shared/**)",
-      "Bash(npm run dev)",
-      "Bash(npm run start)"
+      "mcp__pencil"
     ],
     "deny": [
       "Read(./.env)",
@@ -329,8 +318,7 @@
         "~/.nvm",
         "~/.bun",
         "~/.gradle",
-        "~/.m2",
-        "~/Documents/claude-shared-folder/claude-shared"
+        "~/.m2"
       ],
       "allowRead": [
         "/etc/gitconfig",

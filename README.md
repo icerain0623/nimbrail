@@ -18,7 +18,7 @@ claude-kit/
 │   ├── settings.template.json # permissions/sandbox/hooks → ~/.claude/settings.json (COPIED, not linked; PAT placeholder)
 │   ├── statusline.sh          #                           → ~/.claude/statusline.sh
 │   ├── gitignore_global       # wired via core.excludesfile
-│   ├── npmrc                  # supply-chain hardening    → ~/.npmrc (ignore-scripts=true)
+│   ├── npmrc                  # supply-chain hardening    → ~/.npmrc (ignore-scripts + min-release-age)
 │   └── hooks/*.sh             # PreToolUse hooks          → ~/.claude/hooks/
 ├── skills/                    # authored skills → ~/.claude/skills/<name>/
 │   ├── petrichor/             # plan a new project/feature (interview) — the front door
@@ -103,7 +103,7 @@ Each step ends by pointing you to the next, so you follow the prompts instead of
 
    Read-only steps and commits run automatically; outward or irreversible steps (push, PR, deletion) are proposed first.
 
-Each authored skill works two ways — type `/<name>` to run it directly, or just describe the task and it triggers from context (descriptions are tuned to fire on the right intent and stay quiet otherwise). Call one directly for a single step:
+Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (`petrichor`, `drizzle`, `squall`, `downpour`, `monsoon`, `sunbreak`) are **slash-only** (`disable-model-invocation`) — you invoke them explicitly, so a heavy interview never auto-fires from a stray phrase. The **utility** skills below *also* trigger from context (their descriptions are tuned to fire on the right intent and stay quiet otherwise), or you can call them directly for a single step:
 
 | skill | what it does |
 | --- | --- |
