@@ -93,6 +93,7 @@ Each step ends by pointing you to the next, so you follow the prompts instead of
 3. **Build — `downpour`.** Not a driver — coding stays in the normal loop. downpour is the discipline you keep *while* building: branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing, and at checkpoints hand off to `check` then `verify`.
 
 4. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
+   - a **new piece of work** → triage by size: small/clear takes the express lane (skip planning → build → `check` → `verify` → commit); substantial re-enters the rail at `petrichor`
    - uncommitted changes → `check` (lint/typecheck), then commits autonomously on the feature branch
    - version bump + release notes enabled → `release-note` (offered before the PR, so the changelog lands in the same push)
    - feature branch with checks passing → offers to push / open a PR

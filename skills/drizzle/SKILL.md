@@ -16,7 +16,7 @@ petrichor (要件定義) → **drizzle (詳細設計 / 実装準備)** → `squa
 
 - **Input**: the requirements spec — `SPEC.md` in the repo if petrichor copied it there, else `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` — especially 機能要件一覧 / 画面定義 / データ設計; plus the existing code, stack, and libraries.
 - **Output**: repo artifacts (README, `docs/`, OpenAPI, schema/migrations, Lint/formatter config, IaC). Unlike petrichor's planning docs (kept out of the repo), detailed-design artifacts are code-adjacent and **belong in the repo**, versioned with the code.
-- **vs squall**: drizzle *establishes* the project's own dev setup and design; `squall` *records* the resulting conventions into `.claude/` so the agent follows them. Complementary — run `squall` right after drizzle, before the build (`downpour`), so those conventions are in force while you code.
+- **vs squall**: complementary and sequential — run `squall` right after drizzle, before the build (`downpour`), so the conventions it records are in force while you code. (The role split itself is under Operating principles.)
 
 ## Operating principles
 
