@@ -14,23 +14,29 @@ HOOK_JSON
 
 MSG="dev サーバはユーザーが起動・管理します。Claude は起動せず、ユーザーに \`!<command>\` での実行を依頼してください。"
 
+# Anchor every match to COMMAND POSITION: line start, after a shell operator
+# (&& ; | `), or after a package runner (npx / bunx / pnpm|yarn dlx). This stops
+# false positives where a server command merely APPEARS inside a string — a git
+# commit message, an `echo`, or a `grep` pattern that mentions `npm run dev` —
+# rather than actually being executed. (Mirrors block-denied-commands.sh.)
+A="(^|&&|;|\\||\`)[[:space:]]*((npx|bunx)[[:space:]]+|(pnpm|yarn)[[:space:]]+dlx[[:space:]]+)?"
+
 # JS/TS dev servers
-if echo "$cmd" | grep -qE '\b(npm|pnpm|yarn|bun)\b[[:space:]]+(run[[:space:]]+)?(dev|start|serve|preview)\b'; then
+if echo "$cmd" | grep -qE "${A}(npm|pnpm|yarn|bun)[[:space:]]+(run[[:space:]]+)?(dev|start|serve|preview)\b"; then
   deny "$MSG"
 fi
-# Require an explicit server subcommand. The trailing `?` here previously made
-# the subcommand optional, so `vite build` / `next lint` / `ng build` were all
-# denied. (Bare `vite` with no subcommand still starts a dev server but is rare;
-# the `npm/pnpm run dev` form above is the common path and is covered.)
-if echo "$cmd" | grep -qE '\b(next|vite|nuxt|remix|astro|webpack-dev-server|ng)\b[[:space:]]+(dev|serve|start|preview)\b'; then
+# Framework CLIs. Require an explicit server subcommand so `vite build` /
+# `next lint` / `ng build` are NOT denied. (Bare `vite` with no subcommand still
+# starts a dev server but is rare; the run-script form above is the common path.)
+if echo "$cmd" | grep -qE "${A}(next|vite|nuxt|remix|astro|webpack-dev-server|ng)[[:space:]]+(dev|serve|start|preview)\b"; then
   deny "$MSG"
 fi
-if echo "$cmd" | grep -qE '\bnodemon\b'; then
+if echo "$cmd" | grep -qE "${A}nodemon\b"; then
   deny "$MSG"
 fi
 
 # Other ecosystems
-if echo "$cmd" | grep -qE '\b(rails[[:space:]]+(s|server)|php[[:space:]]+artisan[[:space:]]+serve|flask[[:space:]]+run|uvicorn|gunicorn|python[0-9.]*[[:space:]]+-m[[:space:]]+http\.server|http-server)\b'; then
+if echo "$cmd" | grep -qE "${A}(rails[[:space:]]+(s|server)|php[[:space:]]+artisan[[:space:]]+serve|flask[[:space:]]+run|uvicorn|gunicorn|python[0-9.]*[[:space:]]+-m[[:space:]]+http\.server|http-server)\b"; then
   deny "$MSG"
 fi
 
