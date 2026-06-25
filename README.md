@@ -70,7 +70,7 @@ shelved / kept / left to reconcile. `settings.json` follows the same flow but is
 
 Lifecycle: `petrichor` → `squall` → `monsoon`, then `monsoon` dispatches the rest.
 
-0. **New / empty project — `petrichor`.** Interview to a full spec (`docs/petrichor-plan/00-overview.md`). The agent then implements/scaffolds from that spec via its normal coding loop — there is no dedicated implementation skill — after which you run `squall`. (Skip for a repo that already has code.)
+0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`. The agent then implements/scaffolds from the spec via its normal coding loop — there is no dedicated implementation skill — after which you run `squall`. (Skip for a repo that already has code.)
 
 1. **Once per repo — `squall`.** Detects the stack and check commands, writes `.claude/project.md` (static config that `monsoon` reads) and `.claude/CLAUDE.md` (project conventions), and enables opt-ins like release notes on confirmation.
 

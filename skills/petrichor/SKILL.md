@@ -1,6 +1,6 @@
 ---
 name: petrichor
-description: Front-door for greenfield planning — interviews the user relentlessly until a new project or feature is fully specified, then hands the spec off to scaffolding and squall. Phase 0 is one-question-at-a-time chat for the overview; Phase 1+ switches to batched, document-based Q&A for independent details. Resumable — re-invoke to continue from docs/petrichor-plan/00-overview.md. Invoke by name as /petrichor, or it triggers when the user wants to plan, spec out, or think through a new feature or project before building — especially when they want to be questioned thoroughly rather than handed a quick plan. Prefer this over an ad-hoc plan when the work is non-trivial and underspecified. Software/feature planning only — not for scheduling, task lists, or general life planning.
+description: Front-door for greenfield planning — interviews the user relentlessly until a new project or feature is fully specified, then hands the spec off to scaffolding and squall. Picks a deliverable level at the start — quick sketch, spec, or a full requirements definition (要件定義). Phase 0 is one-question-at-a-time chat for the overview; Phase 1+ switches to batched, document-based Q&A for independent details. Resumable — re-invoke to continue from ~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md. Invoke by name as /petrichor, or it triggers when the user wants to plan, spec out, or think through a new feature or project before building — especially when they want to be questioned thoroughly rather than handed a quick plan. Prefer this over an ad-hoc plan when the work is non-trivial and underspecified. Software/feature planning only — not for scheduling, task lists, or general life planning.
 ---
 
 # Petrichor
@@ -11,25 +11,31 @@ Two phases, chosen by question type:
 - **Phase 0 — chat, one at a time**: few, highly-dependent questions. Build the overview conversationally.
 - **Phase 1+ — batched in files**: many independent details. Faster, and yields a written spec.
 
-## Files (`docs/petrichor-plan/`)
+## Deliverable level (pick once, at the very start)
 
-- `00-overview.md` — single source of truth: progress header (resume pointer) + accumulated decisions. Rewritten once per round. No separate state file.
-- `NN-topic.md` (`01-database.md`, …) — disposable working files for batched questions; user fills answers inline.
+Before Phase 0, ask **one** question: how far should this go? The answer sets interview depth, which sections to cover, and the Done bar. Record it in the `00-overview.md` header.
 
-## Inbox & scratch (outside the repo)
+- **L1 — sketch**: the overview only (≈8–10 questions). Quick direction.
+- **L2 — spec**: overview + core functional sections (functions, screens, conceptual data, a non-functional outline).
+- **L3 — requirements definition / 要件定義**: full coverage driven by `requirements-jp.md` (sibling file) — its section set, each with start/done/review criteria; **the spec body is written in Japanese**. Heavy; choose only when a complete spec is wanted. Scope stops at 基本設計（外部設計）; 詳細設計・実装・テスト・運用 are out of scope (they belong to the implementation loop / `squall`).
 
-Two user-owned files live in `~/Documents/claude-shared/<project>/` (`<project>` = basename of the working dir; create the dir + files if missing). These never enter the repo, so they don't affect the project:
+For **L3**, the progress header becomes a **section-coverage checklist** — each section of `requirements-jp.md` marked 未着手 / 進行 / 確定 — and sections that don't apply to the project are skipped with a noted reason.
+
+## Files (`~/Documents/claude-shared/<project>/`)
+
+All planning lives **outside the repo**, in the Obsidian-readable shared dir — so it never clutters the codebase or enters git, and the user can read/edit it in Obsidian. `<project>` = basename of `<project-root>`: the git repo toplevel (`git rev-parse --show-toplevel`) if inside one, otherwise the working directory you are planning in — never a parent/container dir. If the cwd is a parent that holds several projects (e.g. you were launched from `~/Developers`), establish the project directory first. Create the dir + files if missing.
 
 - `TODO.md` — idea inbox. The user dumps things they want to do here, roughly, anytime.
-- `scratch.md` — freeform notepad. **petrichor never reads or edits its contents** (only creates it empty once). Pure personal memo.
+- `petrichor-plan/00-overview.md` — single source of truth: progress header (resume pointer) + accumulated decisions. Rewritten once per round. No separate state file.
+- `petrichor-plan/NN-topic.md` (`01-database.md`, …) — disposable working files for batched questions; user fills answers inline.
 
-petrichor **reads** `TODO.md` but never silently decides from it. Each round, surface items that touch the current topics as proposed `## <decision point>` blocks in the `NN-topic.md` file (with a Recommendation, same format as any other question). Only after the user fills `Answer:` does it get promoted to `00-overview.md`. When an item is promoted, check it off in `TODO.md` with a `(→ spec)` tag — never delete it. Items the user hasn't acted on stay untouched.
+petrichor **reads** `TODO.md` but never silently decides from it. Each round, surface items that touch the current topics as proposed `## <decision point>` blocks in the current `NN-topic.md` file (with a Recommendation, same format as any other question). Only after the user fills `Answer:` does it get promoted to `00-overview.md`. When an item is promoted, check it off in `TODO.md` with a `(→ spec)` tag — never delete it. Items the user hasn't acted on stay untouched.
 
 ## On launch
 
-Ensure the inbox dir + `TODO.md` + `scratch.md` exist (create empty if missing). Read `TODO.md` (not `scratch.md`).
+Ensure `~/Documents/claude-shared/<project>/` and its `TODO.md` exist (create empty if missing); read `TODO.md`.
 
-If `docs/petrichor-plan/00-overview.md` exists, read it. Its header gives the phase and open topics → resume from there, do not restart. If absent, start Phase 0.
+If `petrichor-plan/00-overview.md` exists, read it. Its header gives the level, phase and open topics → resume from there, do not restart. If absent, settle the **deliverable level** first (see above; for L3 also read `requirements-jp.md`), then start Phase 0.
 
 ## Phase 0
 
@@ -40,7 +46,7 @@ If `docs/petrichor-plan/00-overview.md` exists, read it. Its header gives the ph
 
 ## Phase 1+ (per round)
 
-1. List open topics (DB, auth, API, errors, deploy, …). Re-read `TODO.md`; fold any items touching these topics in as proposed blocks (see Inbox & scratch).
+1. List open topics (DB, auth, API, errors, deploy, …). Re-read `TODO.md`; fold any items touching these topics in as proposed blocks (see the `TODO.md` note above). In **L3**, the topics are the sections of `requirements-jp.md` taken in dependency order (each section's 開始条件 gates when it can start); a section becomes 確定 once it meets its 終了条件 and passes its レビュー観点.
 2. Write `NN-topic.md`, one block per question, plus a free-form `## Notes` zone at the bottom:
    ```markdown
    ## <decision point>
@@ -60,6 +66,6 @@ If `docs/petrichor-plan/00-overview.md` exists, read it. Its header gives the ph
 
 ## Done
 
-When no open questions remain anywhere: set header `Next: DONE`, and tell the user `00-overview.md` is the spec to hand to implementation. Implementation/scaffolding from that spec is performed by the agent's normal coding loop — there is no dedicated implementation skill — and once code exists, run `squall` to initialize the repo config and hand off to `monsoon`.
+When no open questions remain anywhere (in **L3**: every applicable section of `requirements-jp.md` meets its 終了条件): set header `Next: DONE`. The spec is `petrichor-plan/00-overview.md`. Offer **once** to copy *just that file* into the project as `<project-root>/SPEC.md` (or `docs/SPEC.md`), so the final spec is versioned with the code; the disposable `NN-topic.md` working files stay in the shared dir and are never committed. Then tell the user the spec is what implementation works from — implementation/scaffolding is the agent's normal coding loop (there is no dedicated implementation skill), and once code exists, run `squall` to initialize the repo config and hand off to `monsoon`.
 
 Never make the user re-summarize their answers — re-read and diff the file yourself.

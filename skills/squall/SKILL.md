@@ -10,7 +10,7 @@ One-time per repo. Sets up the project's Claude Code config so monsoon and the o
 ## Steps
 1. Determine the stack:
    - If code exists, detect it (same detection the `check` skill uses): language(s), package manager (from the lockfile), and which check commands exist — lint, typecheck, test, build.
-   - If the repo is still greenfield (planned with `petrichor` but not yet scaffolded), take the intended stack from `docs/petrichor-plan/00-overview.md` if present, else ask. Don't fail just because there's nothing to detect.
+   - If the repo is still greenfield (planned with `petrichor` but not yet scaffolded), take the intended stack from the petrichor spec — `SPEC.md` / `docs/SPEC.md` in the repo if it was copied there at Done, else `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` (`<project>` = repo toplevel basename) — if present, else ask. Don't fail just because there's nothing to detect.
    - default branch and branch model (trunk-only, or feature-branch / is there a develop branch).
 2. Ask which opt-ins to enable (all default off): release-note (creates RELEASE_NOTE.md), and anything else relevant. Confirm before creating files.
 3. Write `.claude/CLAUDE.md` — project instructions the agent auto-reads: conventions, package manager, how to run checks, branch model. Terse. Merge with any existing file; never overwrite user content silently.
