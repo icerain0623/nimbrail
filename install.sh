@@ -32,6 +32,7 @@ esac
 SHELVED=()    # real content moved aside to .bak this run
 KEPT=()       # diverging files left as-is (you kept your version)
 RECONCILE=()  # copies that differ from the repo and may want a manual look
+PRUNED=()     # dangling symlinks into this repo (target removed) cleaned up
 
 shelve() {  # move an existing real file/dir out of the way, recording it
   local p="$1" b
@@ -109,6 +110,22 @@ copy() {
   fi
 }
 
+# Remove dangling symlinks we created earlier — links pointing into this repo
+# whose target no longer exists (e.g. a skill or hook deleted from the repo).
+# Only touches symlinks that resolve into $REPO, never real files or foreign links.
+prune_dangling() {
+  local dir="$1" l tgt
+  [ -d "$dir" ] || return 0
+  for l in "$dir"/*; do
+    [ -L "$l" ] || continue          # symlinks only
+    [ -e "$l" ] && continue          # target still exists → keep
+    tgt="$(readlink "$l")"
+    case "$tgt" in
+      "$REPO"/*) rm -f "$l"; PRUNED+=("$l"); echo "  pruned dangling $l -> $tgt" ;;
+    esac
+  done
+}
+
 echo "Linking config ..."
 link "$REPO/config/CLAUDE.md"     "$CLAUDE_DIR/CLAUDE.md"
 link "$REPO/config/statusline.sh" "$CLAUDE_DIR/statusline.sh"
@@ -121,6 +138,10 @@ echo "Linking authored skills ..."
 for s in "$REPO"/skills/*/; do
   link "${s%/}" "$CLAUDE_DIR/skills/$(basename "${s%/}")"
 done
+
+# Clean up links to skills/hooks that were removed from the repo since last run.
+prune_dangling "$CLAUDE_DIR/skills"
+prune_dangling "$CLAUDE_DIR/hooks"
 
 echo "Wiring global gitignore ..."
 link "$REPO/config/gitignore_global" "$HOME/.gitignore_global"
@@ -151,6 +172,10 @@ fi
 if [ "${#RECONCILE[@]}" -gt 0 ]; then
   echo "Diverged from repo — reconcile by hand if you want the repo version:"
   for f in "${RECONCILE[@]}"; do echo "  diff '$f' '$REPO/config/settings.template.json'"; done
+fi
+if [ "${#PRUNED[@]}" -gt 0 ]; then
+  echo "Pruned dangling links (skill/hook removed from the repo):"
+  printf '  %s\n' "${PRUNED[@]}"
 fi
 [ "$total" -eq 0 ] && echo "No conflicts to review."
 

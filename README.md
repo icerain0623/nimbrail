@@ -22,10 +22,8 @@ claude-kit/
 │   └── hooks/*.sh             # PreToolUse hooks          → ~/.claude/hooks/
 ├── skills/                    # authored skills → ~/.claude/skills/<name>/
 │   ├── petrichor/             # plan a new project/feature (interview) — the front door
-│   ├── drizzle/               # detailed design / impl-prep (how to build) — after petrichor
-│   ├── squall/                # one-time project init → .claude/project.md (before the build)
-│   ├── downpour/              # build-phase discipline: feedback.md + route gaps back + check/verify
-│   ├── monsoon/               # router: read state, delegate to the right skill
+│   ├── squall/                # detailed design (how to build) + record .claude config — after petrichor
+│   ├── monsoon/               # router: read state, carry build discipline, delegate to the right skill
 │   ├── check/                 # run lint/typecheck (+test/build), log + summarize
 │   ├── release-note/          # opt-in RELEASE_NOTE.md changelog
 │   ├── clean-branches/        # delete merged local/remote branches
@@ -74,8 +72,8 @@ shelved / kept / left to reconcile. `settings.json` follows the same flow but is
 The lifecycle — weather names, with what each station is *for* in parens:
 
 ```
-petrichor(要件) → drizzle(詳細設計) → squall(設定) → downpour(実装) → monsoon(巡回)
-   plan/what       design/how        .claude config    build         recurring
+petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
+   plan/what       design/how + config    build    recurring
 ```
 
 It's a **loop, not a one-shot line**, and you enter it sized to the work:
@@ -87,13 +85,11 @@ Each step ends by pointing you to the next, so you follow the prompts instead of
 
 0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`. (Skip for a repo that already has code.)
 
-1. **Prepare to build — `drizzle`.** Detailed design (how to build): reads the spec + existing code and produces repo design artifacts — dev-environment/README, coding conventions (Lint), DB physical schema, module/process design, API (OpenAPI)/sequence designs, infra detail. Explore-first, not an interview. Establishes the toolchain so the next step has something to record. (Skip the parts that don't apply.)
+1. **Design + config — `squall`.** Detailed design (how to build): reads the spec + existing code and produces repo design artifacts — dev-environment/README, coding conventions (Lint), DB physical schema, module/process design, API (OpenAPI)/sequence designs, infra detail — then records the `.claude/` config (`project.md` that `monsoon` reads + `CLAUDE.md` conventions) and enables opt-ins like release notes on confirmation. Explore-first, not an interview. (Skip the parts that don't apply.)
 
-2. **Record the config — `squall`.** Once the toolchain exists (drizzle established it, or the repo already has code): detects the stack and check commands, writes `.claude/project.md` (static config that `monsoon` reads) and `.claude/CLAUDE.md` (project conventions), and enables opt-ins like release notes on confirmation. Runs *before* the build so the conventions are in force while you code.
+2. **Build.** Coding stays in the normal loop — no separate skill drives it. `monsoon` carries the discipline you keep *while* building: judge Serena onboarding (run it when it pays off), branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing, and at checkpoints hand off to `check` then `verify`.
 
-3. **Build — `downpour`.** Not a driver — coding stays in the normal loop. downpour is the discipline you keep *while* building: branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing, and at checkpoints hand off to `check` then `verify`.
-
-4. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
+3. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
    - a **new piece of work** → triage by size: small/clear takes the express lane (skip planning → build → `check` → `verify` → commit); substantial re-enters the rail at `petrichor`
    - uncommitted changes → `check` (lint/typecheck), then commits autonomously on the feature branch
    - version bump + release notes enabled → `release-note` (offered before the PR, so the changelog lands in the same push)
@@ -103,7 +99,7 @@ Each step ends by pointing you to the next, so you follow the prompts instead of
 
    Read-only steps and commits run automatically; outward or irreversible steps (push, PR, deletion) are proposed first.
 
-Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (`petrichor`, `drizzle`, `squall`, `downpour`, `monsoon`, `sunbreak`) are **slash-only** (`disable-model-invocation`) — you invoke them explicitly, so a heavy interview never auto-fires from a stray phrase. The **utility** skills below *also* trigger from context (their descriptions are tuned to fire on the right intent and stay quiet otherwise), or you can call them directly for a single step:
+Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (`petrichor`, `squall`, `monsoon`, `sunbreak`) are **slash-only** (`disable-model-invocation`) — you invoke them explicitly, so a heavy interview never auto-fires from a stray phrase. The **utility** skills below *also* trigger from context (their descriptions are tuned to fire on the right intent and stay quiet otherwise), or you can call them directly for a single step:
 
 | skill | what it does |
 | --- | --- |
