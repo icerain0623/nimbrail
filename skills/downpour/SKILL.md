@@ -14,6 +14,7 @@ By the time downpour runs, the design exists (drizzle) and the repo's convention
 
 ## Before you start
 
+- **Propose Serena onboarding first** — implementation is the phase petrichor/drizzle defer it to. If the Serena MCP is active and the project isn't already onboarded, `activate_project` then `onboarding` (global Indexing rule), so the build phase navigates by symbol (`find_symbol`, `get_symbols_overview`) instead of grepping.
 - **Branch before writing code** — agent work never auto-commits to `main`/`master` (global Git rule).
 - **For parallel or concurrent-session work**, give each agent its own worktree (`Agent` tool `isolation: "worktree"`); the Workflow tool pipelines a fan-out. Partition along module / file boundaries so agents rarely touch the same file, and land shared changes (types, migrations, config) first.
 
