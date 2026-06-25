@@ -28,8 +28,9 @@ petrichor (要件定義) → **drizzle (詳細設計 / 実装準備)** → imple
 
 ## On launch
 
-Locate and read the requirements spec (see Input above). If none exists, say so and suggest running `petrichor` first (or proceed from what the user describes). Explore the codebase/stack. Then propose which `detail-design-jp.md` sections apply, and work them in dependency order.
+1. **Ensure version control exists first.** drizzle's artifacts belong in the repo, versioned with the code — so the repo must be a git repo before any are written. If `git rev-parse --git-dir` fails (not yet a git repo), run `git init` (safe and reversible — report it in one line). Commits follow the global Git rules (CLAUDE.md): commit autonomously at sensible checkpoints; push stays gated.
+2. Locate and read the requirements spec (see Input above). If none exists, say so and suggest running `petrichor` first (or proceed from what the user describes). Explore the codebase/stack. Then propose which `detail-design-jp.md` sections apply, and work them in dependency order.
 
 ## Done
 
-When every applicable section of `detail-design-jp.md` meets its 終了条件, the project is ready to implement. Hand off to the normal coding loop; once code exists, run `squall` to record the established conventions into `.claude/` and `monsoon` for the recurring flow.
+When every applicable section of `detail-design-jp.md` meets its 終了条件, the design and toolchain are established. Next on the rail: run **`squall`** to record the conventions into `.claude/` (so they're in force during the build), then **`downpour`** to implement in the normal coding loop; `monsoon` takes over the recurring flow after that.

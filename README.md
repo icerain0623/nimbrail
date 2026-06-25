@@ -23,7 +23,8 @@ claude-kit/
 ├── skills/                    # authored skills → ~/.claude/skills/<name>/
 │   ├── petrichor/             # plan a new project/feature (interview) — the front door
 │   ├── drizzle/               # detailed design / impl-prep (how to build) — after petrichor
-│   ├── squall/                # one-time project init → .claude/project.md
+│   ├── squall/                # one-time project init → .claude/project.md (before the build)
+│   ├── downpour/              # build companion: feedback.md capture → check/verify
 │   ├── monsoon/               # router: read state, delegate to the right skill
 │   ├── check/                 # run lint/typecheck (+test/build), log + summarize
 │   ├── release-note/          # opt-in RELEASE_NOTE.md changelog
@@ -69,22 +70,24 @@ shelved / kept / left to reconcile. `settings.json` follows the same flow but is
 
 ## Workflow
 
-Lifecycle: `petrichor` → `drizzle` → `squall` → `monsoon`, then `monsoon` dispatches the rest. Each step ends by pointing you to the next, so you can follow the prompts down the chain instead of memorizing it.
+Lifecycle: `petrichor` → `drizzle` → `squall` → `downpour` → `monsoon`, then `monsoon` dispatches the rest. Each step ends by pointing you to the next, so you can follow the prompts down the chain instead of memorizing it.
 
 0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`. (Skip for a repo that already has code.)
 
-1. **Prepare to build — `drizzle`.** Detailed design (how to build): reads the spec + existing code and produces repo design artifacts — dev-environment/README, coding conventions (Lint), DB physical schema, module/process design, API (OpenAPI)/sequence designs, infra detail. Explore-first, not an interview. The agent then implements from these via its normal coding loop. (Skip the parts that don't apply.)
+1. **Prepare to build — `drizzle`.** Detailed design (how to build): reads the spec + existing code and produces repo design artifacts — dev-environment/README, coding conventions (Lint), DB physical schema, module/process design, API (OpenAPI)/sequence designs, infra detail. Explore-first, not an interview. Establishes the toolchain so the next step has something to record. (Skip the parts that don't apply.)
 
-2. **Once per repo — `squall`.** Detects the stack and check commands, writes `.claude/project.md` (static config that `monsoon` reads) and `.claude/CLAUDE.md` (project conventions), and enables opt-ins like release notes on confirmation.
+2. **Record the config — `squall`.** Once the toolchain exists (drizzle established it, or the repo already has code): detects the stack and check commands, writes `.claude/project.md` (static config that `monsoon` reads) and `.claude/CLAUDE.md` (project conventions), and enables opt-ins like release notes on confirmation. Runs *before* the build so the conventions are in force while you code.
 
-3. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
-   - uncommitted changes → `check` (lint/typecheck), then offers to commit
+3. **Build — `downpour`.** Implement from the design in the normal coding loop, now with conventions + checks in place. A companion, not a driver: it keeps an in-flight `feedback.md` (blockers + open questions) in the shared dir, routes spec/design gaps back instead of guessing, and at checkpoints hands off to `check` then `verify`.
+
+4. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
+   - uncommitted changes → `check` (lint/typecheck), then commits autonomously on the feature branch
    - version bump + release notes enabled → `release-note` (offered before the PR, so the changelog lands in the same push)
    - feature branch with checks passing → offers to push / open a PR
    - merged branches piling up → `clean-branches`
    - on request → `session-learn`
 
-   Read-only steps run automatically; anything outward or irreversible is proposed first.
+   Read-only steps and commits run automatically; outward or irreversible steps (push, PR, deletion) are proposed first.
 
 Each authored skill works two ways — type `/<name>` to run it directly, or just describe the task and it triggers from context (descriptions are tuned to fire on the right intent and stay quiet otherwise). Call one directly for a single step:
 
