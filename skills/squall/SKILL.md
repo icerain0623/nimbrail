@@ -1,6 +1,6 @@
 ---
 name: squall
-description: Detailed design + repo config — turn a finished spec into an implementable design against the real stack (schema, modules, OpenAPI, infra, task graph), then record the .claude config (CLAUDE.md + project.md). After petrichor; the build follows.
+description: Detailed design + repo config — turn a finished spec into an implementable design against the real stack (schema, modules, OpenAPI, infra), break it into a dependency-ordered task ledger, then record the .claude config (CLAUDE.md + project.md). After petrichor; the build follows.
 disable-model-invocation: true
 ---
 
@@ -18,7 +18,8 @@ Two jobs in one station, run back to back:
 petrichor (要件定義) → **squall (詳細設計 ＋ `.claude/` 設定)** → 実装 (the normal loop; monsoon carries the build discipline) → monsoon (巡回).
 
 - **Input**: the requirements spec — `SPEC.md` in the repo if petrichor copied it there, else `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` — especially 機能要件一覧 / 画面定義 / データ設計; plus the existing code, stack, and libraries.
-- **Output**: repo artifacts (README, `docs/`, OpenAPI, schema/migrations, Lint/formatter config, IaC), then — for substantial builds — a **task graph** (`docs/tasks.md`: the dependency-ordered build plan), then the `.claude/` config. These are code-adjacent and **belong in the repo**, versioned with the code (unlike petrichor's planning docs, which stay out of the repo).
+- **Output (in the repo)**: design artifacts (README, `docs/`, OpenAPI, schema/migrations, Lint/formatter config, IaC), then the `.claude/` config — code-adjacent and versioned with the code.
+- **Output (outside the repo)**: for a substantial build, a **task ledger** — `~/Documents/claude-shared/<project>/tasks.md`: the dependency-ordered plan **plus** live progress in one Obsidian-readable file, beside `feedback.md`. It stays out of the repo like petrichor's planning docs — it's transient build-coordination, not a design record, so it can carry mutable progress freely and is never committed.
 
 ## Operating principles
 
@@ -77,4 +78,4 @@ Two gates before handing off to the build:
    Surface any drift **back to petrichor** (a spec gap) or fix it **here** (a design gap) — don't bury it in code. This is the same "don't silently guess spec/design gaps" rule, applied once across all three artifacts.
 2. Every applicable section of `detail-design-jp.md` meets its 終了条件 and the `.claude/` config is recorded.
 
-When both hold, the design, toolchain, conventions, and — for substantial builds — the task graph are established. Build in the normal loop — the build discipline (Serena onboarding judgment, an in-flight `feedback.md`, routing spec/design gaps back, branch-first, `check` → `verify` at checkpoints) is **ambient** (global CLAUDE.md), so it applies without invoking anything. At a checkpoint (a unit compiles / runs), run `/monsoon` to route the next step — it reads `tasks.md` for the remaining graph (progress lives in the session list / `.claude/state.json`, never in `tasks.md`) — `check` → commit → push / PR / release / cleanup.
+When both hold, the design, toolchain, conventions, and — for substantial builds — the task ledger are established. Build in the normal loop — the build discipline (Serena onboarding judgment, an in-flight `feedback.md`, routing spec/design gaps back, branch-first, `check` → `verify` at checkpoints) is **ambient** (global CLAUDE.md), so it applies without invoking anything. At a checkpoint (a unit compiles / runs), run `/monsoon` to route the next step — it reads the claude-shared `tasks.md` for the remaining plan and live progress (the ledger is the source of truth for task progress, not git's clean/dirty state) — `check` → commit → push / PR / release / cleanup.
