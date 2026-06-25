@@ -1,6 +1,6 @@
 ---
 name: monsoon
-description: Recurring workflow router — read .claude/project.md + live git state and propose the next step, delegating to check / release-note / clean-branches / sunbreak.
+description: Recurring workflow router — read .claude/project.md + live git state, triage new work by size (small → express lane; substantial → back to petrichor), and propose the next step, delegating to check / release-note / clean-branches / sunbreak.
 disable-model-invocation: true
 ---
 
@@ -14,6 +14,10 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 - Optional hint: a gitignored `.claude/state.json` for cross-session goals — a hint only. If it conflicts with live git, live git wins.
 
 ## Decision (first match wins; propose, don't force)
+0. **A new piece of work is being requested** (an actual new feature/change — not "look at the state and tell me what's next"): triage by size before anything else. This is what makes the lifecycle a loop rather than a one-shot line.
+   - **Trivial / small / well-understood → express lane.** Skip the planning stations (petrichor/drizzle/squall); implement in the normal loop, then `check` → `verify` → commit. Don't drag a one-file fix through the full rail.
+   - **Substantial / underspecified → re-enter the rail at `petrichor`** (plan → drizzle → squall, then build with `downpour` alongside). After one feature ships, the next substantial one comes back through here — that's the loop closing.
+   If instead the ask is "do the next sensible thing" given current state, fall through to the state-based steps below.
 1. No `.claude/project.md`: unplanned → suggest `petrichor` (plan it); a spec exists (`SPEC.md` or a petrichor plan) but no detailed design/toolchain → suggest `drizzle`; design/toolchain established (drizzle done) or existing code, but not yet configured → suggest `squall`. (After `squall`, build in the normal loop with `downpour` alongside.)
 2. Uncommitted changes → run `check` (default tier). If it passes, commit using the built-in commit behavior (follow the CLAUDE.md Git rules — autonomous commit is allowed); if it fails, summarize the failures and stop.
 3. A version bump is present (vs the last tag/release) and `opt_in.release_note: on` → invoke `release-note`. Evaluate this **before** the push/PR branch below, otherwise on a feature branch step 4 always wins (a clean tree counts as "everything committed") and the changelog is never offered. The goal is for the release note to land in the same push.

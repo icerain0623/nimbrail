@@ -70,7 +70,19 @@ shelved / kept / left to reconcile. `settings.json` follows the same flow but is
 
 ## Workflow
 
-Lifecycle: `petrichor` → `drizzle` → `squall` → `downpour` → `monsoon`, then `monsoon` dispatches the rest. Each step ends by pointing you to the next, so you can follow the prompts down the chain instead of memorizing it.
+The lifecycle — weather names, with what each station is *for* in parens:
+
+```
+petrichor(要件) → drizzle(詳細設計) → squall(設定) → downpour(実装) → monsoon(巡回)
+   plan/what       design/how        .claude config    build         recurring
+```
+
+It's a **loop, not a one-shot line**, and you enter it sized to the work:
+
+- **Small / clear change → express lane.** Skip the planning stations and just build → `check` → `verify` → commit (`monsoon` handles the git side). Don't run the full rail for a one-file fix.
+- **Substantial / underspecified → start at `petrichor`** and walk the rail. When that feature ships, the next substantial one re-enters at `petrichor` — that's the loop closing. `monsoon` is the hub that triages which path a new piece of work takes.
+
+Each step ends by pointing you to the next, so you follow the prompts instead of memorizing the chain.
 
 0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`. (Skip for a repo that already has code.)
 
