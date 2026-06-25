@@ -25,16 +25,8 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 5. Branches merged into the default branch are piling up → suggest `clean-branches`.
 6. On explicit request, or when nothing else is pending → offer `sunbreak`.
 
-## Build discipline (while building)
-
-Coding stays in the normal loop — monsoon doesn't drive it — but these hold whenever a build is underway (express lane or after `squall`):
-
-- **Serena onboarding — judge, don't reflex.** When substantial work starts on code you don't already hold (pre-existing / sizeable / cross-cutting / multi-session), run `activate_project` → `onboarding` — **execute it when it pays off**. Skip for a small repo you wrote this session or fast-churning greenfield. (Standing re-evaluation lives in the global Indexing rule.)
-- **feedback.md — capture in-flight signal as you build, not batched.** Keep `~/Documents/claude-shared/<project>/feedback.md` (`<project>` = repo toplevel basename; same throwaway dir as the petrichor plan; never committed) with two sections:
-  - **Blockers** — friction that stopped/slowed you (permission/sandbox denials, missing credentials, tooling gaps), one line each with the command/context. A recurring one is a candidate for a settings/sandbox fix (`fewer-permission-prompts`) or a standing lesson (`sunbreak`).
-  - **Open questions** — spec/design gaps found while coding. **Don't silently guess** — route each back to the spec (petrichor `00-overview.md` / the squall design) or ask the user, then record the resolution. A material decision belongs in the spec, not buried in code.
-- **Branch before writing code** (global Git rule); a worktree per agent for parallel work.
-- **At a checkpoint** (a unit compiles / runs): hand off to `check` (lint/typecheck), then `verify` (run it, observe real behavior). Unresolved open questions roll forward in `feedback.md`.
+## Build discipline
+The during-build discipline — `feedback.md` (blockers + open questions), routing spec/design gaps back, Serena onboarding judgment, branch-first, `check` → `verify` at checkpoints — is **ambient** (global CLAUDE.md), so it applies during any build without invoking monsoon. monsoon doesn't own it; monsoon routes the discrete next-step decisions above, typically called at a checkpoint once a unit of work is done.
 
 ## Behavior
 - Read-only steps (check, inspecting state) run automatically.
