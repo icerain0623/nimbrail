@@ -15,7 +15,7 @@ Two jobs in one station, run back to back:
 
 ## Place in the flow
 
-petrichor (要件定義) → **squall (詳細設計 ＋ `.claude/` 設定)** → 実装 (the normal loop; monsoon carries the build discipline) → monsoon (巡回).
+petrichor (要件定義) → **squall (詳細設計 ＋ `.claude/` 設定)** → 実装 (the normal loop; build discipline is ambient) → monsoon (巡回).
 
 - **Input**: the requirements spec — `SPEC.md` in the repo if petrichor copied it there, else `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` — especially 機能要件一覧 / 画面定義 / データ設計; plus the existing code, stack, and libraries.
 - **Output (in the repo)**: design artifacts (README, `docs/`, OpenAPI, schema/migrations, Lint/formatter config, IaC), then the `.claude/` config — code-adjacent and versioned with the code.
