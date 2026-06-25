@@ -30,6 +30,7 @@ claude-kit/
 │   ├── release-note/          # opt-in RELEASE_NOTE.md changelog
 │   ├── clean-branches/        # delete merged local/remote branches
 │   ├── python-setup/          # sandbox-safe Python venv onboarding
+│   ├── node-sandbox-setup/    # unblock pnpm + mise under the sandbox (symptom→fix)
 │   ├── session-info/          # write session resume info to claude-shared
 │   └── sunbreak/              # mine past transcripts into an Obsidian report
 └── .claude/CLAUDE.md          # project-scoped rules for working on claude-kit itself
@@ -112,6 +113,7 @@ Each authored skill works two ways — type `/<name>` to run it directly, or jus
 | `session-info` | write the resume command (`claude --resume <id>`) to `~/Documents/claude-shared/` |
 | `sunbreak` | review past transcripts; write an Obsidian report (global vs project-specific lessons), applied later |
 | `python-setup` | set up a sandbox-safe Python venv |
+| `node-sandbox-setup` | unblock pnpm + mise under the sandbox (symptom→fix for the install dance) |
 
 ## Two kinds of skills
 

@@ -25,7 +25,7 @@
 ## Packages
 - Prefer pnpm for Node (content-addressable store saves disk). Match an existing repo's lockfile; don't switch it.
 - Supply-chain delay: `~/.npmrc` enforces `ignore-scripts` (applies to both npm and pnpm) and `min-release-age=7` (**npm v11+ only**, in days). pnpm ignores `min-release-age` — to get the same vetting delay under pnpm, set `minimumReleaseAge` (minutes) in the project's `pnpm-workspace.yaml` (pnpm 11+ defaults it to 1 day). Also set pnpm `trustPolicy: no-downgrade` — but it false-positives on standard transitive deps shipped without provenance; if it blocks a legitimate install, switch it off for that project (with a comment) rather than fighting it.
-- Sandbox + pnpm: pnpm's macOS store/cache sit under `~/Library` (sandbox-blocked). Redirect `store-dir`/`cache-dir`/`state-dir` to `~/.cache/pnpm` via a gitignored project `.npmrc`, and use `npx` for one-off generators (`pnpm dlx`/`pnpm create` hit the same block). Since `ignore-scripts` is on, declare any needed build scripts in `pnpm-workspace.yaml` (`allowBuilds:`) or `pnpm install`/`exec` exit 1 with "ignored build scripts"; run tools via `node_modules/.bin/<tool>` (`pnpm exec` fails the same pre-install check).
+- Sandbox + pnpm/mise: pnpm's store auto-relocates to the project drive (writable — leave it); its cache/state default under `~/Library` (blocked), as does mise's cache. For the full install "dance" (ignored builds → `allowBuilds`, NO_TTY → `CI=true`, `minimumReleaseAge`, `trustPolicy`, mise version-pinning + `!`-shell), use the `node-sandbox-setup` skill.
 
 ## Toolchains
 - Versions via mise: respect a project's `.mise.toml` / `.tool-versions`; run through mise shims or `mise exec --`. Don't contradict the project's pin.
