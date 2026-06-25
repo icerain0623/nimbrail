@@ -69,7 +69,7 @@ shelved / kept / left to reconcile. `settings.json` follows the same flow but is
 
 ## Workflow
 
-Lifecycle: `petrichor` → `drizzle` → `squall` → `monsoon`, then `monsoon` dispatches the rest.
+Lifecycle: `petrichor` → `drizzle` → `squall` → `monsoon`, then `monsoon` dispatches the rest. Each step ends by pointing you to the next, so you can follow the prompts down the chain instead of memorizing it.
 
 0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`. (Skip for a repo that already has code.)
 
