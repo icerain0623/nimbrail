@@ -5,9 +5,7 @@
     "GIT_CONFIG_NOSYSTEM": "1",
     "GIT_TEMPLATE_DIR": "",
     "SSL_CERT_FILE": "/etc/ssl/cert.pem",
-    "CARGO_HTTP_CAINFO": "/etc/ssl/cert.pem",
-    "_comment_GH_TOKEN": "DO NOT put your real PAT here. Put it in ~/.claude/settings.local.json (gitignored) instead.",
-    "GH_TOKEN": "<SET_IN_settings.local.json>"
+    "CARGO_HTTP_CAINFO": "/etc/ssl/cert.pem"
   },
   "permissions": {
     "allow": [
@@ -114,7 +112,18 @@
       "WebFetch(domain:docs.claude.com)",
       "WebFetch(domain:code.claude.com)",
       "WebFetch(domain:www.anthropic.com)",
-      "mcp__pencil"
+      "mcp__pencil",
+      "Edit(~/Documents/GitHub/**)",
+      "Write(~/Documents/GitHub/**)",
+      "Read(~/Documents/GitHub/**)",
+      "Edit(~/Developers/**)",
+      "Write(~/Developers/**)",
+      "Read(~/Developers/**)",
+      "Edit(~/Documents/claude-shared/**)",
+      "Write(~/Documents/claude-shared/**)",
+      "Read(~/Documents/claude-shared/**)",
+      "Bash(npm run dev)",
+      "Bash(npm run start)"
     ],
     "deny": [
       "Read(./.env)",
@@ -148,7 +157,8 @@
       "Bash(vault:*)",
       "Bash(security:*)",
       "Bash(npm publish *)",
-      "Bash(npm publish)"
+      "Bash(npm publish)",
+      "Edit(/etc/**)"
     ],
     "ask": [
       "Bash(curl *)",
@@ -249,7 +259,30 @@
   },
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
-    "serena@claude-plugins-official": true
+    "serena@claude-plugins-official": true,
+    "dev-assistant@redacted-plugins": true,
+    "github-initializer@redacted-plugins": true,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true,
+    "figma@claude-plugins-official": true,
+    "chrome-devtools-mcp@claude-plugins-official": true,
+    "deploy-on-aws@agent-plugins-for-aws": true,
+    "swift-lsp@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "redacted-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "redacted-dx/redacted-claude-plugin"
+      }
+    },
+    "agent-plugins-for-aws": {
+      "source": {
+        "source": "github",
+        "repo": "awslabs/agent-plugins"
+      }
+    }
   },
   "sandbox": {
     "enabled": true,
@@ -296,7 +329,8 @@
         "~/.nvm",
         "~/.bun",
         "~/.gradle",
-        "~/.m2"
+        "~/.m2",
+        "~/Documents/claude-shared-folder/claude-shared"
       ],
       "allowRead": [
         "/etc/gitconfig",
@@ -317,5 +351,6 @@
     ]
   },
   "effortLevel": "xhigh",
+  "skipWorkflowUsageWarning": true,
   "skipAutoPermissionPrompt": true
 }

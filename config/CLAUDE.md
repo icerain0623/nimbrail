@@ -6,6 +6,15 @@
 ## Web
 - GTM: use `@next/third-parties/google` (`GoogleTagManager`), never raw `<script>` or manual `next/script`.
 
+## Landing Pages (Next.js LP)
+- For LP / Figma→page work, auto-run the pipeline yourself — don't wait to be told, and never skip verify (a skipped verify is the #1 source of rework):
+  - Extract design from Figma → `figma-extract`
+  - Implement / edit the page → `landing-page-nextjs` (holds the detailed conventions)
+  - Verify after any visual change → compare against the design (screenshot/diff; `chrome-devtools-mcp` if usable)
+
+## Dev servers
+- Never start local/dev servers (the sandbox blocks port listening, and a hook blocks it anyway). If one needs running, have the user start it via the `!` prefix.
+
 ## Git
 - Work in a git worktree on a feature branch (avoids clashes with concurrent agents). Merging to main and deleting main/master are gated by hooks.
 
