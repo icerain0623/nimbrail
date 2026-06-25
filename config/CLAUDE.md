@@ -31,7 +31,7 @@
 - Versions via mise: respect a project's `.mise.toml` / `.tool-versions`; run through mise shims or `mise exec --`. Don't contradict the project's pin.
 
 ## Indexing
-- Before implementation, propose Serena onboarding (`activate_project` then `onboarding`).
+- Serena onboarding (`activate_project` → `onboarding`) pays off when navigating code you don't already hold — pre-existing / sizeable / cross-cutting / multi-session. Decide it at the build-phase entry (downpour); re-evaluate as you go — if the codebase grows or you catch yourself re-grepping to rebuild structure, onboard then. Skip for small repos you just wrote or fast-churning greenfield.
 
 ## Handoff files
 - Things the user opens, copies, or runs go to `~/Documents/claude-shared/` (one place, Obsidian-readable). Don't make them copy from the terminal: write the file, `pbcopy < <file>`, then give the path. Internal-only scratch goes to the `/tmp` scratchpad.
