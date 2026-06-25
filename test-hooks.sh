@@ -39,6 +39,14 @@ expect_denied() { # <command> <deny|none>
 # ── block-dev-servers: servers blocked, builds/linters allowed ────────────────
 for c in "pnpm dev" "next dev" "vite serve" "next start" "vite preview" "npm run dev"; do expect_stdout block-dev-servers.sh "$c" deny; done
 for c in "vite build" "next lint" "ng build" "nuxt build" "pnpm build" "astro check"; do expect_stdout block-dev-servers.sh "$c" none; done
+# anchored: launches after a shell operator or via a runner are still caught
+for c in "cd app && pnpm dev" "npx next dev" "bunx next dev" "npx vite preview"; do expect_stdout block-dev-servers.sh "$c" deny; done
+# anchored: a server command merely MENTIONED inside a string is NOT a launch
+# (regression for the commit-message / echo / grep false-positives)
+expect_stdout block-dev-servers.sh 'git commit -m "fix npm run dev"' none
+expect_stdout block-dev-servers.sh 'echo "-- npm run dev --"' none
+expect_stdout block-dev-servers.sh "grep 'npm run dev' notes.md" none
+expect_stdout block-dev-servers.sh 'git commit -m "vite serve was flaky"' none
 
 # ── warn-dangerous: rm -rf guard ──────────────────────────────────────────────
 for c in "rm -rf /" "rm -fr /etc/passwd" "rm -rf /usr/local" "rm --recursive --force /var" "rm -rf ~/foo" "rm -rf \$HOME/x" "rm -rf *"; do expect_stdout warn-dangerous.sh "$c" ask; done
