@@ -13,7 +13,7 @@ absorb runtime `/config` toggles without dirtying the repo).
   suite `bash test-hooks.sh` (behavioral — catches logic bugs like a dead `grep -q | grep` pipe that
   shellcheck can't) and `bash lint.sh` (shellcheck; needs `brew install shellcheck`). Add a case to
   `test-hooks.sh` for any new check.
-- Changes take effect only after a **Claude Code restart** (the symlinks are read at launch).
+- **Restart needed?** Skill *body* + sibling-file edits apply on next invocation (read on-demand) — no restart. Restart only for: a new skill, a changed `name`/`description` frontmatter, or any `settings.json` edit (hooks / permissions / sandbox). No `/reload` exists.
 - Sandbox carve-out (harness bug): git ops that **rewrite working-tree files under `config/`** (checkout/merge/reset across branches that differ there) fail in-sandbox with `Operation not permitted`. The harness-injected `.git/config` protection is missing its `.git/` prefix and mis-hits the repo's `config/` dir instead. Run just those git ops with the sandbox disabled — Edit-tool edits and commits are unaffected. It's injected by the harness, so it can't be fixed from this repo's own settings.
 
 ## Layer model (where a rule belongs)
