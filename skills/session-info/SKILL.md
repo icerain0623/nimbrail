@@ -1,6 +1,6 @@
 ---
 name: session-info
-description: Write the current session's resume info (session ID, cwd, git branch, timestamp) to a file in ~/Documents/claude-shared so the user can grab it for `claude --resume` without being asked for the ID. Use when the user wants the session ID, or is about to switch or restart sessions.
+description: Write the current session's resume info (session ID, cwd, git branch, timestamp) to a file in the shared root (default ~/Documents/claude-shared) so the user can grab it for `claude --resume` without being asked for the ID. Use when the user wants the session ID, or is about to switch or restart sessions.
 ---
 
 # Session Info

@@ -1,6 +1,6 @@
 ---
 name: check
-description: Run a project's quality checks (lint and typecheck by default; test and build only on request), tee output to a log in ~/Documents/claude-shared, and return a concise pass/fail summary. Use before committing or when asked to verify code health.
+description: Run a project's quality checks (lint and typecheck by default; test and build only on request), tee output to a log under the shared root (default ~/Documents/claude-shared), and return a concise pass/fail summary. Use before committing or when asked to verify code health.
 ---
 
 # Check

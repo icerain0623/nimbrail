@@ -33,6 +33,8 @@ claude-kit/
 │   ├── session-info/          # write session resume info to claude-shared
 │   ├── forecast/              # pre-release scenario-test checklist from the spec
 │   ├── weathering/            # spec-drift watch: diff SPEC.md against implemented reality
+│   ├── almanac/               # weekly digest (週報 draft) + shared-dir archive proposals
+│   ├── cirrus/                # incremental research notebook that survives context death
 │   └── sunbreak/              # mine past transcripts into an Obsidian report
 └── .claude/CLAUDE.md          # project-scoped rules for working on claude-kit itself
 ```
@@ -115,6 +117,8 @@ Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (
 | `session-info` | write the resume command (`claude --resume <id>`) to `~/Documents/claude-shared/` |
 | `forecast` | generate a pre-release scenario-test checklist from the spec (coverage-traced to 機能 IDs) |
 | `weathering` | spec-drift report: where the code and `SPEC.md` disagree (+ stale ja+en rendering); edits on confirmation |
+| `almanac` | weekly digest across active repos (週報 draft) + archive proposals for stale claude-shared files |
+| `cirrus` | incremental research notebook — findings persist to Obsidian as found, resumable after context death |
 | `sunbreak` | review past transcripts; write an Obsidian report (global vs project-specific lessons), applied later |
 | `python-setup` | set up a sandbox-safe Python venv |
 | `node-sandbox-setup` | unblock pnpm + mise under the sandbox (symptom→fix for the install dance) |
