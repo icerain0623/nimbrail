@@ -17,7 +17,7 @@ Two jobs in one station, run back to back:
 
 petrichor (要件定義) → **squall (詳細設計 ＋ `.claude/` 設定)** → 実装 (the normal loop; build discipline is ambient) → monsoon (巡回).
 
-- **Input**: the requirements spec — `SPEC.md` in the repo if petrichor copied it there, else `<shared-root>/<project>/petrichor-plan/00-overview.md` (shared root: default `~/Documents/claude-shared`, per-project override via `~/.claude/shared-dirs.json` — global Handoff rule) — especially 機能要件一覧 / 画面定義 / データ設計; plus the existing code, stack, and libraries.
+- **Input**: the requirements spec — `SPEC.md` in the repo if petrichor copied it there, else `<shared-root>/<project>/petrichor-plan/00-overview.md` (shared root: per the global Handoff rule) — especially 機能要件一覧 / 画面定義 / データ設計; plus the existing code, stack, and libraries.
 - **Output (in the repo)**: design artifacts (README, `docs/`, OpenAPI, schema/migrations, Lint/formatter config, IaC), then the `.claude/` config — code-adjacent and versioned with the code.
 - **Output (outside the repo)**: for a substantial build, a **task ledger** — `<shared-root>/<project>/tasks.md`: the dependency-ordered plan **plus** live progress in one Obsidian-readable file, beside `feedback.md`. Task completion conditions derive from the spec's 受け入れ条件 where the spec carries them (petrichor L2/L3) — don't invent a new bar. It stays out of the repo like petrichor's planning docs — it's transient build-coordination, not a design record, so it can carry mutable progress freely and is never committed.
 

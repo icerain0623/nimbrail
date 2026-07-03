@@ -36,7 +36,7 @@ description: Weekly work digest + shared-dir housekeeping — sweep the week's g
 
 ## Housekeeping (propose-only)
 
-Candidates: consumed `NN-topic.md` question files (their decisions already promoted), `check-*/` logs older than the window, `forecast-checklist.md` for already-shipped releases, and anything in a project's shared dir untouched for 4+ weeks — **except** durable artifacts (`00-overview.md`, `tasks.md`, `feedback.md`, `TODO.md`, guides/reports the user authored).
+Candidates: consumed `NN-topic.md` question files (their decisions already promoted), `check-<project>/` logs older than the window (note: these live at the shared **root**, not inside `<project>/` — sweep both levels; move stale log files into that project's `archive/`), `forecast-checklist.md` for already-shipped releases, and anything in a project's shared dir untouched for 4+ weeks — **except** durable artifacts (`00-overview.md`, `tasks.md`, `feedback.md`, `TODO.md`, guides/reports the user authored).
 
 List the candidates with reasons in the note and chat. On confirmation, `mv` them into that project's `<shared>/<project>/archive/` — **never delete, never move without confirmation**. Obsidian links keep working within the vault after a move; still, prefer archiving whole consumed files over pruning parts of live ones.
 

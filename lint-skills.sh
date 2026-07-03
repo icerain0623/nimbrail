@@ -17,7 +17,7 @@
 
 set -u
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RAIL="petrichor overcast squall monsoon sunbreak"
+RAIL="petrichor overcast squall downpour monsoon sunbreak"
 GUIDE="$HOME/Documents/claude-shared/claude-kit/skills-guide.md"
 FAIL=0
 
@@ -39,31 +39,47 @@ for d in "$REPO"/skills/*/; do
     || err "$s: description missing or empty"
 done
 
-echo "[3] rail skills are slash-only"
+echo "[3] rail skills are slash-only (both directions)"
 for s in $RAIL; do
   grep -q '^disable-model-invocation:[[:space:]]*true' "$REPO/skills/$s/SKILL.md" 2>/dev/null \
     || err "$s: missing 'disable-model-invocation: true'"
 done
+# reverse: any skill carrying the flag must be listed in RAIL — keeps the list
+# from silently diverging when a new slash-only skill is added
+for d in "$REPO"/skills/*/; do
+  s="$(basename "${d%/}")"
+  if grep -q '^disable-model-invocation:[[:space:]]*true' "$d/SKILL.md" 2>/dev/null; then
+    case " $RAIL " in
+      *" $s "*) : ;;
+      *) err "$s carries disable-model-invocation:true but is not in this script's RAIL list" ;;
+    esac
+  fi
+done
 
 echo "[4] shared-root convention (hardcoded path only as documented default)"
-while IFS= read -r line; do
-  case "$line" in
+# split grep's file:line:content so the exemption is matched against the
+# CONTENT only — a path containing "default" must not exempt its lines
+while IFS=: read -r f n content; do
+  case "$content" in
     *default*|*デフォルト*) : ;;
-    *) err "undocumented hardcoded shared root: ${line%%:~*}" ;;
+    *) err "undocumented hardcoded shared root: $f:$n" ;;
   esac
 done < <(grep -rn -- '[~]/Documents/claude-shared' "$REPO"/skills/ 2>/dev/null || true)
 
-echo "[5] README mentions every authored skill"
+echo "[5] README lists every authored skill (backticked — prose words don't count)"
 for d in "$REPO"/skills/*/; do
   s="$(basename "${d%/}")"
-  grep -qw "$s" "$REPO/README.md" || err "README.md does not mention '$s'"
+  # require a structural mention: `name` or `/name` in a table row / list, not
+  # the bare word in prose (skills named with dictionary words like "check"
+  # would otherwise always pass)
+  grep -qE "\`/?$s\`" "$REPO/README.md" || err "README.md does not list '\`$s\`'"
 done
 
-echo "[6] Obsidian guide mentions every authored skill"
+echo "[6] Obsidian guide lists every authored skill (backticked)"
 if [ -f "$GUIDE" ]; then
   for d in "$REPO"/skills/*/; do
     s="$(basename "${d%/}")"
-    grep -qw "$s" "$GUIDE" || err "skills-guide.md does not mention '$s'"
+    grep -qE "\`/?$s\`" "$GUIDE" || err "skills-guide.md does not list '\`$s\`'"
   done
 else
   note "(guide not found at $GUIDE — skipped)"

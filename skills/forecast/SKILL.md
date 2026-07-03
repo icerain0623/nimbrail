@@ -9,7 +9,7 @@ description: Generate a pre-release manual scenario-test checklist from the proj
 
 ## Input
 
-- The spec: `SPEC.md` in the repo, else `<shared-root>/<project>/petrichor-plan/00-overview.md` (shared root: default `~/Documents/claude-shared`, override via `~/.claude/shared-dirs.json` — global Handoff rule). 特に 機能要件一覧（優先度・受け入れ条件）/ 画面一覧・画面定義書（または非 Web の読み替え先: コマンド一覧・API 一覧）/ 業務フロー / 権限マトリクス。
+- The spec: `SPEC.md` in the repo, else `<shared-root>/<project>/petrichor-plan/00-overview.md` (shared root: per the global Handoff rule). 特に 機能要件一覧（優先度・受け入れ条件）/ 画面一覧・画面定義書（または非 Web の読み替え先: コマンド一覧・API 一覧）/ 業務フロー / 権限マトリクス。
 - `tasks.md` の完了条件（あれば — 受け入れ条件との突き合わせに使う）。
 - No spec → say so and suggest `petrichor` first; don't fabricate scenarios from code alone. L1 sketch only → offer a minimal smoke list from the overview and label it as such.
 

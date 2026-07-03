@@ -17,7 +17,7 @@ description: Spec-drift watch — diff the spec (SPEC.md / petrichor plan) again
 
 ## Input
 
-- The spec: `SPEC.md` in the repo, else `<shared-root>/<project>/petrichor-plan/00-overview.md` (shared root: default `~/Documents/claude-shared`, override via `~/.claude/shared-dirs.json`). No spec → nothing to weather; suggest `overcast` (it bootstraps the As-Is spec from the code) and stop.
+- The spec: `SPEC.md` in the repo, else `<shared-root>/<project>/petrichor-plan/00-overview.md` (shared root: per the global Handoff rule). No spec → nothing to weather; suggest `overcast` (it bootstraps the As-Is spec from the code) and stop.
 - Reality: the code (prefer Serena's symbol tools when active, else Grep/Read), schema/migrations, OpenAPI, README, and `git log` since the spec file last changed (that commit range *is* the drift window).
 - `tasks.md` (あれば): 「spec にあるが実装にない」項目が単なる未着工か、落ちた要件かの判別に使う。
 
@@ -31,6 +31,6 @@ description: Spec-drift watch — diff the spec (SPEC.md / petrichor plan) again
 
 ## Output
 
-Report to `<shared-root>/<project>/YYYY-MM-DD_weathering-report.md` (Reporting-findings convention; severity per the global classification 重大/対応が必要/テストが必要/軽微). Each finding: direction, evidence (`file:line` / commit), affected ID, and a **proposed spec edit** (or a proposed code issue, when the spec is right and the code drifted). If nothing drifted, say so in chat — no file for an all-clear.
+Report to `<shared-root>/<project>/YYYY-MM-DD_weathering-report.md`. Severity per finding — weathering's own four-level scale: **重大**(壊れている・危険)/ **対応が必要**(直すべき欠陥)/ **テストが必要**(挙動未確認)/ **軽微**(記録して先送り可). Each finding: direction, evidence (`file:line` / commit), affected ID, and a **proposed spec edit** (or a proposed code issue, when the spec is right and the code drifted). If nothing drifted, say so in chat — no file for an all-clear.
 
 After confirmation: apply the agreed spec edits in one pass, re-render the translation if stale, and note the update in the spec header (date + drift window). Substantial new scope discovered here re-enters the rail via `petrichor` (monsoon's triage rule) — weathering records the gap, it doesn't spec new features itself.
