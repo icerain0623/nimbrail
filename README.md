@@ -30,6 +30,8 @@ claude-kit/
 │   ├── python-setup/          # sandbox-safe Python venv onboarding
 │   ├── node-sandbox-setup/    # unblock pnpm + mise under the sandbox (symptom→fix)
 │   ├── session-info/          # write session resume info to claude-shared
+│   ├── forecast/              # pre-release scenario-test checklist from the spec
+│   ├── weathering/            # spec-drift watch: diff SPEC.md against implemented reality
 │   └── sunbreak/              # mine past transcripts into an Obsidian report
 └── .claude/CLAUDE.md          # project-scoped rules for working on claude-kit itself
 ```
@@ -92,9 +94,10 @@ Each step ends by pointing you to the next, so you follow the prompts instead of
 3. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
    - a **new piece of work** → triage by size: small/clear takes the express lane (skip planning → build → `check` → `verify` → commit); substantial re-enters the rail at `petrichor`
    - uncommitted changes → `check` (lint/typecheck), then commits autonomously on the feature branch
-   - version bump + release notes enabled → `release-note` (offered before the PR, so the changelog lands in the same push)
+   - version bump + release notes enabled → `release-note` (offered before the PR, so the changelog lands in the same push); a release with a spec also gets `forecast` offered (scenario walk-through before the push)
    - feature branch with checks passing → offers to push / open a PR
    - merged branches piling up → `clean-branches`
+   - many feature commits since `SPEC.md` last changed → `weathering` (spec-drift report)
    - on request → `sunbreak`
 
    Read-only steps and commits run automatically; outward or irreversible steps (push, PR, deletion) are proposed first.
@@ -107,6 +110,8 @@ Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (
 | `release-note` | update `RELEASE_NOTE.md` from commits since the last tag (opt-in per repo) |
 | `clean-branches` | delete merged local branches (remote on request); main/master is hook-protected |
 | `session-info` | write the resume command (`claude --resume <id>`) to `~/Documents/claude-shared/` |
+| `forecast` | generate a pre-release scenario-test checklist from the spec (coverage-traced to 機能 IDs) |
+| `weathering` | spec-drift report: where the code and `SPEC.md` disagree (+ stale ja+en rendering); edits on confirmation |
 | `sunbreak` | review past transcripts; write an Obsidian report (global vs project-specific lessons), applied later |
 | `python-setup` | set up a sandbox-safe Python venv |
 | `node-sandbox-setup` | unblock pnpm + mise under the sandbox (symptom→fix for the install dance) |
