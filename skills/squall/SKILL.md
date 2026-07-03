@@ -17,9 +17,9 @@ Two jobs in one station, run back to back:
 
 petrichor (要件定義) → **squall (詳細設計 ＋ `.claude/` 設定)** → 実装 (the normal loop; build discipline is ambient) → monsoon (巡回).
 
-- **Input**: the requirements spec — `SPEC.md` in the repo if petrichor copied it there, else `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` — especially 機能要件一覧 / 画面定義 / データ設計; plus the existing code, stack, and libraries.
+- **Input**: the requirements spec — `SPEC.md` in the repo if petrichor copied it there, else `<shared-root>/<project>/petrichor-plan/00-overview.md` (shared root: default `~/Documents/claude-shared`, per-project override via `~/.claude/shared-dirs.json` — global Handoff rule) — especially 機能要件一覧 / 画面定義 / データ設計; plus the existing code, stack, and libraries.
 - **Output (in the repo)**: design artifacts (README, `docs/`, OpenAPI, schema/migrations, Lint/formatter config, IaC), then the `.claude/` config — code-adjacent and versioned with the code.
-- **Output (outside the repo)**: for a substantial build, a **task ledger** — `~/Documents/claude-shared/<project>/tasks.md`: the dependency-ordered plan **plus** live progress in one Obsidian-readable file, beside `feedback.md`. It stays out of the repo like petrichor's planning docs — it's transient build-coordination, not a design record, so it can carry mutable progress freely and is never committed.
+- **Output (outside the repo)**: for a substantial build, a **task ledger** — `<shared-root>/<project>/tasks.md`: the dependency-ordered plan **plus** live progress in one Obsidian-readable file, beside `feedback.md`. Task completion conditions derive from the spec's 受け入れ条件 where the spec carries them (petrichor L2/L3) — don't invent a new bar. It stays out of the repo like petrichor's planning docs — it's transient build-coordination, not a design record, so it can carry mutable progress freely and is never committed.
 
 ## Operating principles
 
@@ -72,9 +72,10 @@ Static config only, no mutable state. Keep it small and stable:
 Two gates before handing off to the build:
 
 1. **Cross-artifact consistency — once, before 着工.** Each section already met its own 終了条件; this is the one pass that checks the artifacts agree *with each other*. A reading pass, not a new station or ceremony — a checklist, **scaled to level** (skip for L1 / trivial; light for L2; full for L3):
-   - every 機能 ID in the spec lands in the design **and** (substantial builds) in `tasks.md` — no requirement dropped on the floor;
+   - every **v1** 機能 ID in the spec lands in the design **and** (substantial builds) in `tasks.md` — no requirement dropped on the floor; v2 / 保留 items are consciously absent (deferred scope stays deferred, don't build it early);
    - the design introduces nothing the spec didn't ask for (no scope the requirements never approved);
-   - `tasks.md` dependencies match the real design (e.g. DB before the modules that need it) and the graph has no cycle.
+   - `tasks.md` dependencies match the real design (e.g. DB before the modules that need it) and the graph has no cycle;
+   - each task's completion condition traces to the corresponding 機能 ID's 受け入れ条件 (where the spec carries them) — the same bar `verify` will check during the build.
    Surface any drift **back to petrichor** (a spec gap) or fix it **here** (a design gap) — don't bury it in code. This is the same "don't silently guess spec/design gaps" rule, applied once across all three artifacts.
 2. Every applicable section of `detail-design-jp.md` meets its 終了条件 and the `.claude/` config is recorded.
 
