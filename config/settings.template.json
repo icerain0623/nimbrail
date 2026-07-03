@@ -249,8 +249,6 @@
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
     "serena@claude-plugins-official": true,
-    "dev-assistant@redacted-plugins": true,
-    "github-initializer@redacted-plugins": true,
     "ui-ux-pro-max@ui-ux-pro-max-skill": true,
     "figma@claude-plugins-official": true,
     "chrome-devtools-mcp@claude-plugins-official": true,
@@ -260,12 +258,6 @@
     "skill-creator@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
-    "redacted-plugins": {
-      "source": {
-        "source": "github",
-        "repo": "redacted-dx/redacted-claude-plugin"
-      }
-    },
     "agent-plugins-for-aws": {
       "source": {
         "source": "github",
