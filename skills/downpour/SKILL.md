@@ -1,49 +1,49 @@
 ---
 name: downpour
-description: Optional build accelerator — burn down the squall task ledger (tasks.md) wave by wave. Subagents implement, fresh-context verifiers judge the EARS completion conditions, the orchestrator alone stages footprint paths / commits / writes the ledger; stops on failure budget, blockage, or a requested range. Invoked explicitly (monsoon suggests it when 3+ unblocked tasks pile up); spec = docs/SPEC-downpour.md (AC-1〜9).
+description: Optional build accelerator — burn down the squall task ledger (tasks.md) wave by wave. Subagents implement, fresh-context verifiers judge the EARS completion conditions, the orchestrator alone stages actual changed paths / commits / writes the ledger; stops on failure budget, blockage, or a requested range. Invoked explicitly (monsoon suggests it when 3+ unblocked tasks pile up); spec = docs/SPEC-downpour.md (AC-1〜9).
 disable-model-invocation: true
 ---
 
 # downpour
 
-土砂降り — 台帳のタスクを一気に降らせる。**任意の加速装置**であって標準駅ではない: デフォルトのビルドは対話的な通常ループのまま、台帳に自律で回せるまとまりがあるときだけ明示起動する。そして**新しい実行エンジンではない** — オーケストレータはメインループの Claude 自身。このスキルが与えるのは規律: 台帳の書き手の一本化、ウェーブ計画、採点者を分離した二段検証、停止条件。受け入れ条件は `docs/SPEC-downpour.md` の AC-1〜9(verify・weathering が照らす基準)。
+Rain the ledger's tasks down all at once. An **optional accelerator**, not a standard station: the default build stays the interactive normal loop — invoke this explicitly when the ledger has a stretch that can run autonomously. It is also **not a new execution engine**: the orchestrator is the main-loop Claude itself; what this skill supplies is discipline — a single ledger writer, wave planning, two-stage verification with separated graders, stop conditions. Acceptance criteria live in `docs/SPEC-downpour.md` (AC-1〜9 — the bar `verify` and `weathering` check against).
 
 ## Preflight (AC-9)
 
-- Ledger: `<shared-root>/<project>/tasks.md`(shared root は global Handoff ルールで解決; スキーマは squall `detail-design-jp.md` セクション7 — タスク行 = ID / 依存 / 完了条件 / 状態 todo|in-progress|done|保留、`## 進捗ログ` は append-only)。
-- **全て成立しなければ、実行計画を出さずに報告して止まる**: 台帳が存在しパース可能 / 作業ツリーがクリーン / カレントブランチが main でない。
-- Args: 範囲指定 `T-005まで` / `3タスク`(**完了タスク数**で数える)/ 無指定 = 停止条件まで。失敗バジェットは v1 固定 **2件**。
+- Ledger: `<shared-root>/<project>/tasks.md` (shared root per the global Handoff rule; schema per squall `detail-design-jp.md` section 7 — task rows carry ID / dependencies / 完了条件 / 状態 (todo|in-progress|done|保留); `## 進捗ログ` is append-only).
+- **All of these must hold, or report and stop without producing a plan**: the ledger exists and parses / the working tree is clean / the current branch is not main.
+- Args: a range — `T-005まで` / `3タスク` (counted in **completed** tasks) / none = run to a stop condition. Failure budget is fixed at **2** in v1.
 
 ## Execution plan → GO (AC-1, AC-2)
 
-1. 未ブロックタスクが無ければ、計画を出さずに原因(全完了 or 全ブロック)を報告して終わる。
-2. 依存グラフから**ウェーブ**(今すぐ着手可能な層)を構成。タスクごとのファイルフットプリントは、台帳の「対象パス」列があればそれを第一入力、無ければ設計 docs+spec から**推定**(GO 画面に推定である旨を明記)。
-3. フットプリントが重ならないタスクだけ**並列(最大3、同一 worktree)**、重なる可能性があれば直列。判定根拠を計画に書く。
-4. 1画面提示: ウェーブ構成 / 並列・直列の根拠 / 停止条件(バジェット・範囲)。**GO が出るまで実行しない。** NO → 何もせず終了報告。修正指示(範囲・除外)→ 再構成して再提示。
+1. No unblocked tasks → report why (all done, or all blocked) and stop. No plan (AC-1).
+2. Build **waves** (the currently startable layer) from the dependency graph. Per-task file footprint: the ledger's 対象パス column is the primary input; absent that, **estimate** from the design docs + spec and say so in the plan.
+3. Only tasks whose footprints are disjoint run **parallel (max 3, same worktree)**; anything that might overlap runs serial. Put the reasoning in the plan.
+4. Present one screen: wave composition / parallel-vs-serial reasoning / stop conditions (budget, range). **Do not execute until GO.** NO → do nothing, report, end. Amendment requests (range, exclusions) → rebuild the plan, re-present, still wait for GO.
 
 ## Per task
 
-0. **投入時**: オーケストレータが台帳の状態欄を `in-progress` に更新(下記の台帳書込プロトコルに従う。進捗ログへの行は不要 — ログは結果の記録)。並行セッションの monsoon が実行中タスクを unblocked と誤認しないためでもある。
-1. **実装エージェント**(セッション model 継承)— 渡す文脈: タスク行+該当機能 ID の spec 抜粋(EARS 含む)+関連設計セクションへの**パス参照**(全文は渡さない — 必要なら自分で読む。規約は repo CLAUDE.md の自動読込に任せる)。**コミットしない・台帳に触らない。** `check` の実行は直列/並列で異なる: **直列タスクはエージェント自身が回す。並列タスクではエージェントは回さず、バッチ完走後にオーケストレータが一回だけ回す** — 同一ツリーでの3重実行と、兄弟タスクの編集途中を巻き込んだ無実の失敗を防ぐ。バッチ後 check の失敗は変更パスから帰属先タスクを特定してそのタスクの NG として扱う(帰属できなければウェーブ残を直列に落として切り分ける)。
-2. **検証エージェント**(同 model・低 effort・新鮮なコンテキスト)— 渡すのは ①タスクの EARS 完了条件 ②変更 diff ③コマンド実行権限 **のみ**。実装の経緯・言い分は見せない(採点者の分離)。判定: PASS / NG+理由(どの節が・どう満たされないか・確認手順)。
-3. NG → NG 理由を**要約せずそのまま**実装エージェントへ差し戻し。差し戻しは**タスクごと通算1回**(原因を問わない — クラッシュで差し戻した後に検証 NG が出たら、2回目は与えず保留直行, AC-4)。再 NG → 台帳行に `保留(理由1行)`+詳細は進捗ログ、失敗1件、次の未ブロックタスクへ (AC-5)。保留の下流はブロック扱いのまま。
-4. **エージェント自体の失敗**: 実装側(クラッシュ / check 不通過 / 成果なし)= 検証 NG と同等に扱う。検証側(エラー / 判定不能)= 1回再実行 → 再失敗でそのタスク保留+失敗1件(実装側の責でない旨を進捗ログへ)。
-5. **コミットはオーケストレータのみ**、タスク完了順に直列。stage の基準は**実変更パス**(フットプリントは並列計画のための見積もりであって、コミットの境界ではない): 直列タスクはそのタスクの実変更を全て stage。並列タスクでは実変更とフットプリントを突き合わせ、**見積もり外の編集が兄弟タスクの変更と衝突しなければ**そのまま当該タスクとして stage し、フットプリント外れを進捗ログに記録(検証エージェントに渡す diff も実変更パスで切り出す)。**兄弟と同一ファイルを触っていたら**巻き込みの危険 — そのタスクを NG 相当で差し戻し、ウェーブの残りを直列に落とす。タイトルは自然な conventional commits、**本文に `Task: T-003`**。push はしない。
-6. **台帳書き戻しもオーケストレータのみ** (AC-3, AC-7): **プリフライトで読んだ台帳の内容ハッシュを起点**とし、以後は自分が書くたびにハッシュを更新。書込前に現在の台帳のハッシュと照合 — 不一致なら外部介入とみなし、書かずに停止して報告(全文をコンテキストに保持しない — ハッシュで足り、不一致のときだけ再読して差分を示す)。状態欄を更新し、進捗ログへ `T-003 done (downpour, <branch>, <sha>) 検証: PASS` を追記。
+0. **At dispatch**: the orchestrator sets the task's 状態 to `in-progress` (via the ledger write protocol below; no 進捗ログ line — the log records outcomes). This also keeps a concurrent monsoon session from counting an in-flight task as unblocked.
+1. **Implementer agent** (inherits the session model) — context handed over: the task row (ID / title / 完了条件 / dependencies) + the relevant 機能 ID's spec excerpt (EARS included) + **path references** to related design sections (never full documents — it reads more itself when needed; repo conventions come from the auto-loaded CLAUDE.md). **It does not commit and does not touch the ledger.** `check` differs by mode: **serial tasks run `check` themselves; parallel tasks do not — the orchestrator runs it once after the batch lands** (avoids 3× whole-project runs in one tree, and innocent failures caused by a sibling's half-finished edits). Attribute a post-batch failure to a task by its changed paths; if attribution fails, drop the rest of the wave to serial to isolate.
+2. **Verifier agent** (same model, low effort, fresh context) — receives ONLY: ① the task's EARS 完了条件, ② the change diff, ③ shell access to observe real behavior. Never the implementer's narrative (separation of graders). Verdict: PASS / NG + reasons (which clause fails, how, and how to confirm).
+3. NG → send back with the NG reasons **verbatim, unsummarized**. Send-back is **once per task in total, regardless of cause** — after a crash-triggered send-back, a later verification NG goes straight to 保留, no second chance (AC-4). Second NG → mark the ledger row `保留(one-line reason)` + details in 進捗ログ, count one failure, move to the next unblocked task (AC-5). A 保留 task's downstream stays blocked.
+4. **Agent failures**: implementer failure (crash / can't pass check / no output) = treated exactly like a verification NG. Verifier failure (error / cannot judge) = re-run once → on second failure mark the task 保留 + one failure, noting in the 進捗ログ that the implementation is not at fault.
+5. **Commits are orchestrator-only**, serialized in completion order. Stage by **actual changed paths** — the footprint is a planning estimate, not a commit boundary. Serial tasks: stage everything the task changed. Parallel tasks: compare actual changes against the footprint; an out-of-footprint edit that does not collide with a sibling is staged with its task and the footprint miss noted in the 進捗ログ (the verifier's diff is also cut by actual paths); **touching the same file as a sibling** risks cross-contamination → treat as an NG-equivalent send-back and drop the rest of the wave to serial. Commit titles are natural conventional commits, with `Task: T-003` in the body. Never push.
+6. **Ledger writes are orchestrator-only** (AC-3, AC-7): hash the ledger content at preflight as the baseline and update the hash after each own write; before every write, compare hashes — a mismatch means external intervention: stop without writing and report. (Do not keep the full text in context; the hash suffices — re-read only on mismatch, to show the difference.) Update the 状態 column and append `T-003 done (downpour, <branch>, <sha>) 検証: PASS`.
 
 ## Wave end
 
-- 品質レビューを一括(medium)。**確信度の高い修正のみ**独立コミットで自動適用 — behavior 変更は禁止(検証済みの完了条件を壊さない)。適用後に `check` を再実行し、失敗したら **`git revert` で戻す**(履歴は書き換えない — reset は使わない)。適用→revert の顛末は最終報告に記載する。不確実な指摘は最終報告へ。
-- ウェーブ境界でトークン消費を報告(人が続行を判断できる)。次ウェーブの未ブロック集合を台帳から再計算して続行。
+- Run the batched quality review (medium). Auto-apply **high-confidence fixes only**, as a separate commit — behavior changes are forbidden (don't break verified 完了条件). Re-run `check` after the fix commit; on failure, **undo with `git revert`** (never rewrite history — no reset) and record applied-then-reverted in the final report. Uncertain findings go to the final report for the human.
+- Report token consumption at the wave boundary (so the human can decide whether to continue). Recompute the unblocked set from the ledger and continue.
 
 ## Stop & escalate
 
-- 停止条件: 全完了 / 全ブロック / 失敗バジェット到達 (AC-6) / 指定範囲到達(指定タスクが到達不能になったら「全ブロック」と同じ扱い)。
-- **ウェーブ途中で停止条件が成立したら**: 新規投入を止め、実行中エージェントは完走を待ち、完走分は通常どおり検証・コミット・記録してから停止報告(中途半端なツリーを残さない)。
-- **仕様の穴** — 境界は依存グラフで機械的に決める: 穴を踏んだタスクに**未着手の依存下流がいない**(リーフ)→ `保留`+`feedback.md` に Open question+続行。**未着手の下流をブロックする** → 実行を停止してユーザーに質問 (AC-8)。ユーザーの判断なしに解決できない状況 → 停止して**通知**(可能なら push 通知、なければ停止報告を目立たせる)。
-- 最終報告: 完了 / 保留(理由つき)/ 未着手の内訳、レビューの残指摘、トークン消費。
+- Stop when: all done / all blocked / failure budget reached (AC-6) / requested range reached (an unreachable target task is treated the same as "all blocked").
+- **Mid-wave stop**: stop dispatching, let running agents finish, verify/commit/record the finished ones normally, then report — never leave a half-finished tree.
+- **Spec holes** — the boundary is mechanical, decided by the dependency graph: the holed task has **no unstarted dependents** (a leaf) → 保留 + an Open question in `feedback.md` + continue. It **blocks unstarted downstream tasks** → stop and present the question to the user (AC-8). Unresolvable without the user's judgment → stop and **notify** (push notification if available, else make the stop report prominent).
+- Final report: done / 保留 (with reasons) / untouched breakdown, remaining review findings, token consumption.
 
 ## Boundaries
 
-- v1 = 本ファイルの全て。v2 = worktree 分離並列(マージ解決つき)/ 標準駅昇格の再検討 / 失敗パターンの sunbreak 連携。保留 = リモート実行。
-- monsoon は「未ブロック todo 3件以上」で downpour を**提案**するが、起動は常に人間のスラッシュ(自動起動しない)。
+- v1 = everything above. v2 = worktree-isolated parallelism (with merge resolution) / revisiting promotion to a standard station / feeding failure patterns to sunbreak. Deferred = remote execution.
+- monsoon **suggests** downpour at 3+ unblocked tasks; starting it is always a human slash — never auto-start.

@@ -5,35 +5,35 @@ description: Incremental research notebook that survives context death — findi
 
 # cirrus
 
-巻雲 — 高い空に薄く積もり、天気が変わる前兆になる。cirrus は調べ物の**増分ノート**: 知見が出るたびにファイルへ積もらせるので、セッションがコンテキスト限界で死んでも調査は死なない。次のセッションはヘッダから再開する。チャットは使い捨て、ノートが本体。
+Thin clouds accumulating high up — the sign that weather is about to change. cirrus is the **incremental notebook** for research: findings settle into a file as they appear, so a session dying at its context limit does not kill the investigation. The next session resumes from the header. **The chat is disposable; the note is the artifact.**
 
 ## The note
 
-`<default shared root>/research/<topic-slug>.md`(調べ物はプロジェクト横断のことが多いのでデフォルトの shared root 直下; 特定プロジェクト専属の調査なら `<shared>/<project>/research/` でもよい — どちらに置いたかはヘッダに書く)。
+`<default shared root>/research/<topic-slug>.md` — research usually spans projects, so it lives under the default shared root; a project-exclusive investigation may use `<shared>/<project>/research/` instead (say which in the header).
 
 ```markdown
-# <トピック> — research note
+# <topic> — research note
 - Status: 進行中 / 一段落 / 完了
-- Next: <次に調べること — 再開ポイント>
-- Open questions: <未解決の問い>
+- Next: <what to investigate next — the resume point>
+- Open questions: <unresolved questions>
 ## 結論(現時点)
-<いま言えることの要約 — 毎回ここを最新に保つ>
+<what can be said right now — keep this current>
 ## 知見
-- <発見> — 出典: <URL / file:line>(YYYY-MM-DD)
+- <finding> — source: <URL / file:line> (YYYY-MM-DD)
 ## 読んだソース
-- <URL> — 一行評(有用/薄い/古い)
+- <URL> — one-line verdict (useful / thin / outdated)
 ```
 
 ## Behavior
 
-1. **On invoke**: topic を確定し、既存ノートがあれば読む — ヘッダの `Next:` から再開する。無ければ作る。ユーザーの問いを `Open questions` に立てる。
-2. **Write as you go.** 有意な発見のたびにノートへ追記し、`結論(現時点)` を更新する — 会話の最後にまとめて書くのではない(それではコンテキスト死に負ける)。ソースは読んだ直後に URL と一行評を記録する — 「どこで読んだか忘れた」を作らない。
-3. **Heavy sweeps**: 網羅的・多角的に洗う必要が出たら `deep-research` に委譲し、返ってきたレポートの要点と参照をこのノートに綴じる(レポート本体の置き場所もリンクする)。cirrus 自身は伴走ノートに徹する。
-4. **On close**: ヘッダ(`Status` / `Next` / `Open questions`)を更新してからチャットに要約を返す。ノートのパスを必ず示す。
+1. **On invoke**: settle the topic; if a note exists, read it and resume from its `Next:`. Otherwise create it. Put the user's question into `Open questions`.
+2. **Write as you go.** Append each significant finding to the note and refresh `結論(現時点)` — not in one batch at the end of the conversation (that is exactly what loses to context death). Record each source's URL and one-line verdict immediately after reading it — never create a "where did I read that?" situation.
+3. **Heavy sweeps**: when the topic needs exhaustive multi-angle coverage, delegate to `deep-research` and bind its report's key points and references into this note (link to wherever the full report lives). cirrus itself stays the running notebook.
+4. **On close**: update the header (`Status` / `Next` / `Open questions`) first, then summarize in chat. Always give the note's path.
 
 ## Rules
 
-- ノートが単一の真実源 — チャットにしか無い知見を作らない。会話で答えた内容も、ノートに無ければ書いてから答える。
-- 追記中心で編集する。`結論(現時点)` だけは書き換えてよい(常に最新の見解)。過去の知見の行は消さず、覆ったら「→ 後述の◯◯で覆った」と注記する。
-- 出典のない knowledge をノートに書かない(モデルの記憶からの記述は「(未検証・記憶ベース)」と明示)。
-- Secrets・認証情報は決して書かない。
+- The note is the single source of truth — never leave knowledge only in the chat. If you answered something in conversation, write it to the note before (or as) you answer.
+- Edit append-first. Only `結論(現時点)` gets rewritten (always the latest view). Never delete a past finding; when one is overturned, annotate it ("→ superseded by ◯◯ below").
+- No unsourced knowledge in the note — statements from model memory are marked "(未検証・記憶ベース)".
+- Never write secrets or credentials.

@@ -5,32 +5,32 @@ description: Spec-drift watch — diff the spec (SPEC.md / petrichor plan) again
 
 # weathering
 
-出荷後、仕様は風化する — 実装が先に進み、SPEC.md が「昔の理想」になる。weathering は仕様と現実を突き合わせ、風化箇所を報告するスキル。**仕様を source of truth のまま保つ**ためにあり、spec-first ワークフローの古典的な死因（誰も読まない古文書化）を防ぐ。
+After shipping, specs weather — the code moves on and SPEC.md becomes "the old ideal". weathering diffs the spec against reality and reports the erosion. Its purpose is to **keep the spec the source of truth**, preventing the classic death of spec-first workflows: the document nobody reads anymore.
 
 ## Scope
 
-- **Read-only + report.** 分析と報告までが仕事。spec の書き換えは提案として提示し、確認を得てから適用する（仕様は合意の記録 — 黙って歴史を書き換えない）。
-- ドリフトの**方向**を必ず区別する:
-  - **実装にあるが spec にない** → 未承認スコープ or 記録漏れ。どちらかをユーザーに確認。
-  - **spec にあるが実装にない** → 未着工（tasks.md に残っているか？）or こっそり落ちた要件。
-  - **両方にあるが挙動が違う** → 一番危険。どちらが正か確認する。
+- **Read-only + report.** Analysis and reporting are the job; spec rewrites are presented as proposals and applied only after confirmation (the spec is a record of agreements — never silently rewrite history).
+- Always classify the **direction** of each drift:
+  - **In the code but not in the spec** → unapproved scope, or a recording gap. Ask the user which.
+  - **In the spec but not in the code** → not built yet (still in tasks.md?), or a silently dropped requirement.
+  - **In both but behaving differently** → the most dangerous kind. Ask which side is correct.
 
 ## Input
 
 - The spec: `SPEC.md` in the repo, else `<shared-root>/<project>/petrichor-plan/00-overview.md` (shared root: per the global Handoff rule). No spec → nothing to weather; suggest `overcast` (it bootstraps the As-Is spec from the code) and stop.
-- Reality: the code (prefer Serena's symbol tools when active, else Grep/Read), schema/migrations, OpenAPI, README, and `git log` since the spec file last changed (that commit range *is* the drift window).
-- `tasks.md` (あれば): 「spec にあるが実装にない」項目が単なる未着工か、落ちた要件かの判別に使う。
+- Reality: the code (prefer Serena's symbol tools when active, else Grep/Read), schema/migrations, OpenAPI, README, and `git log` since the spec file last changed — that commit range *is* the drift window.
+- `tasks.md`, if present: distinguishes "in spec but not in code" items that are merely unstarted from ones that silently fell off.
 
 ## Method
 
 1. Establish the drift window: last commit touching `SPEC.md` (or the plan file's mtime) → HEAD.
-2. Sweep the window's commits/diff for feature-shaped change (new routes/commands/tables/screens), and map each to a 機能 ID — or fail to, which is itself a finding.
-3. Walk the spec's v1 機能 ID list the other way: does each still exist in code and behave per its 受け入れ条件? Spot-check the riskiest, don't re-verify everything (that is `verify`'s job at checkpoints).
-4. Check the data model: spec の ER/データ項目定義 vs 実スキーマ・マイグレーション。
-5. **ja+en projects**: compare the canonical and rendered files — rendered older than canonical = 訳の風化. Offer a re-render.
+2. Sweep the window's commits/diff for feature-shaped change (new routes, commands, tables, screens) and map each to a 機能 ID — failing to map is itself a finding.
+3. Walk the spec's v1 機能 ID list in the other direction: does each still exist in code, behaving per its 受け入れ条件? Spot-check the riskiest — full re-verification is `verify`'s job at checkpoints, not this skill's.
+4. Check the data model: the spec's ER / データ項目定義 vs the actual schema and migrations.
+5. **ja+en projects**: compare the canonical and rendered files — a rendered file older than the canonical is translation rot. Offer a re-render.
 
 ## Output
 
-Report to `<shared-root>/<project>/YYYY-MM-DD_weathering-report.md`. Severity per finding — weathering's own four-level scale: **重大**(壊れている・危険)/ **対応が必要**(直すべき欠陥)/ **テストが必要**(挙動未確認)/ **軽微**(記録して先送り可). Each finding: direction, evidence (`file:line` / commit), affected ID, and a **proposed spec edit** (or a proposed code issue, when the spec is right and the code drifted). If nothing drifted, say so in chat — no file for an all-clear.
+Report to `<shared-root>/<project>/YYYY-MM-DD_weathering-report.md`. Severity per finding — weathering's own four-level scale: **重大** (broken / dangerous) / **対応が必要** (a real defect to fix) / **テストが必要** (behavior unconfirmed) / **軽微** (note and defer). Each finding: direction, evidence (`file:line` / commit), affected ID, and a **proposed spec edit** (or a proposed code issue, when the spec is right and the code drifted). If nothing drifted, say so in chat — no file for an all-clear.
 
-After confirmation: apply the agreed spec edits in one pass, re-render the translation if stale, and note the update in the spec header (date + drift window). Substantial new scope discovered here re-enters the rail via `petrichor` (monsoon's triage rule) — weathering records the gap, it doesn't spec new features itself.
+After confirmation: apply the agreed spec edits in one pass, re-render the translation if stale, and note the update in the spec header (date + drift window). Substantial new scope discovered here re-enters the rail via `petrichor` (monsoon's triage rule) — weathering records the gap; it never specs new features itself.

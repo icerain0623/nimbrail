@@ -5,13 +5,13 @@ description: Generate a pre-release manual scenario-test checklist from the proj
 
 # forecast
 
-リリース前の「予報」— 仕様からシナリオテストのチェックリストを生成し、出荷しても晴れるかを人の手で歩いて確かめる。自動テストの代替ではない（それはビルド中の `check` / `verify` の仕事）。これは**ユーザー視点の通し歩き**: 業務フローどおりに操作し、例外を踏み、権限の境界を叩く。
+The pre-release weather report — generate a scenario-test checklist from the spec and walk, by hand, whether it will hold once shipped. Not a substitute for automated tests (those belong to `check` / `verify` during the build). This is the **end-to-end walk from the user's seat**: follow the 業務フロー, step on the exceptions, knock on the permission boundaries.
 
 ## Input
 
-- The spec: `SPEC.md` in the repo, else `<shared-root>/<project>/petrichor-plan/00-overview.md` (shared root: per the global Handoff rule). 特に 機能要件一覧（優先度・受け入れ条件）/ 画面一覧・画面定義書（または非 Web の読み替え先: コマンド一覧・API 一覧）/ 業務フロー / 権限マトリクス。
-- `tasks.md` の完了条件（あれば — 受け入れ条件との突き合わせに使う）。
-- No spec → say so and suggest `petrichor` first; don't fabricate scenarios from code alone. L1 sketch only → offer a minimal smoke list from the overview and label it as such.
+- The spec: `SPEC.md` in the repo, else `<shared-root>/<project>/petrichor-plan/00-overview.md` (shared root: per the global Handoff rule). Especially: 機能要件一覧 (優先度・受け入れ条件) / 画面一覧・画面定義書 (or their non-web equivalents: command / API lists) / 業務フロー / 権限マトリクス.
+- `tasks.md` completion conditions, if present — to cross-check against the acceptance criteria.
+- No spec → say so and suggest `petrichor` first; never fabricate scenarios from code alone. L1-sketch-only spec → offer a minimal smoke list from the overview and label it as such.
 
 ## Output
 
@@ -32,8 +32,8 @@ description: Generate a pre-release manual scenario-test checklist from the proj
 
 ## Rules
 
-- **Every line traces to an ID.** 期待値は受け入れ条件（EARS 文）から引用・導出する — 新しい基準を発明しない。書けない期待値が出たら、それは仕様の穴: `petrichor` へ差し戻す候補として報告する（黙って埋めない）。
-- **Coverage is the point.** v1 の全機能 ID が最低ひとつのシナリオに現れること。漏れは「カバレッジ」節に明示する — 黙って落とさない。v2 / 保留 は入れない。
-- 例外系（失敗・空・権限拒否）と「画面のない機能」（通知・バッチ・権限制御）を必ず織り込む — ハッピーパスだけの予報は予報ではない。
-- シナリオは業務フロー / ユーザージャーニー単位で束ねる（機能単体の羅列にしない — 通しで歩けることに価値がある）。
-- Re-running regenerates the checklist from the current spec (overwrite); past runs' results live in git history of the release, not here.
+- **Every line traces to an ID.** Expected results are quoted or derived from the acceptance criteria (EARS sentences) — never invent a new bar. An expectation you cannot write is a **spec hole**: report it as a candidate to route back to `petrichor`, don't silently fill it in.
+- **Coverage is the point.** Every v1 機能 ID appears in at least one scenario; gaps are listed explicitly in the カバレッジ section — never dropped in silence. v2 / 保留 items stay out.
+- Always weave in the exception paths (failure / empty / permission-denied) and the screenless 機能 (notifications, batch jobs, permission control) — a happy-path-only forecast is not a forecast.
+- Bundle steps into scenarios by 業務フロー / user journey, not as a flat per-機能 list — the value is in walking end to end.
+- Re-running regenerates the checklist from the current spec (overwrite); past runs' results live in the release's git history, not here.

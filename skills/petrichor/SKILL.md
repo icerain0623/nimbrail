@@ -37,7 +37,7 @@ All planning lives **outside the repo**, in the Obsidian-readable shared dir —
 - `petrichor-plan/00-overview.md` — single source of truth: progress header (resume pointer) + accumulated decisions. Rewritten once per round. No separate state file.
 - `petrichor-plan/NN-topic.md` (`01-database.md`, …) — disposable working files for batched questions; user fills answers inline.
 
-**Cross-links (Obsidian).** ID 相互参照や成果物間の参照は `[[ファイル#見出し]]` の wikilink で書く — クリックで飛べ、バックリンクで逆引きが自動で付く。**リンクを付けるだけに留め**、ID ごとのノート化やトレース表生成までは作らない（人も AI も読みづらくなる）。詳細は L3 の `requirements-jp.md` 横断原則を参照。
+**Cross-links (Obsidian).** Write ID cross-references and inter-artifact references as `[[file#heading]]` wikilinks — click-through navigation, with backlinks giving reverse lookup for free. **Links only**: no per-ID note files, no generated trace tables (both make the plan harder for humans and AI to read). Details in the L3 `requirements-jp.md` 横断原則.
 
 petrichor **reads** `TODO.md` but never silently decides from it. Each round, surface items that touch the current topics as proposed `## <decision point>` blocks in the current `NN-topic.md` file (with a Recommendation, same format as any other question). Only after the user fills `Answer:` does it get promoted to `00-overview.md`. When an item is promoted, check it off in `TODO.md` with a `(→ spec)` tag — never delete it. Items the user hasn't acted on stay untouched.
 

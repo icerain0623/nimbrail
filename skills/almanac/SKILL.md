@@ -5,7 +5,7 @@ description: Weekly work digest + shared-dir housekeeping — sweep the week's g
 
 # almanac
 
-気象年鑑 — 一週間の天候をまとめて記録する。git 履歴・ビルド台帳・摩擦ログを横断して一枚のダイジェストに落とし、ついでに共有ディレクトリの棚卸し(アーカイブ提案)をする。週報の下書きにそのまま使える形が目標。
+The weather yearbook — record the week's weather in one place. Sweep git history, the build ledgers, and the friction logs across projects into a single digest, and do the shared-directory housekeeping (archive proposals) on the way. The goal shape: directly usable as a 週報 draft.
 
 ## Inputs
 
