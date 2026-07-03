@@ -24,6 +24,7 @@ claude-kit/
 │   ├── petrichor/             # plan a new project/feature (interview) — the greenfield front door
 │   ├── overcast/              # enter an existing codebase: reverse-engineer the As-Is spec
 │   ├── squall/                # detailed design (how to build) + record .claude config — after petrichor
+│   ├── downpour/              # optional build accelerator: burn down tasks.md wave by wave with subagents
 │   ├── monsoon/               # router: read state, carry build discipline, delegate to the right skill
 │   ├── check/                 # run lint/typecheck (+test/build), log + summarize
 │   ├── release-note/          # opt-in RELEASE_NOTE.md changelog
@@ -94,7 +95,7 @@ Each step ends by pointing you to the next, so you follow the prompts instead of
 
 1. **Design + config — `squall`.** Detailed design (how to build): reads the spec + existing code and produces repo design artifacts — dev-environment/README, coding conventions (Lint), DB physical schema, module/process design, API (OpenAPI)/sequence designs, infra detail — then records the `.claude/` config (`project.md` that `monsoon` reads + `CLAUDE.md` conventions) and enables opt-ins like release notes on confirmation. Explore-first, not an interview. (Skip the parts that don't apply.)
 
-2. **Build.** Coding stays in the normal loop — no separate skill drives it. The build discipline is **ambient** (global CLAUDE.md), so it applies without invoking anything: judge Serena onboarding (run it when it pays off), branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing. At a checkpoint, run `/monsoon` to route the next step (`check` → commit → push / PR / …).
+2. **Build.** Coding stays in the normal loop — no separate skill drives it. The build discipline is **ambient** (global CLAUDE.md), so it applies without invoking anything: judge Serena onboarding (run it when it pays off), branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing. At a checkpoint, run `/monsoon` to route the next step (`check` → commit → push / PR / …). For an autonomously-runnable stretch of the ledger, `/downpour` burns it down wave by wave — subagents implement, fresh-context verifiers judge the EARS completion conditions, the orchestrator alone commits and writes the ledger (spec: `docs/SPEC-downpour.md`).
 
 3. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
    - a **new piece of work** → triage by size: small/clear takes the express lane (skip planning → build → `check` → `verify` → commit); substantial re-enters the rail at `petrichor`
@@ -107,7 +108,7 @@ Each step ends by pointing you to the next, so you follow the prompts instead of
 
    Read-only steps and commits run automatically; outward or irreversible steps (push, PR, deletion) are proposed first.
 
-Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (`petrichor`, `overcast`, `squall`, `monsoon`, `sunbreak`) are **slash-only** (`disable-model-invocation`) — you invoke them explicitly, so a heavy interview never auto-fires from a stray phrase. The **utility** skills below *also* trigger from context (their descriptions are tuned to fire on the right intent and stay quiet otherwise), or you can call them directly for a single step:
+Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (`petrichor`, `overcast`, `squall`, `downpour`, `monsoon`, `sunbreak`) are **slash-only** (`disable-model-invocation`) — you invoke them explicitly, so a heavy interview never auto-fires from a stray phrase. The **utility** skills below *also* trigger from context (their descriptions are tuned to fire on the right intent and stay quiet otherwise), or you can call them directly for a single step:
 
 | skill | what it does |
 | --- | --- |
