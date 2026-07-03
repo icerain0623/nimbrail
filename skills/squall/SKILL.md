@@ -28,7 +28,7 @@ petrichor (要件定義) → **squall (詳細設計 ＋ `.claude/` 設定)** →
 - **Don't compromise the core** (DB relations and the like — failure there is expensive); everything else only needs "ready-to-implement" granularity.
 - Anything a tool can enforce (naming, format) should land as **config** (Lint/formatter), not just prose.
 - Skip sections that don't apply, with a noted reason.
-- Design prose in **Japanese**; code artifacts (Lint config, OpenAPI, IaC) follow the repo's own conventions.
+- Design prose in the project's **docs language** — take `docs_lang` from the petrichor spec header if present, else ask once (default ja) and record it in `project.md`. For `ja+en`: author the **canonical**, render the other as a sibling (the OSS `README.md` + `README.ja.md` pattern); regenerate the rendered file from the canonical at checkpoints, never hand-edit it. Code artifacts (Lint config, OpenAPI, IaC) follow the repo's own conventions.
 
 ## On launch
 
@@ -56,6 +56,7 @@ Static config only, no mutable state. Keep it small and stable:
     package_manager: <pnpm|npm|cargo|...>
     default_branch: <main>
     branch_model: <feature-branch|trunk>
+    docs_lang: <ja|en|ja+en>   # dual: canonical first, other rendered
     check:
       lint: <command or ->
       typecheck: <command or ->
