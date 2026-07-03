@@ -83,7 +83,7 @@ It's a **loop, not a one-shot line**, and you enter it sized to the work:
 
 Each step ends by pointing you to the next, so you follow the prompts instead of memorizing the chain.
 
-0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`. (Skip for a repo that already has code.)
+0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `<shared-root>/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase; shared root defaults to `~/Documents/claude-shared`, per-project override via `~/.claude/shared-dirs.json` — see the global CLAUDE.md Handoff rule). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`. (Skip for a repo that already has code.)
 
 1. **Design + config — `squall`.** Detailed design (how to build): reads the spec + existing code and produces repo design artifacts — dev-environment/README, coding conventions (Lint), DB physical schema, module/process design, API (OpenAPI)/sequence designs, infra detail — then records the `.claude/` config (`project.md` that `monsoon` reads + `CLAUDE.md` conventions) and enables opt-ins like release notes on confirmation. Explore-first, not an interview. (Skip the parts that don't apply.)
 

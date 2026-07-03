@@ -16,7 +16,7 @@ Extract that UUID — that is the session ID.
 
 ## Steps
 1. Resolve: session ID (from the path above), `cwd`, `git branch --show-current` (if in a repo), and the current timestamp.
-2. Write `~/Documents/claude-shared/session-<project-name>.md` (create the dir if missing) containing, in plain text:
+2. Write `<shared-root>/session-<project-name>.md` (create the dir if missing; shared root: default `~/Documents/claude-shared`, per-project override via `~/.claude/shared-dirs.json` — global Handoff rule) containing, in plain text:
    - the resume command: `claude --resume <SESSION_ID>`
    - project name, branch, cwd, timestamp.
 3. Load the resume command onto the clipboard: `printf '%s' 'claude --resume <SESSION_ID>' | pbcopy`.

@@ -22,8 +22,8 @@ Run fastest first so failures surface early; stop the heavy steps if the fast on
 
 ## Run and log
 For each step, tee combined output to a log and keep the real exit code:
-`<cmd> 2>&1 | tee ~/Documents/claude-shared/check-<project>/<step>.log; exit ${PIPESTATUS[0]}`
-(Create the `check-<project>/` dir first.)
+`<cmd> 2>&1 | tee <shared-root>/check-<project>/<step>.log; exit ${PIPESTATUS[0]}`
+(Create the `check-<project>/` dir first. Shared root: default `~/Documents/claude-shared`, per-project override via `~/.claude/shared-dirs.json` — global Handoff rule.)
 
 ## Report
 Return a short summary: each step pass/fail, error/warning counts, and the first few failing lines. Give the log paths for full output. Do not paste whole logs into the reply.
