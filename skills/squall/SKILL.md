@@ -70,7 +70,7 @@ Static config only, no mutable state. Keep it small and stable:
 
 ## Done
 
-Two gates before handing off to the build:
+Three gates before handing off to the build:
 
 1. **Cross-artifact consistency — once, before 着工.** Each section already met its own 終了条件; this is the one pass that checks the artifacts agree *with each other*. A reading pass, not a new station or ceremony — a checklist, **scaled to level** (skip for L1 / trivial; light for L2; full for L3):
    - every **v1** 機能 ID in the spec lands in the design **and** (substantial builds) in `tasks.md` — no requirement dropped on the floor; v2 / 保留 items are consciously absent (deferred scope stays deferred, don't build it early);
@@ -79,5 +79,6 @@ Two gates before handing off to the build:
    - each task's completion condition traces to the corresponding 機能 ID's 受け入れ条件 (where the spec carries them) — the same bar `verify` will check during the build.
    Surface any drift **back to petrichor** (a spec gap) or fix it **here** (a design gap) — don't bury it in code. This is the same "don't silently guess spec/design gaps" rule, applied once across all three artifacts.
 2. Every applicable section of `detail-design-jp.md` meets its 終了条件 and the `.claude/` config is recorded.
+3. **着工承認 (GO)** — skip for L1 / trivial. Present a one-screen summary: the key design decisions (DB core, module boundaries, API shape), sections skipped and why, task count with the critical path, and any open risks. Wait for the user's GO before declaring done. This mirrors petrichor's Phase-0 GO — the design is about to become expensive to change, so the last cheap moment to object is now.
 
-When both hold, the design, toolchain, conventions, and — for substantial builds — the task ledger are established. Build in the normal loop — the build discipline (Serena onboarding judgment, an in-flight `feedback.md`, routing spec/design gaps back, branch-first, `check` → `verify` at checkpoints) is **ambient** (global CLAUDE.md), so it applies without invoking anything. At a checkpoint (a unit compiles / runs), run `/monsoon` to route the next step — it reads the claude-shared `tasks.md` for the remaining plan and live progress (the ledger is the source of truth for task progress, not git's clean/dirty state) — `check` → commit → push / PR / release / cleanup.
+When all hold, the design, toolchain, conventions, and — for substantial builds — the task ledger are established. Build in the normal loop — the build discipline (Serena onboarding judgment, an in-flight `feedback.md`, routing spec/design gaps back, branch-first, `check` → `verify` at checkpoints) is **ambient** (global CLAUDE.md), so it applies without invoking anything. At a checkpoint (a unit compiles / runs), run `/monsoon` to route the next step — it reads the claude-shared `tasks.md` for the remaining plan and live progress (the ledger is the source of truth for task progress, not git's clean/dirty state) — `check` → commit → push / PR / release / cleanup.
