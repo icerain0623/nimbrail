@@ -1,6 +1,6 @@
 ---
 name: check
-description: Run a project's quality checks (lint and typecheck by default; test and build only on request), tee output to a log in ~/Documents/claude-shared, and return a concise pass/fail summary. Use before committing or when asked to verify code health.
+description: Run a project's quality checks (lint and typecheck by default; test and build only on request), tee output to a log under the shared root (default ~/Documents/claude-shared), and return a concise pass/fail summary. Use before committing or when asked to verify code health.
 ---
 
 # Check
@@ -22,8 +22,8 @@ Run fastest first so failures surface early; stop the heavy steps if the fast on
 
 ## Run and log
 For each step, tee combined output to a log and keep the real exit code:
-`<cmd> 2>&1 | tee ~/Documents/claude-shared/check-<project>/<step>.log; exit ${PIPESTATUS[0]}`
-(Create the `check-<project>/` dir first.)
+`<cmd> 2>&1 | tee <shared-root>/check-<project>/<step>.log; exit ${PIPESTATUS[0]}`
+(Create the `check-<project>/` dir first. Shared root: per the global Handoff rule.)
 
 ## Report
 Return a short summary: each step pass/fail, error/warning counts, and the first few failing lines. Give the log paths for full output. Do not paste whole logs into the reply.

@@ -21,7 +21,7 @@ The clearing after the storm — look back over recent sessions and surface what
 4. **Classify each kept lesson by scope** — this is the key judgement:
    - **Global candidate** — the pattern recurs across *more than one project*, or is obviously stack-agnostic. These are the only ones worth proposing for the global CLAUDE.md, a global memory, or a skill.
    - **Project-specific** — seen only within one project, or tied to that repo's stack/conventions. Promoting these to global config or a skill is pointless noise; keep them scoped to that project.
-5. **Write one report** — do not edit memory or CLAUDE.md. See format below. Path: `~/Documents/claude-shared/sunbreak/<YYYY-MM-DD>-report.md` (Obsidian-readable; create the dir if missing). If a report already exists for today, append a new run section rather than overwriting.
+5. **Write one report** — do not edit memory or CLAUDE.md. See format below. Path: `~/Documents/claude-shared/sunbreak/<YYYY-MM-DD>-report.md` — always the default shared root, not a per-project override: sunbreak is cross-project, so its reports don't belong to any one project (Obsidian-readable; create the dir if missing). If a report already exists for today, append a new run section rather than overwriting.
 6. Report back: where the file was written, counts per bucket, and how many transcripts / projects were reviewed. Then stop — applying is the user's call, later. Do **not** open an apply-now dialog.
 
 ## Report format

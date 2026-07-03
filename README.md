@@ -21,8 +21,10 @@ claude-kit/
 │   ├── npmrc                  # supply-chain hardening    → ~/.npmrc (ignore-scripts + min-release-age)
 │   └── hooks/*.sh             # PreToolUse hooks          → ~/.claude/hooks/
 ├── skills/                    # authored skills → ~/.claude/skills/<name>/
-│   ├── petrichor/             # plan a new project/feature (interview) — the front door
+│   ├── petrichor/             # plan a new project/feature (interview) — the greenfield front door
+│   ├── overcast/              # enter an existing codebase: reverse-engineer the As-Is spec
 │   ├── squall/                # detailed design (how to build) + record .claude config — after petrichor
+│   ├── downpour/              # optional build accelerator: burn down tasks.md wave by wave with subagents
 │   ├── monsoon/               # router: read state, carry build discipline, delegate to the right skill
 │   ├── check/                 # run lint/typecheck (+test/build), log + summarize
 │   ├── release-note/          # opt-in RELEASE_NOTE.md changelog
@@ -30,6 +32,10 @@ claude-kit/
 │   ├── python-setup/          # sandbox-safe Python venv onboarding
 │   ├── node-sandbox-setup/    # unblock pnpm + mise under the sandbox (symptom→fix)
 │   ├── session-info/          # write session resume info to claude-shared
+│   ├── forecast/              # pre-release scenario-test checklist from the spec
+│   ├── weathering/            # spec-drift watch: diff SPEC.md against implemented reality
+│   ├── almanac/               # weekly digest (週報 draft) + shared-dir archive proposals
+│   ├── cirrus/                # incremental research notebook that survives context death
 │   └── sunbreak/              # mine past transcripts into an Obsidian report
 └── .claude/CLAUDE.md          # project-scoped rules for working on claude-kit itself
 ```
@@ -83,30 +89,37 @@ It's a **loop, not a one-shot line**, and you enter it sized to the work:
 
 Each step ends by pointing you to the next, so you follow the prompts instead of memorizing the chain.
 
-0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `~/Documents/claude-shared/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`. (Skip for a repo that already has code.)
+0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `<shared-root>/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase; shared root defaults to `~/Documents/claude-shared`, per-project override via `~/.claude/shared-dirs.json` — see the global CLAUDE.md Handoff rule). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`.
+
+0′. **Existing codebase, no spec — `overcast`.** The other entrance: reverse-engineer the As-Is into the same spec artifact — 機能 IDs from routes/commands, acceptance criteria from tests, real permissions from auth code — every statement confidence-marked (事実/推定/不明), unknowns asked once in a batched round. Inherited code then rides the same rail (squall / forecast / weathering).
 
 1. **Design + config — `squall`.** Detailed design (how to build): reads the spec + existing code and produces repo design artifacts — dev-environment/README, coding conventions (Lint), DB physical schema, module/process design, API (OpenAPI)/sequence designs, infra detail — then records the `.claude/` config (`project.md` that `monsoon` reads + `CLAUDE.md` conventions) and enables opt-ins like release notes on confirmation. Explore-first, not an interview. (Skip the parts that don't apply.)
 
-2. **Build.** Coding stays in the normal loop — no separate skill drives it. The build discipline is **ambient** (global CLAUDE.md), so it applies without invoking anything: judge Serena onboarding (run it when it pays off), branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing. At a checkpoint, run `/monsoon` to route the next step (`check` → commit → push / PR / …).
+2. **Build.** Coding stays in the normal loop — no separate skill drives it. The build discipline is **ambient** (global CLAUDE.md), so it applies without invoking anything: judge Serena onboarding (run it when it pays off), branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing. At a checkpoint, run `/monsoon` to route the next step (`check` → commit → push / PR / …). For an autonomously-runnable stretch of the ledger, `/downpour` burns it down wave by wave — subagents implement, fresh-context verifiers judge the EARS completion conditions, the orchestrator alone commits and writes the ledger (spec: `docs/SPEC-downpour.md`).
 
 3. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
    - a **new piece of work** → triage by size: small/clear takes the express lane (skip planning → build → `check` → `verify` → commit); substantial re-enters the rail at `petrichor`
    - uncommitted changes → `check` (lint/typecheck), then commits autonomously on the feature branch
-   - version bump + release notes enabled → `release-note` (offered before the PR, so the changelog lands in the same push)
+   - version bump + release notes enabled → `release-note` (offered before the PR, so the changelog lands in the same push); a release with a spec also gets `forecast` offered (scenario walk-through before the push)
    - feature branch with checks passing → offers to push / open a PR
    - merged branches piling up → `clean-branches`
+   - many feature commits since `SPEC.md` last changed → `weathering` (spec-drift report)
    - on request → `sunbreak`
 
    Read-only steps and commits run automatically; outward or irreversible steps (push, PR, deletion) are proposed first.
 
-Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (`petrichor`, `squall`, `monsoon`, `sunbreak`) are **slash-only** (`disable-model-invocation`) — you invoke them explicitly, so a heavy interview never auto-fires from a stray phrase. The **utility** skills below *also* trigger from context (their descriptions are tuned to fire on the right intent and stay quiet otherwise), or you can call them directly for a single step:
+Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (`petrichor`, `overcast`, `squall`, `downpour`, `monsoon`, `sunbreak`) are **slash-only** (`disable-model-invocation`) — you invoke them explicitly, so a heavy interview never auto-fires from a stray phrase. The **utility** skills below *also* trigger from context (their descriptions are tuned to fire on the right intent and stay quiet otherwise), or you can call them directly for a single step:
 
 | skill | what it does |
 | --- | --- |
-| `check` | run lint/typecheck (`full` adds test+build); logs to `~/Documents/claude-shared/` |
+| `check` | run lint/typecheck (`full` adds test+build); logs to the shared root (default `~/Documents/claude-shared/`) |
 | `release-note` | update `RELEASE_NOTE.md` from commits since the last tag (opt-in per repo) |
 | `clean-branches` | delete merged local branches (remote on request); main/master is hook-protected |
-| `session-info` | write the resume command (`claude --resume <id>`) to `~/Documents/claude-shared/` |
+| `session-info` | write the resume command (`claude --resume <id>`) to the shared root (default `~/Documents/claude-shared/`) |
+| `forecast` | generate a pre-release scenario-test checklist from the spec (coverage-traced to 機能 IDs) |
+| `weathering` | spec-drift report: where the code and `SPEC.md` disagree (+ stale ja+en rendering); edits on confirmation |
+| `almanac` | weekly digest across active repos (週報 draft) + archive proposals for stale claude-shared files |
+| `cirrus` | incremental research notebook — findings persist to Obsidian as found, resumable after context death |
 | `sunbreak` | review past transcripts; write an Obsidian report (global vs project-specific lessons), applied later |
 | `python-setup` | set up a sandbox-safe Python venv |
 | `node-sandbox-setup` | unblock pnpm + mise under the sandbox (symptom→fix for the install dance) |

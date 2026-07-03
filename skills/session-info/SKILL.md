@@ -1,6 +1,6 @@
 ---
 name: session-info
-description: Write the current session's resume info (session ID, cwd, git branch, timestamp) to a file in ~/Documents/claude-shared so the user can grab it for `claude --resume` without being asked for the ID. Use when the user wants the session ID, or is about to switch or restart sessions.
+description: Write the current session's resume info (session ID, cwd, git branch, timestamp) to a file in the shared root (default ~/Documents/claude-shared) so the user can grab it for `claude --resume` without being asked for the ID. Use when the user wants the session ID, or is about to switch or restart sessions.
 ---
 
 # Session Info
@@ -16,7 +16,7 @@ Extract that UUID — that is the session ID.
 
 ## Steps
 1. Resolve: session ID (from the path above), `cwd`, `git branch --show-current` (if in a repo), and the current timestamp.
-2. Write `~/Documents/claude-shared/session-<project-name>.md` (create the dir if missing) containing, in plain text:
+2. Write `<shared-root>/session-<project-name>.md` (create the dir if missing; shared root: per the global Handoff rule) containing, in plain text:
    - the resume command: `claude --resume <SESSION_ID>`
    - project name, branch, cwd, timestamp.
 3. Load the resume command onto the clipboard: `printf '%s' 'claude --resume <SESSION_ID>' | pbcopy`.
