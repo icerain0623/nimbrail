@@ -1,6 +1,6 @@
 ---
 name: petrichor
-description: Greenfield planning front-door — interview the user to a spec at a chosen depth (L1 sketch / L2 spec / L3 要件定義), then hand off to squall.
+description: Greenfield planning front-door — interview the user to a spec at a chosen depth (L1 sketch / L2 spec / L3 要件定義; web and non-web — CLI/library/game). L2+ specs carry a v1 scope line, S/M/L estimates, and EARS-style acceptance criteria that squall's task ledger and the build's verify enforce downstream; Done gates include a fresh-context adversarial review. Spec language defaults to ja (en / ja+en offered on audience signal). Hands off to squall.
 disable-model-invocation: true
 ---
 
@@ -22,7 +22,7 @@ Before Phase 0, ask **one** question: how far should this go? The answer sets in
 
 For **L3**, the progress header becomes a **section-coverage checklist** — each section of `requirements-jp.md` marked 未着手 / 進行 / 確定 — and sections that don't apply to the project are skipped with a noted reason.
 
-For **L2 and L3**, every item in the 機能一覧 carries three extra fields: **優先度** (v1 / v2 / 保留 — the v1 line is a Done requirement, see Done), **概算** (S/M/L effort tag, so the v1 line is a real cost decision, not a wish), and **受け入れ条件** (≥1 verifiable acceptance criterion). The acceptance criteria are what keep the spec *live* downstream: `squall` derives `tasks.md` completion conditions from them, and the build's `verify` step checks real behavior against them — the spec is enforced, not write-once.
+For **L2 and L3**, every item in the 機能一覧 carries three extra fields: **優先度** (v1 / v2 / 保留 — the v1 line is a Done requirement, see Done), **概算** (S/M/L effort tag, so the v1 line is a real cost decision, not a wish), and **受け入れ条件** (≥1 verifiable acceptance criterion; recommended sentence pattern is EARS — 「〜のとき、システムは〜する」, exceptions as 「もし〜なら、…」 — testable by construction). The acceptance criteria are what keep the spec *live* downstream: `squall` derives `tasks.md` completion conditions from them, and the build's `verify` step checks real behavior against them — the spec is enforced, not write-once.
 
 **Spec language: don't ask — default `ja`.** The toggle serves the deliverable's *audience*, not the author; it only matters when the spec will face readers who don't read Japanese. Offer `en` / `ja+en` only when that signal appears — OSS / public release / international collaborators come up (usually in Phase 0) — or when the user raises it. Dual (`ja+en`) means one **canonical** language plus a translation **rendered at Done**, never authored in parallel; the interview and `NN-topic.md` working files stay in the user's language regardless. Note the language in the header only when it's not the default.
 
