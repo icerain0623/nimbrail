@@ -8,6 +8,8 @@ disable-model-invocation: true
 
 Interview the user relentlessly until the plan is fully specified. Walk the design tree branch by branch, resolving dependencies one at a time. Always give your recommended answer. Probe the negative space too — what must **not** happen, the exception paths (failure / empty / permission-denied), what is explicitly out of scope; specs rot from missing 例外系 more than from missing happy paths. If the codebase can answer a question, explore it instead of asking — prefer Serena's symbol tools (`get_symbols_overview`, `find_symbol`) when that MCP is already active, otherwise Grep/Read. Do not trigger Serena onboarding from here; that belongs to implementation.
 
+petrichor specs **new** things (the greenfield front door). An existing codebase with no spec enters the rail through `overcast` instead — it reverse-engineers the As-Is; petrichor would just be interviewing the user about answers the code already holds.
+
 Two phases, chosen by question type:
 - **Phase 0 — chat, one at a time**: few, highly-dependent questions. Build the overview conversationally.
 - **Phase 1+ — batched in files**: many independent details. Faster, and yields a written spec.

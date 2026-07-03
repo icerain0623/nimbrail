@@ -21,7 +21,8 @@ claude-kit/
 │   ├── npmrc                  # supply-chain hardening    → ~/.npmrc (ignore-scripts + min-release-age)
 │   └── hooks/*.sh             # PreToolUse hooks          → ~/.claude/hooks/
 ├── skills/                    # authored skills → ~/.claude/skills/<name>/
-│   ├── petrichor/             # plan a new project/feature (interview) — the front door
+│   ├── petrichor/             # plan a new project/feature (interview) — the greenfield front door
+│   ├── overcast/              # enter an existing codebase: reverse-engineer the As-Is spec
 │   ├── squall/                # detailed design (how to build) + record .claude config — after petrichor
 │   ├── monsoon/               # router: read state, carry build discipline, delegate to the right skill
 │   ├── check/                 # run lint/typecheck (+test/build), log + summarize
@@ -85,7 +86,9 @@ It's a **loop, not a one-shot line**, and you enter it sized to the work:
 
 Each step ends by pointing you to the next, so you follow the prompts instead of memorizing the chain.
 
-0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `<shared-root>/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase; shared root defaults to `~/Documents/claude-shared`, per-project override via `~/.claude/shared-dirs.json` — see the global CLAUDE.md Handoff rule). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`. (Skip for a repo that already has code.)
+0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `<shared-root>/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase; shared root defaults to `~/Documents/claude-shared`, per-project override via `~/.claude/shared-dirs.json` — see the global CLAUDE.md Handoff rule). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`.
+
+0′. **Existing codebase, no spec — `overcast`.** The other entrance: reverse-engineer the As-Is into the same spec artifact — 機能 IDs from routes/commands, acceptance criteria from tests, real permissions from auth code — every statement confidence-marked (事実/推定/不明), unknowns asked once in a batched round. Inherited code then rides the same rail (squall / forecast / weathering).
 
 1. **Design + config — `squall`.** Detailed design (how to build): reads the spec + existing code and produces repo design artifacts — dev-environment/README, coding conventions (Lint), DB physical schema, module/process design, API (OpenAPI)/sequence designs, infra detail — then records the `.claude/` config (`project.md` that `monsoon` reads + `CLAUDE.md` conventions) and enables opt-ins like release notes on confirmation. Explore-first, not an interview. (Skip the parts that don't apply.)
 
@@ -102,7 +105,7 @@ Each step ends by pointing you to the next, so you follow the prompts instead of
 
    Read-only steps and commits run automatically; outward or irreversible steps (push, PR, deletion) are proposed first.
 
-Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (`petrichor`, `squall`, `monsoon`, `sunbreak`) are **slash-only** (`disable-model-invocation`) — you invoke them explicitly, so a heavy interview never auto-fires from a stray phrase. The **utility** skills below *also* trigger from context (their descriptions are tuned to fire on the right intent and stay quiet otherwise), or you can call them directly for a single step:
+Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (`petrichor`, `overcast`, `squall`, `monsoon`, `sunbreak`) are **slash-only** (`disable-model-invocation`) — you invoke them explicitly, so a heavy interview never auto-fires from a stray phrase. The **utility** skills below *also* trigger from context (their descriptions are tuned to fire on the right intent and stay quiet otherwise), or you can call them directly for a single step:
 
 | skill | what it does |
 | --- | --- |

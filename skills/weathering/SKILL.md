@@ -17,7 +17,7 @@ description: Spec-drift watch — diff the spec (SPEC.md / petrichor plan) again
 
 ## Input
 
-- The spec: `SPEC.md` in the repo, else `<shared-root>/<project>/petrichor-plan/00-overview.md` (shared root: default `~/Documents/claude-shared`, override via `~/.claude/shared-dirs.json`). No spec → nothing to weather; say so and stop.
+- The spec: `SPEC.md` in the repo, else `<shared-root>/<project>/petrichor-plan/00-overview.md` (shared root: default `~/Documents/claude-shared`, override via `~/.claude/shared-dirs.json`). No spec → nothing to weather; suggest `overcast` (it bootstraps the As-Is spec from the code) and stop.
 - Reality: the code (prefer Serena's symbol tools when active, else Grep/Read), schema/migrations, OpenAPI, README, and `git log` since the spec file last changed (that commit range *is* the drift window).
 - `tasks.md` (あれば): 「spec にあるが実装にない」項目が単なる未着工か、落ちた要件かの判別に使う。
 
