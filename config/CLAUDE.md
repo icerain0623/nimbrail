@@ -11,13 +11,12 @@ Entry triage (which door for a new ask); downstream stations explain themselves 
 - "next sensible step given state?" → /monsoon
 
 ## Web / LP (Next.js)
-- LP / Figma→page work: auto-run the pipeline yourself (figma-extract → `landing-page-nextjs`, which holds the detailed conventions → verify) — never skip verify (the #1 source of rework). GTM via `@next/third-parties/google` (`GoogleTagManager`), never raw `<script>` or manual `next/script`.
+- LP / Figma→page: never skip verify after a visual change (the #1 source of rework); `landing-page-nextjs` holds the conventions. GTM via `@next/third-parties/google`, never raw `<script>`.
 
 ## Dev servers
-- Never start dev/local servers (sandbox + a hook block it) — have the user run one via the `!` prefix. `next build` panics in-sandbox (Turbopack opens ports); use `next build --webpack` for an in-sandbox check (Docker/prod keep the default).
+- Dev servers are hook-blocked; if one's needed, have the user run it via the `!` prefix. For an in-sandbox build check use `next build --webpack` (Turbopack panics; Docker/prod keep the default).
 
 ## Git
-- Feature branch or worktree, never main/master (hooks enforce: edit/commit on main prompts; merge into / delete main is gated).
 - Worktrees in a sibling `<repo>-worktrees/<branch>/` (never inside the repo), one per parallel agent; deps per-worktree (no node_modules sharing). `git worktree add` runs unsandboxed (harness denies `.git/worktrees`).
 - Commit autonomously at coherent checkpoints / before risky ops / when a unit is done — don't wait to be asked; keep commits scoped. Push stays gated (settings `ask`; confirm each).
 - Config-rewriting git ops (`init`, `remote add`, `branch -d/-m`, `config`, `worktree add`) hit `.git` write denials in-sandbox — run just those unsandboxed; everyday commit/checkout/merge work in-sandbox.
