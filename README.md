@@ -106,6 +106,7 @@ Each step ends by pointing you to the next, so you follow the prompts instead of
    - feature branch with checks passing → offers to push / open a PR
    - merged branches piling up → `clean-branches`
    - many feature commits since `SPEC.md` last changed → `weathering` (spec-drift report)
+   - a shipped work unit left stale docs in claude-shared → `permafrost` (freeze/promote sweep, propose-only)
    - on request → `sunbreak`
 
    Read-only steps and commits run automatically; outward or irreversible steps (push, PR, deletion) are proposed first.

@@ -1,6 +1,6 @@
 ---
 name: monsoon
-description: Recurring workflow router — read .claude/project.md + tasks.md + live git state, triage new work by size (small → express lane; substantial → back to petrichor; existing code with no spec → overcast), and propose the next step, delegating to check / release-note / forecast / weathering / downpour / clean-branches / sunbreak.
+description: Recurring workflow router — read .claude/project.md + tasks.md + live git state, triage new work by size (small → express lane; substantial → back to petrichor; existing code with no spec → overcast), and propose the next step, delegating to check / release-note / forecast / weathering / downpour / clean-branches / permafrost / sunbreak.
 disable-model-invocation: true
 ---
 
@@ -26,7 +26,8 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 5. On a feature branch, everything committed, checks pass → offer to push / open a PR.
 6. Branches merged into the default branch are piling up → suggest `clean-branches`.
 7. `SPEC.md` (or a petrichor plan) exists and substantial feature commits have landed since it last changed → suggest `weathering` (spec-drift report; also catches a stale ja+en rendering).
-8. On explicit request, or when nothing else is pending → offer `sunbreak`.
+8. A work unit has shipped and left stale material in claude-shared — consumed `NN-topic.md` plan files, completed `[x]`/done lines lingering in `TODO.md`, or reports/plans for an already-shipped release → suggest `permafrost` (freeze/promote sweep that keeps warm thin; propose-only, never moves without confirmation). The claude-shared analogue of step 6's branch cleanup — gate it on a concrete stale signal, don't propose it on every checkpoint just because a unit finished.
+9. On explicit request, or when nothing else is pending → offer `sunbreak`.
 
 ## Build discipline
 The during-build discipline — `feedback.md` (blockers + open questions), routing spec/design gaps back, Serena onboarding judgment, branch-first, `check` → `verify` at checkpoints — is **ambient** (global CLAUDE.md), so it applies during any build without invoking monsoon. monsoon doesn't own it; monsoon routes the discrete next-step decisions above, typically called at a checkpoint once a unit of work is done.
