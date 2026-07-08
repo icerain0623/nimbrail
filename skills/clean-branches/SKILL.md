@@ -9,19 +9,19 @@ Tidy up fully merged branches. Safe by construction: only merged branches are re
 
 ## Steps
 
-1. Resolve the main branch and current branch:
+1. Resolve main + current:
    - main: `git remote show origin | sed -n 's/.*HEAD branch: //p'` (fallback `main`, then `master`).
    - current: `git branch --show-current`.
-2. Refresh refs so "merged" and "gone" are accurate: `git fetch --prune origin`.
-3. List merged local branches, excluding main and the current branch:
-   `git branch --merged <main> | grep -vE '^[*+]|^\s*(<main>|master)$'`.
-4. Show the user the list and the exact delete commands. Wait for explicit confirmation.
-5. Delete the confirmed local branches with `git branch -d <branch>` (use `-d`, never `-D` — it refuses unmerged work).
-6. Remote cleanup only if the user asked, and confirm it separately (it changes shared state):
-   for each merged branch whose upstream is gone, `git push origin --delete <branch>`.
+2. Refresh refs: `git fetch --prune origin`. `--prune` also drops stale remote-tracking refs for branches already deleted on the remote. If `origin` is unreachable, skip it and say so (then judge against local `<main>` and warn it may be stale).
+3. Judge "merged" against **`origin/<main>`**, not the local `<main>` — a local `<main>` behind the remote would otherwise hide branches already merged via a PR. Local candidates:
+   `git branch --merged origin/<main> | grep -vE '^[*+]|^\s*(<main>|master)$'`.
+4. For each local candidate, find the remote counterpart to clean alongside it: exists = `git show-ref --verify --quiet refs/remotes/origin/<branch>`; merged = `git merge-base --is-ancestor origin/<branch> origin/<main>`.
+5. Show ONE list — each local branch to delete, and beside it the remote counterpart that will also go (when it exists and is merged) — with the exact commands. Wait for a single explicit confirmation. Remote deletion is scoped to counterparts of these local branches, so a shared branch you never had locally (e.g. `develop`) is never touched.
+6. Delete the confirmed set:
+   - local: `git branch -d <branch>` (safe — refuses genuinely unmerged work). If it refuses a branch step 3 already confirmed merged (your current branch predates that merge), re-run from an up-to-date `<main>`.
+   - remote: `git push origin --delete <branch>`.
 
 ## Rules
-- Never delete `main`/`master` or the current branch. (A git-workflow hook also hard-blocks deleting main/master locally and remotely, as a backstop.)
-- Use `-d` (safe). Only use `-D` if the user explicitly names a specific unmerged branch and insists.
-- Remote deletion is opt-in and confirmed on its own.
-- "Merged" is computed relative to main — if the working copy is far behind, run the fetch in step 2 first and say so.
+- Never delete `main`/`master` or the current branch. (A git-workflow hook also hard-blocks deleting main/master — local and remote — as a backstop.)
+- Use `-d`, never `-D` (only if the user explicitly names an unmerged branch and insists). The safety gate is "merged into `origin/<main>`".
+- Remote deletion is shown in the same confirmation as the local deletes, limited to counterparts of the cleaned local branches, and gated again by the `git push` ask-rule.
