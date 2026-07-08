@@ -29,6 +29,7 @@ claude-shared は「本編（コード／会話コンテキスト）を軽くす
 - **D10. スコープ外**: `MEMORY.md`、クロスプロジェクト成果物（sunbreak/almanac 等、共有ルート直下）、repo ソース。既存 `archive/` は permafrost 方式へ移行（F-5）。
 - **D11. サンドボックス非対称の明示**: permafrost は Bash サンドボックスで **read-deny かつ write-allow**。`mv` は宛先を*書く*だけで読まないため凍結は通り、`cat`/`grep`/`find` は届かない。実装者が blanket deny（read+write 両方）にすると凍結が壊れる —— **read だけを deny、write は allow** が必須。
 - **D12. 既知の限界（残余リスク）**: v1 の 軽め enforcement が **ハードに塞ぐのは Read ツール＋ Bash(`cat`/`grep`/`find`) のみ**。Grep/Glob ツール・MCP ファイル系・override 付き Bash は advisory（物理分離＋CLAUDE.md 姿勢）でのみ抑制。ここを保証に格上げしたくなったら F-9。
+  - **override shared-root の穴（許容）**: enforcement の deny は `~/Documents/claude-shared/permafrost/**` という**デフォルトルート絶対パス固定**で、`shared-dirs.json` の per-project override root（D7）配下の permafrost には Read-deny も sandbox read-deny も掛からない。**これは意図的に許容する**——本機構の狙いは「Claude が毎セッション stale 資料を*不用意に*吸い込むのを止める」ことで、そこは**どのルートでも効く CLAUDE.md 姿勢**（丸ごと grep しない・名指しで開く）が主担当。deny はあくまでデフォルトルート（現状すべての実データが在る場所）のバックストップ。金庫化が目的ではないので override 穴は塞がない。必要になったら安い順に：cold を常にデフォルトルートへ固定（穴自体が消える）／ `update-config` の override 手順に `Read(<root>/permafrost/**)` 付与を混ぜる。**F-9（フック完全封鎖）はこの目的に対しオーバーキルなので採らない。**
 
 ## permafrost の位置
 
