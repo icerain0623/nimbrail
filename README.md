@@ -120,8 +120,8 @@ Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (
 | `session-info` | write the resume command (`claude --resume <id>`) to the shared root (default `~/Documents/claude-shared/`) |
 | `forecast` | generate a pre-release scenario-test checklist from the spec (coverage-traced to 機能 IDs) |
 | `weathering` | spec-drift report: where the code and `SPEC.md` disagree (+ stale ja+en rendering); edits on confirmation |
-| `almanac` | weekly digest across active repos (週報 draft) + archive proposals for stale claude-shared files |
-| `permafrost` | freeze completed/stale shared-dir docs into a hard-invisible cold store (Read/grep-denied, write-only, `thaw` to read) + keep warm files thin; `almanac` proposes candidates here |
+| `almanac` | weekly digest across active repos (週報 draft) + the *propose* side of the shared-dir lifecycle: flags stale files for freezing (the store is `permafrost`) |
+| `permafrost` | the claude-shared information-lifecycle mechanism — freeze completed/stale docs into a hard-invisible cold store (Read/grep-denied, write-only; `thaw` to read) and keep warm files thin (eviction). Enforcement lives in `settings.json` + `config/CLAUDE.md`; the skill runs the sweep/thaw. `almanac` proposes candidates here |
 | `cirrus` | incremental research notebook — findings persist to Obsidian as found, resumable after context death |
 | `sunbreak` | review past transcripts; write an Obsidian report (global vs project-specific lessons), applied later |
 | `python-setup` | set up a sandbox-safe Python venv |
