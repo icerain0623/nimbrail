@@ -121,6 +121,7 @@ Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (
 | `forecast` | generate a pre-release scenario-test checklist from the spec (coverage-traced to 機能 IDs) |
 | `weathering` | spec-drift report: where the code and `SPEC.md` disagree (+ stale ja+en rendering); edits on confirmation |
 | `almanac` | weekly digest across active repos (週報 draft) + archive proposals for stale claude-shared files |
+| `permafrost` | freeze completed/stale shared-dir docs into a hard-invisible cold store (Read/grep-denied, write-only, `thaw` to read) + keep warm files thin; `almanac` proposes candidates here |
 | `cirrus` | incremental research notebook — findings persist to Obsidian as found, resumable after context death |
 | `sunbreak` | review past transcripts; write an Obsidian report (global vs project-specific lessons), applied later |
 | `python-setup` | set up a sandbox-safe Python venv |
