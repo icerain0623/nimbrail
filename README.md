@@ -2,6 +2,8 @@
 
 My portable [Claude Code](https://claude.com/claude-code) setup — config **and** authored skills in one repo, so a new machine is one `git clone` + `./install.sh` away.
 
+日本語のクイックスタート → [README.ja.md](README.ja.md)
+
 > **Private repo.** It mirrors `~/.claude`. No real secrets are committed (see [Secrets](#secrets)), but keep it private.
 >
 > **macOS-only.** Some paths are macOS/author-specific — `SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` point at `/etc/ssl/cert.pem`, `EDITOR` is WebStorm, and the sandbox write-roots are `~/Documents/GitHub` and `~/Developers`. On Linux these would need adjusting before `./install.sh`.
