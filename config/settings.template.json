@@ -119,6 +119,7 @@
       "Read(./.env.*)",
       "Read(./secrets/**)",
       "Read(~/Library/**)",
+      "Read(~/Documents/claude-shared/permafrost/**)",
       "Edit(~/Library/**)",
       "Edit(//etc/**)",
       "Bash(su:*)",
