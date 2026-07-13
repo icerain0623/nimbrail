@@ -1,7 +1,8 @@
 #!/bin/bash
-# Enforce the one git-workflow rule that's mechanically checkable:
-# never merge into main/master without explicit confirmation.
-# (Working in a worktree / feature branch is advisory — left to CLAUDE.md.)
+# Enforce the mechanically-checkable git-workflow rules:
+#   - never delete main/master (local or remote);
+#   - confirm before merge/rebase into, or commit onto, main/master (branch-first).
+# The Write|Edit half of branch-first (nudge before editing on main) is branch-guard.sh.
 
 cmd=$(jq -r '.tool_input.command')
 
@@ -29,11 +30,21 @@ if echo "$cmd" | grep -qE 'git[[:space:]]+push[[:space:]]+.*(--delete[[:space:]]
   deny "リモートの main/master ブランチの削除は禁止です。"
 fi
 
-# Only react to git merge / git rebase
+# Merge / rebase into main/master → confirm.
 if echo "$cmd" | grep -qE '\bgit[[:space:]]+(merge|rebase)\b'; then
-  branch=$(git branch --show-current 2>/dev/null)
+  branch="${CLAUDE_HOOK_BRANCH:-$(git branch --show-current 2>/dev/null)}"
   if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
     ask "現在のブランチが '$branch' です。main への merge/rebase は明示的な確認が必要です（CLAUDE.md の Git Workflow）。"
+  fi
+fi
+
+# Commit directly onto main/master → confirm (branch-first; CLAUDE.md Git).
+# Anchored to command position so an echo/grep/commit-message mention is ignored,
+# and 'commit' must stand alone so `git commit-tree`/`commit-graph` don't match.
+if echo "$cmd" | grep -qE '(^|[[:space:];&|(])[[:space:]]*git[[:space:]]+commit([[:space:]]|$)'; then
+  branch="${CLAUDE_HOOK_BRANCH:-$(git branch --show-current 2>/dev/null)}"
+  if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
+    ask "現在のブランチが '$branch' です。main/master への直接コミットは避け、先に feature ブランチを切ってください（git switch -c <name>）。意図的なら承認して続行できます。"
   fi
 fi
 

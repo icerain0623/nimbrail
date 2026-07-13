@@ -5,3 +5,7 @@
 .idea/
 *.bak.*
 .claude/state.json
+
+**/.claude/.cc-writes/
+
+**/.claude/settings.local.json
