@@ -121,6 +121,7 @@
       "Read(./.env.*)",
       "Read(./secrets/**)",
       "Read(~/Library/**)",
+      "Read(~/Documents/claude-shared/permafrost/**)",
       "Edit(~/Library/**)",
       "Edit(//etc/**)",
       "Bash(su:*)",
@@ -238,6 +239,17 @@
             "command": "bash ~/.claude/hooks/warn-secrets.sh",
             "timeout": 5,
             "statusMessage": "Checking for secrets..."
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/branch-guard.sh",
+            "timeout": 5,
+            "statusMessage": "Checking branch (branch-first)..."
           }
         ]
       }

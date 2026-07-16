@@ -5,5 +5,3 @@
 .idea/
 *.bak.*
 .claude/state.json
-
-**/.claude/.cc-writes/

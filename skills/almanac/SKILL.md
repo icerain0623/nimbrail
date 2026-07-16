@@ -36,9 +36,9 @@ The weather yearbook — record the week's weather in one place. Sweep git histo
 
 ## Housekeeping (propose-only)
 
-Candidates: consumed `NN-topic.md` question files (their decisions already promoted), `check-<project>/` logs older than the window (note: these live at the shared **root**, not inside `<project>/` — sweep both levels; move stale log files into that project's `archive/`), `forecast-checklist.md` for already-shipped releases, and anything in a project's shared dir untouched for 4+ weeks — **except** durable artifacts (`00-overview.md`, `tasks.md`, `feedback.md`, `TODO.md`, guides/reports the user authored).
+Candidates: consumed `NN-topic.md` question files (their decisions already promoted), `check-<project>/` logs older than the window (note: these live at the shared **root**, not inside `<project>/` — sweep both levels), `forecast-checklist.md` for already-shipped releases, and anything in a project's shared dir untouched for 4+ weeks — **except** durable artifacts (`00-overview.md`, `tasks.md`, `feedback.md`, `TODO.md`, guides/reports the user authored).
 
-List the candidates with reasons in the note and chat. On confirmation, `mv` them into that project's `<shared>/<project>/archive/` — **never delete, never move without confirmation**. Obsidian links keep working within the vault after a move; still, prefer archiving whole consumed files over pruning parts of live ones.
+List the candidates with reasons in the note and chat. This is the *propose* side of the lifecycle; the *store* is `permafrost` (the hard-invisible cold store — see `skills/permafrost`). On confirmation, freeze them the permafrost way: `mv` into `<shared-root>/permafrost/<project>/<YYYY-MM-DD>_<HHMMSS>_<name>/` — **never delete, never move without confirmation** (claude-shared isn't git; deletion is unrecoverable). Prefer freezing whole consumed files over pruning parts of live ones. (Legacy `archive/` folders have been migrated into `permafrost/`.)
 
 ## Cadence
 
