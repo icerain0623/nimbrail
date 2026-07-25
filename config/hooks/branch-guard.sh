@@ -31,10 +31,14 @@ esac
 session=$(printf '%s' "$input" | jq -r '.session_id // "nosession"')
 repo="${CLAUDE_HOOK_REPO_TOP:-$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null || echo "$dir")}"
 state_dir="${CLAUDE_HOOK_STATE_DIR:-${TMPDIR:-/tmp}/claude-branch-guard}"
-mkdir -p "$state_dir" 2>/dev/null || exit 0
-marker="$state_dir/$(printf '%s' "$session-$repo" | tr -c 'A-Za-z0-9._-' '_')"
-[ -e "$marker" ] && exit 0
-: > "$marker" 2>/dev/null || exit 0
+marker=""
+if mkdir -p "$state_dir" 2>/dev/null; then
+  marker="$state_dir/$(printf '%s' "$session-$repo" | tr -c 'A-Za-z0-9._-' '_')"
+  [ -e "$marker" ] && exit 0
+  : > "$marker" 2>/dev/null || marker=""
+fi
+# Unwritable state dir → fail OPEN and nudge anyway. Asking twice is a nuisance;
+# going silent is the bug this hook was rewritten to fix.
 
 cat <<HOOK_JSON
 {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"現在 '$branch' ブランチに直接編集しようとしています。作業前に feature ブランチを切ってください（git switch -c <name>）。main で作業する意図なら承認して続行できます（このセッションでは以降聞きません）。"}}

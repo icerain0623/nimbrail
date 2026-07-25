@@ -50,7 +50,14 @@ if echo "$cmd" | grep -qE '(^|[[:space:];&|(])[[:space:]]*git[[:space:]]+worktre
     case "$tok" in
       -b|-B) skip=1 ;;
       -*) : ;;
-      *) wt_path="$tok"; break ;;
+      *)
+        # Strip surrounding quotes: word-splitting leaves them attached, and a
+        # leading quote stopped `../…` from matching — denying legitimate
+        # sibling paths whenever they were quoted.
+        wt_path="$tok"
+        wt_path="${wt_path#[\"\']}"
+        wt_path="${wt_path%[\"\']}"
+        break ;;
     esac
   done
   if [ -n "$wt_path" ]; then

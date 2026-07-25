@@ -145,6 +145,12 @@ expect_wt "git worktree add ../repo-worktrees/feat"         /r none
 expect_wt "git worktree add -b feat ../repo-worktrees/feat" /r none
 expect_wt "git worktree add ~/dev/repo-worktrees/feat"      /r none
 expect_wt "git worktree list"                               /r none
+# Regression: word-splitting leaves the quote attached, which stopped `../…` from
+# matching and denied legitimate sibling paths whenever they were quoted.
+expect_wt 'git worktree add "../repo-worktrees/feat"'       /r none
+expect_wt "git worktree add '../repo-worktrees/feat'"       /r none
+expect_wt 'git worktree add "../repo-worktrees/my feat"'    /r none
+expect_wt 'git worktree add "wt/feat"'                      /r deny
 
 # ── claude-shared: deletion denied (freeze instead), mv still allowed ─────────
 expect_shared "rm /sh/claude-shared/foo/report.md"          deny
@@ -155,6 +161,13 @@ expect_shared "find /sh/claude-shared -name '*.log' -delete" deny
 expect_shared "mv /sh/claude-shared/a.md /sh/claude-shared/permafrost/" none
 expect_shared "rm /tmp/scratch/a.md"                        none
 expect_shared "cat /sh/claude-shared/foo/report.md"         none
+expect_shared "rm -rf /sh/claude-shared"                    deny   # the root itself
+# Regression: a substring test also denied siblings that merely share the prefix.
+# They must escape the shared-root deny; `rm -rf <abs path>` then still draws the
+# generic ask from section A, which is the correct outcome for that command.
+expect_shared "rm /sh/claude-shared-old/x.md"               none
+expect_shared "rm /sh/claude-sharedX/x.md"                  none
+expect_shared "rm -rf /sh/claude-shared-old"                ask
 
 # ── branch-guard: once per session per repo, regardless of tree state ─────────
 # mktemp -d is not usable here: the sandbox denies the system TMPDIR. Try the

@@ -47,11 +47,20 @@ shared_roots() {
          "$HOME/.claude/shared-dirs.json" 2>/dev/null
 }
 
+# The root must end at a path boundary. A plain substring test also denied
+# sibling directories that merely start with the same string (claude-shared-old),
+# and a deny cannot be waved through.
+path_hit() { # <path>
+  local esc
+  esc=$(printf '%s' "$1" | sed 's/[][^$.*+?(){}|\\]/\\&/g')
+  echo "$cmd" | grep -qE "${esc}(/|[[:space:]]|[\"']|\$)"
+}
+
 if echo "$cmd" | grep -qE '(^|[|&;])[[:space:]]*(rm|rmdir|trash)[[:space:]]' \
    || echo "$cmd" | grep -qE '\bfind\b.*-delete'; then
   while IFS= read -r root; do
     [ -z "$root" ] && continue
-    if echo "$cmd" | grep -qF -- "$root" || echo "$cmd" | grep -qF -- "${root/#$HOME/\~}"; then
+    if path_hit "$root" || path_hit "${root/#$HOME/\~}"; then
       deny "claude-shared 配下の削除は禁止です（git 管理外のため復元できません）。/permafrost で凍結してください（mv は許可されています）。"
     fi
   done < <(shared_roots)

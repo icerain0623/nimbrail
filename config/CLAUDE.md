@@ -36,7 +36,7 @@ Entry triage (which door for a new ask); downstream stations explain themselves 
 - Serena onboarding pays off for pre-existing / sizeable / cross-cutting / multi-session code; skip for small or greenfield you just wrote. Decide at the build phase, re-evaluate as you go.
 
 ## Delegation
-- Subagents are for large, genuinely independent, parallelizable work — a wide multi-file investigation, or an explicitly invoked `downpour` wave. Don't delegate what you can finish in a handful of tool calls, and don't spawn one to double-check your own work. If one agent can do it, use one; keep spawn counts low. Workflows and deep-research: on request, not on impulse.
+- Subagents are for large, genuinely independent, parallelizable work — a wide multi-file investigation, or an explicitly invoked `downpour` wave. Don't delegate what you can finish in a handful of tool calls, and don't spawn one to double-check your own work — the one exception being a **cold read** of a long artifact by a fresh context (petrichor L3's Done gate), where the value is the absent history, not a second opinion. If one agent can do it, use one; keep spawn counts low. Workflows and deep-research: on request, not on impulse.
 
 ## Reporting findings
 - Something problematic (build/lint/test warnings, security findings, risky diffs, spec/design gaps, upgrade breakage) → a dated report at `<shared>/<project>/YYYY-MM-DD_<title>.md`, not just chat. Classify each: 重大/Critical (escalate now) · 対応が必要/Needs-action · テストが必要/Needs-testing · 軽微/Minor. Nothing problematic → just say so in chat, no file.
