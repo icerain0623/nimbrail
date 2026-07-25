@@ -38,7 +38,7 @@ Entry triage (which door for a new ask); downstream stations explain themselves 
 
 ## Reporting findings
 - Something problematic (build/lint/test warnings, security findings, risky diffs, spec/design gaps, upgrade breakage) → a dated report at `<shared>/<project>/YYYY-MM-DD_<title>.md`, not just chat. Classify each: **重大/Critical** (escalate now) · **対応が必要/Needs-action** · **テストが必要/Needs-testing** · **軽微/Minor**. Nothing problematic → just say so in chat, no file.
-- Incidental discoveries — a bug, gap, or improvement noticed **while doing something else**, too small for its own report → append one line to `<shared>/<project>/findings.md`: `- [ ] YYYY-MM-DD [分類] 事象 — file:line — 提案: …`. Append-only; never rewrite an existing line. A fixed item moves to `## 対応済み` struck through with its sha. If it needs real analysis it still gets the dated report, and findings.md carries a one-line link instead of a copy — one place to look.
+- Incidental discoveries — a bug, gap, or improvement noticed **while doing something else**, too small for its own report → append one line to `<shared>/<project>/findings.md`: `- [ ] YYYY-MM-DD [分類] 事象 — file:line — 提案: …`. Append-only; never rewrite an existing line, and close items per the completion convention below. If it needs real analysis it still gets the dated report, and findings.md carries a one-line link instead of a copy — one place to look.
 
 ## Handoff files
 - Things the user opens/copies/runs → the shared root (Obsidian-readable). Don't make them copy from the terminal: write the file, `pbcopy < <file>`, give the path. Internal scratch → `/tmp` scratchpad.
@@ -47,3 +47,4 @@ Entry triage (which door for a new ask); downstream stations explain themselves 
 ## Information lifecycle (claude-shared)
 - claude-shared is scratch memory, not an archive to mine — stale/completed docs burn context and mislead. **Don't bulk-grep/read it; open the specific live file by name.** The cold store `<shared-root>/permafrost/` is off-limits (`Read`/`grep` denied in settings; `mv` in only, thaw to read out).
 - Keep the warm set thin: promote keepers (issue / repo docs), freeze the rest via `/permafrost` — **never raw-delete** (not git). `almanac` proposes stale candidates.
+- Completion convention for a live checklist (`TODO.md`, `findings.md`, a forecast run): a closed item is struck through and moved to a trailing `## 対応済み` with the sha or date that closed it — **not deleted**. A struck line is history, so it is never a stale-sweep signal; when the 対応済み block itself gets bulky, `/permafrost` freezes that block (the file stays warm).
