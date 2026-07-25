@@ -1,6 +1,6 @@
 ---
 name: monsoon
-description: Recurring workflow router — read .claude/project.md + tasks.md + live git state, triage new work by size (small → express lane; substantial → back to petrichor; existing code with no spec → overcast), and propose the next step, delegating to check / release-note / forecast / weathering / downpour / clean-branches / permafrost / sunbreak.
+description: Recurring workflow router — read .claude/project.md + tasks.md + findings.md + live git state, triage new work by size (small → express lane; substantial → back to petrichor; existing code with no spec → overcast), and propose the next step, delegating to check / release-note / forecast / weathering / downpour / clean-branches / permafrost / sunbreak.
 disable-model-invocation: true
 ---
 
@@ -11,6 +11,7 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 ## Inputs
 - `.claude/project.md` (static config). If missing: suggest `petrichor` for an unplanned empty repo, `overcast` when the repo already has code but no spec, or `squall` once a spec exists (detailed design + record config) — the routing detail is Decision step 1.
 - `<shared-root>/<project>/tasks.md` if present (shared root: per the global Handoff rule; the build ledger squall produced for a substantial build, beside `feedback.md`): the dependency-ordered plan **and** live progress in one Obsidian-readable file, outside the repo. Each task carries ID, dependencies, a completion condition, and a status (todo / in-progress / done / **保留** — a 保留 task blocks its downstream: neither it nor its dependents count as unblocked), plus an append-only `## 進捗ログ` for cross-worktree visibility. Read it to see what's left and which tasks are unblocked. It is the **source of truth for task progress** — and a clean git tree does **not** mean the build is done. Being repo-external, it carries mutable progress freely and is never committed (throwaway, like `feedback.md`).
+- `<shared-root>/<project>/findings.md` if present: incidental discoveries logged during other work (append-only checklist; unchecked lines are open, `## 対応済み` is history). Not a task ledger — untriaged cheap items, which is why they wait for a checkpoint instead of interrupting.
 - Live state: `git status`, current branch, `git tag`, unpushed commits, branches merged into the default branch.
 - Optional hint: a gitignored `.claude/state.json` for cross-session goals — a hint only. If it conflicts with live git, live git wins.
 
@@ -27,7 +28,8 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 6. Branches merged into the default branch are piling up → suggest `clean-branches`.
 7. `SPEC.md` (or a petrichor plan) exists and substantial feature commits have landed since it last changed → suggest `weathering` (spec-drift report; also catches a stale ja+en rendering).
 8. A work unit has shipped and left stale material in claude-shared — consumed `NN-topic.md` plan files, completed `[x]`/done lines lingering in `TODO.md`, or reports/plans for an already-shipped release → suggest `permafrost` (freeze/promote sweep that keeps warm thin; propose-only, never moves without confirmation). The claude-shared analogue of step 6's branch cleanup — gate it on a concrete stale signal, don't propose it on every checkpoint just because a unit finished.
-9. On explicit request, or when nothing else is pending → offer `sunbreak`.
+9. `findings.md` has unchecked lines that none of the steps above already covers → surface them, most severe 分類 first, and ask which to take. Don't fix them silently: each was logged precisely because it was out of scope when found, so picking it up is the user's call.
+10. On explicit request, or when nothing else is pending → offer `sunbreak`.
 
 ## Build discipline
 The during-build discipline — `feedback.md` (blockers + open questions), routing spec/design gaps back, Serena onboarding judgment, branch-first, `check` → behavior confirmation at checkpoints — is **ambient** (global CLAUDE.md), so it applies during any build without invoking monsoon. monsoon doesn't own it; monsoon routes the discrete next-step decisions above, typically called at a checkpoint once a unit of work is done.

@@ -33,6 +33,7 @@ Entry triage (which door for a new ask); downstream stations explain themselves 
 
 ## Reporting findings
 - Something problematic (build/lint/test warnings, security findings, risky diffs, spec/design gaps, upgrade breakage) → a dated report at `<shared>/<project>/YYYY-MM-DD_<title>.md`, not just chat. Classify each: **重大/Critical** (escalate now) · **対応が必要/Needs-action** · **テストが必要/Needs-testing** · **軽微/Minor**. Nothing problematic → just say so in chat, no file.
+- Incidental discoveries — a bug, gap, or improvement noticed **while doing something else**, too small for its own report → append one line to `<shared>/<project>/findings.md`: `- [ ] YYYY-MM-DD [分類] 事象 — file:line — 提案: …`. Append-only; never rewrite an existing line. A fixed item moves to `## 対応済み` struck through with its sha. If it needs real analysis it still gets the dated report, and findings.md carries a one-line link instead of a copy — one place to look.
 
 ## Handoff files
 - Things the user opens/copies/runs → the shared root (Obsidian-readable). Don't make them copy from the terminal: write the file, `pbcopy < <file>`, give the path. Internal scratch → `/tmp` scratchpad.
