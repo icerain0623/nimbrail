@@ -46,13 +46,34 @@ expect_branch() { # <cmd> <branch> <deny|ask|none>
   if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL git-workflow[$br]: want=$want got=$dec :: $cmd"; fi
 }
 
-# branch-guard (Write|Edit) — CLAUDE_HOOK_BRANCH + CLAUDE_HOOK_TREE_CLEAN seams.
-expect_guard() { # <file_path> <branch> <clean:1|0> <ask|none>
-  local fp=$1 br=$2 clean=$3 want=$4 out dec
-  out=$(printf '{"tool_input":{"file_path":%s}}' "$(jq -Rn --arg c "$fp" '$c')" | CLAUDE_HOOK_BRANCH="$br" CLAUDE_HOOK_TREE_CLEAN="$clean" bash "$H/branch-guard.sh" 2>/dev/null)
+# branch-guard (Write|Edit) — CLAUDE_HOOK_BRANCH + CLAUDE_HOOK_STATE_DIR seams.
+# The state dir is passed in so a test can control whether this is the session's
+# first edit (fresh dir) or a later one (reused dir).
+expect_guard() { # <file_path> <branch> <state_dir> <ask|none>
+  local fp=$1 br=$2 sd=$3 want=$4 out dec
+  out=$(printf '{"tool_input":{"file_path":%s},"session_id":"t"}' "$(jq -Rn --arg c "$fp" '$c')" | CLAUDE_HOOK_BRANCH="$br" CLAUDE_HOOK_STATE_DIR="$sd" CLAUDE_HOOK_REPO_TOP="/r" bash "$H/branch-guard.sh" 2>/dev/null)
   dec=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "none"' 2>/dev/null)
   [ -z "$dec" ] && dec="none"
-  if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL branch-guard[$br clean=$clean]: want=$want got=$dec :: $fp"; fi
+  if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL branch-guard[$br sd=$sd]: want=$want got=$dec :: $fp"; fi
+}
+
+# git worktree placement — CLAUDE_HOOK_REPO_TOP is the seam for the repo toplevel.
+expect_wt() { # <cmd> <top> <deny|none>
+  local cmd=$1 top=$2 want=$3 out dec
+  out=$(printf '{"tool_input":{"command":%s}}' "$(jq -Rn --arg c "$cmd" '$c')" | CLAUDE_HOOK_REPO_TOP="$top" bash "$H/git-workflow.sh" 2>/dev/null)
+  dec=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "none"' 2>/dev/null)
+  [ -z "$dec" ] && dec="none"
+  if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL worktree[$top]: want=$want got=$dec :: $cmd"; fi
+}
+
+# claude-shared deletion guard — CLAUDE_HOOK_SHARED_ROOTS is the seam so the test
+# does not depend on the real HOME or on shared-dirs.json.
+expect_shared() { # <cmd> <deny|ask|none>
+  local cmd=$1 want=$2 out dec
+  out=$(printf '{"tool_input":{"command":%s}}' "$(jq -Rn --arg c "$cmd" '$c')" | CLAUDE_HOOK_SHARED_ROOTS="/sh/claude-shared /sh/other-root" bash "$H/warn-dangerous.sh" 2>/dev/null)
+  dec=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "none"' 2>/dev/null)
+  [ -z "$dec" ] && dec="none"
+  if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL shared-guard: want=$want got=$dec :: $cmd"; fi
 }
 
 # ── block-dev-servers: servers blocked, builds/linters allowed ────────────────
@@ -116,12 +137,44 @@ expect_stdout git-workflow.sh "git branch -D master"          deny
 expect_stdout git-workflow.sh "git push origin --delete main" deny
 expect_stdout git-workflow.sh "git branch -d feature/x"       none
 
-# ── branch-guard: nudge before editing a clean main, silent otherwise ─────────
-expect_guard "/r/f.txt" main   1 ask
-expect_guard "/r/f.txt" master 1 ask
-expect_guard "/r/f.txt" main   0 none   # tree already dirty → mid-work, silent
-expect_guard "/r/f.txt" feat/x 1 none   # feature branch → never fires
-expect_guard "/r/f.txt" topic  0 none
+# ── git worktree placement: sibling dir required, in-repo denied ──────────────
+expect_wt "git worktree add wt/feat"                        /r deny
+expect_wt "git worktree add /r/wt feat"                     /r deny
+expect_wt "git worktree add -b feat wt/feat"                /r deny
+expect_wt "git worktree add ../repo-worktrees/feat"         /r none
+expect_wt "git worktree add -b feat ../repo-worktrees/feat" /r none
+expect_wt "git worktree add ~/dev/repo-worktrees/feat"      /r none
+expect_wt "git worktree list"                               /r none
+
+# ── claude-shared: deletion denied (freeze instead), mv still allowed ─────────
+expect_shared "rm /sh/claude-shared/foo/report.md"          deny
+expect_shared "rm -rf /sh/claude-shared/proj"               deny
+expect_shared "rm /sh/other-root/x.md"                      deny   # override root
+expect_shared "rmdir /sh/claude-shared/proj"                deny
+expect_shared "find /sh/claude-shared -name '*.log' -delete" deny
+expect_shared "mv /sh/claude-shared/a.md /sh/claude-shared/permafrost/" none
+expect_shared "rm /tmp/scratch/a.md"                        none
+expect_shared "cat /sh/claude-shared/foo/report.md"         none
+
+# ── branch-guard: once per session per repo, regardless of tree state ─────────
+# mktemp -d is not usable here: the sandbox denies the system TMPDIR. Try the
+# writable candidates in order instead.
+for b in "${TMPDIR:-/tmp}/claude-kit-test-$$" "/tmp/claude/claude-kit-test-$$" "$REPO/.test-tmp-$$"; do
+  mkdir -p "$b" 2>/dev/null && { TB="$b"; break; }
+done
+if [ -z "${TB:-}" ]; then
+  echo "SKIP branch-guard: no writable temp dir"; fail=$((fail+1))
+else
+  mkdir -p "$TB/1" "$TB/2" "$TB/3" "$TB/4"
+  expect_guard "/r/f.txt" main   "$TB/1" ask
+  expect_guard "/r/f.txt" main   "$TB/1" none   # already nudged this session → silent
+  expect_guard "/r/f.txt" master "$TB/2" ask
+  expect_guard "/r/f.txt" feat/x "$TB/3" none   # feature branch → never fires
+  # Regression: a session that STARTS with a dirty tree must still be nudged. The
+  # old clean-tree proxy silenced this case for the whole session.
+  expect_guard "/r/f.txt" main   "$TB/4" ask
+  rm -rf "$TB"
+fi
 
 echo "────────────────────────"
 echo "PASS=$pass FAIL=$fail"

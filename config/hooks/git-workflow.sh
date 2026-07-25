@@ -38,6 +38,35 @@ if echo "$cmd" | grep -qE '\bgit[[:space:]]+(merge|rebase)\b'; then
   fi
 fi
 
+# Worktree placement: the convention is a sibling `<repo>-worktrees/<branch>/`, never
+# inside the repo (a worktree under the repo gets picked up by builds, lints and the
+# repo's own globs). Only the path argument is needed to judge this, so it is a deny
+# rather than advice. Flags and their values are skipped to find that argument.
+if echo "$cmd" | grep -qE '(^|[[:space:];&|(])[[:space:]]*git[[:space:]]+worktree[[:space:]]+add([[:space:]]|$)'; then
+  args=$(echo "$cmd" | sed -E 's/.*git[[:space:]]+worktree[[:space:]]+add[[:space:]]*//')
+  wt_path="" skip=0
+  for tok in $args; do
+    if [ "$skip" = 1 ]; then skip=0; continue; fi
+    case "$tok" in
+      -b|-B) skip=1 ;;
+      -*) : ;;
+      *) wt_path="$tok"; break ;;
+    esac
+  done
+  if [ -n "$wt_path" ]; then
+    top="${CLAUDE_HOOK_REPO_TOP:-$(git rev-parse --show-toplevel 2>/dev/null)}"
+    inside=0
+    case "$wt_path" in
+      ../*|~*) inside=0 ;;
+      /*) [ -n "$top" ] && case "$wt_path" in "$top"/*|"$top") inside=1 ;; esac ;;
+      *) inside=1 ;;
+    esac
+    if [ "$inside" = 1 ]; then
+      deny "worktree を repo 内に作ろうとしています（$wt_path）。兄弟ディレクトリ <repo>-worktrees/<branch>/ に作ってください（CLAUDE.md の Git）。"
+    fi
+  fi
+fi
+
 # Commit directly onto main/master → confirm (branch-first; CLAUDE.md Git).
 # Anchored to command position so an echo/grep/commit-message mention is ignored,
 # and 'commit' must stand alone so `git commit-tree`/`commit-graph` don't match.

@@ -19,7 +19,8 @@ Entry triage (which door for a new ask); downstream stations explain themselves 
 - Dev servers are hook-blocked; if one's needed, have the user run it via the `!` prefix. For an in-sandbox build check use `next build --webpack` (Turbopack panics; Docker/prod keep the default).
 
 ## Git
-- Worktrees in a sibling `<repo>-worktrees/<branch>/` (never inside the repo), one per parallel agent; deps per-worktree (no node_modules sharing). `git worktree add` runs unsandboxed (harness denies `.git/worktrees`).
+- Branch before editing — on main the hook asks once per session, so branching first just saves the prompt.
+- Worktrees are for **agents running in parallel on one repo** (a single agent wants an ordinary branch): one per agent, deps per-worktree (no node_modules sharing). Placement is hook-enforced — a sibling `<repo>-worktrees/<branch>/`. `git worktree add` runs unsandboxed (harness denies `.git/worktrees`).
 - Commit autonomously at coherent checkpoints / before risky ops / when a unit is done — don't wait to be asked; keep commits scoped. Push stays gated (settings `ask`; confirm each).
 - Config-rewriting git ops (`init`, `remote add`, `branch -d/-m`, `config`, `worktree add`) hit `.git` write denials in-sandbox — run just those unsandboxed; everyday commit/checkout/merge work in-sandbox.
 
@@ -45,6 +46,6 @@ Entry triage (which door for a new ask); downstream stations explain themselves 
 - Shared-root resolution: a `~/.claude/shared-dirs.json` `overrides` entry for the project root, else its `default`, else `~/Documents/claude-shared`. In a linked worktree, derive the main root from `git rev-parse --git-common-dir` (its parent), not `--show-toplevel`. Cross-project artifacts (sunbreak/almanac/research) always use the default root. An override root needs a one-time settings grant (`update-config` skill; restart applies).
 
 ## Information lifecycle (claude-shared)
-- claude-shared is scratch memory, not an archive to mine — stale/completed docs burn context and mislead. **Don't bulk-grep/read it; open the specific live file by name.** The cold store `<shared-root>/permafrost/` is off-limits (`Read`/`grep` denied in settings; `mv` in only, thaw to read out).
-- Keep the warm set thin: promote keepers (issue / repo docs), freeze the rest via `/permafrost` — **never raw-delete** (not git). `almanac` proposes stale candidates.
+- claude-shared is scratch memory, not an archive to mine — stale docs mislead. **Don't bulk-grep/read it; open the specific live file by name.** The cold store `<shared-root>/permafrost/` is off-limits (`Read`/`grep` denied in settings; `mv` in only, thaw to read out).
+- Keep the warm set thin: promote keepers (issue / repo docs), freeze the rest via `/permafrost`. Deleting under the shared root is hook-denied (it isn't git — freeze, don't delete); `mv` in is how freezing works. `almanac` proposes stale candidates.
 - Completion convention for a live checklist (`TODO.md`, `findings.md`, a forecast run): a closed item is struck through and moved to a trailing `## 対応済み` with the sha or date that closed it — **not deleted**. A struck line is history, so it is never a stale-sweep signal; when the 対応済み block itself gets bulky, `/permafrost` freezes that block (the file stays warm).
