@@ -20,6 +20,12 @@ absorb runtime `/config` toggles without dirtying the repo).
 - **Restart needed?** Skill *body* + sibling-file edits apply on next invocation (read on-demand) — no restart. Restart only for: a new skill, a changed `name`/`description` frontmatter, or any `settings.json` edit (hooks / permissions / sandbox). No `/reload` exists.
 - Sandbox carve-out (harness bug): git ops that **rewrite working-tree files under `config/`** (checkout/merge/reset across branches that differ there) fail in-sandbox with `Operation not permitted`. The harness-injected `.git/config` protection is missing its `.git/` prefix and mis-hits the repo's `config/` dir instead. Run just those git ops with the sandbox disabled — Edit-tool edits and commits are unaffected. It's injected by the harness, so it can't be fixed from this repo's own settings.
 
+## Who reads it (agent-facing vs human-facing)
+- **Agent-facing** — `config/CLAUDE.md`, `skills/**/*.md`. Written to be followed, not to be enjoyed. Default to zero-shot: state the rule once, in one sentence, and stop. Bold at most one thing per section — the load-bearing constraint — because bold everywhere is bold nowhere. Keep a rationale clause only when its absence would let the rule be overridden by a plausible-sounding local judgement. Never state a rule in two files: pick the canonical one and link.
+- **An example earns its place** only when the output shape is fixed (a table-row schema, a checklist line) or when the rule alone cannot settle the boundary. One example, never a set.
+- **Human-facing** — `README.md`, `README.ja.md`, `CONTRIBUTING.md`, `SECURITY.md`. Readability first: framing, tables, and worked examples all stay.
+- Trimming an agent-facing file: list its normative statements first, trim, then check the same list still holds. Losing a rule is the only failure mode that matters here.
+
 ## Layer model (where a rule belongs)
 - **sandbox** → whether a command can run at all (network / writable paths).
 - **permissions** (allow/ask/deny) → auto-run / prompt / hard-block a tool call.
