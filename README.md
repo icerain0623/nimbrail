@@ -57,6 +57,19 @@ cd claude-kit
 ./install.sh
 ```
 
+The install asks one question: **where handoff docs should live.** Specs, reports and
+task ledgers are written outside your repos so a project never fills up with `.md`
+files — pick a directory you can write to (an Obsidian vault subfolder works well).
+The answer is stored in `~/.claude/shared-dirs.json` and substituted into the
+`settings.json` copy, which is what makes the sandbox willing to write there.
+
+| | |
+|---|---|
+| default | `~/Documents/claude-shared` (just press Enter) |
+| non-interactive | `./install.sh --shared-dir ~/vault/claude-docs` |
+| change it later | re-run with `--shared-dir <new path>`, then move the old contents across yourself — the script repoints, it never moves your files |
+| one project elsewhere | add an `"overrides"` entry (project root → its own dir) in `shared-dirs.json`; re-runs preserve it |
+
 Then:
 
 ```bash

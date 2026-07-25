@@ -20,6 +20,7 @@ cd claude-kit
 { "env": { "GH_TOKEN": "github_pat_..." } }
 ```
 
+- インストール時に **ハンドオフ ドキュメントの置き場所** を1つだけ聞かれる。仕様書・報告書・タスク台帳は repo の外に書くので、プロジェクトが `.md` で埋まらない（Obsidian vault のサブフォルダなどが便利）。Enter で既定の `~/Documents/claude-shared`、非対話なら `./install.sh --shared-dir ~/vault/claude-docs`。回答は `~/.claude/shared-dirs.json` に入り、`settings.json` のコピーにも差し込まれる（**これがないとサンドボックスがそこへ書けない**）。あとから変えるには `--shared-dir` 付きで再実行（**中身の移動は自分でやる**。スクリプトは参照先を張り替えるだけ）。特定プロジェクトだけ別の場所にしたい場合は `shared-dirs.json` の `overrides` に足す（再実行でも保持される）。
 - **`jq` 必須**（PreToolUse フックが使う。`brew install jq`）。
 - **プラグイン**（figma / serena / context7 など）は install.sh では入らない。初回起動時に `settings.json` の `enabledPlugins` から自動復元される。
 - `./install.sh` は**再実行安全**。diverge したライブファイルは既定で**温存**（`--yes` で一括反映、旧版は `.bak` へ退避）。`settings.json` はコピー運用なので、マシン固有調整と `settings.local.json` の実 PAT は保持される。

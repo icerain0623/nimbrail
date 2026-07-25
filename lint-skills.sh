@@ -21,7 +21,14 @@
 set -u
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RAIL="petrichor overcast squall downpour monsoon sunbreak"
-GUIDE="$HOME/Documents/claude-shared/claude-kit/skills-guide.md"
+# Same resolution the hooks and skills use, so a non-default shared root (chosen at
+# install time) doesn't silently turn check [6] into a no-op.
+SHARED_ROOT="$HOME/Documents/claude-shared"
+if [ -f "$HOME/.claude/shared-dirs.json" ] && command -v jq >/dev/null 2>&1; then
+  d="$(jq -r '.default // empty' "$HOME/.claude/shared-dirs.json" 2>/dev/null)"
+  [ -n "$d" ] && SHARED_ROOT="$d"
+fi
+GUIDE="$SHARED_ROOT/claude-kit/skills-guide.md"
 FAIL=0
 
 err() { printf '  \342\234\227 %s\n' "$1"; FAIL=1; }

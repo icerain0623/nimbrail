@@ -12,21 +12,95 @@
 #   - a diverging real file is shown as a diff and you choose keep / replace
 #   - replaced content is shelved to <file>.bak.<epoch> (never destroyed)
 #
+# Handoff docs (specs, reports, task ledgers) are written OUTSIDE your repos, into
+# a shared root you pick here — so a project never fills up with .md files. The
+# path lands in ~/.claude/shared-dirs.json (`default`) and is substituted into the
+# settings.json copy, which is what makes it writable under the sandbox.
+#
 # Flags:
-#   -y, --yes   non-interactive: replace diverging files without prompting
-#               (the existing content is still shelved to .bak first)
+#   -y, --yes            non-interactive: replace diverging files without prompting
+#                        (the existing content is still shelved to .bak first)
+#   --shared-dir PATH    where handoff docs live (default ~/Documents/claude-shared).
+#                        Omitted: keep the path already in shared-dirs.json, else ask,
+#                        else the default.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
+SHARED_DIRS_JSON="$CLAUDE_DIR/shared-dirs.json"
+SHARED_DIR_DEFAULT="$HOME/Documents/claude-shared"
+# shellcheck disable=SC2088  # a literal ~ on purpose: this is the template's own text
+TEMPLATE_ROOT="~/Documents/claude-shared"   # literal string the template ships with
 mkdir -p "$CLAUDE_DIR/hooks" "$CLAUDE_DIR/skills"
 
 ASSUME_YES=0
-case "${1:-}" in
-  -y|--yes) ASSUME_YES=1 ;;
-  "")       ;;
-  *)        echo "unknown argument: $1" >&2; exit 2 ;;
+SHARED_DIR_ARG=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -y|--yes)     ASSUME_YES=1; shift ;;
+    --shared-dir) [ $# -ge 2 ] || { echo "--shared-dir needs a path" >&2; exit 2; }
+                  SHARED_DIR_ARG="$2"; shift 2 ;;
+    --shared-dir=*) SHARED_DIR_ARG="${1#*=}"; shift ;;
+    -h|--help)    awk 'NR>1 && /^#/ {sub(/^# ?/, ""); print; next} NR>1 {exit}' "$0"; exit 0 ;;
+    *)            echo "unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
+
+# ── shared handoff root ─────────────────────────────────────────────────────────
+# Precedence: --shared-dir > the path already in shared-dirs.json > ask > default.
+# Asked up front so the whole run is decided before anything is written.
+# settings.json wants the ~ form (Claude Code expands it); shared-dirs.json and
+# every real filesystem call want it expanded. shellcheck sees the literal ~ as a
+# mistake in both directions, hence the disables.
+# shellcheck disable=SC2088
+expand_tilde() { case "$1" in "~") echo "$HOME" ;; "~/"*) echo "$HOME/${1#\~/}" ;; *) echo "$1" ;; esac; }
+# shellcheck disable=SC2088
+tildify()      { case "$1" in "$HOME") echo "~" ;; "$HOME"/*) echo "~/${1#"$HOME"/}" ;; *) echo "$1" ;; esac; }
+
+# shared-dirs.json holds the ABSOLUTE path: hooks match it against real paths.
+read_shared_default() {
+  [ -f "$SHARED_DIRS_JSON" ] || return 0
+  if command -v jq >/dev/null 2>&1; then
+    jq -r '.default // empty' "$SHARED_DIRS_JSON" 2>/dev/null
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("default") or "")' \
+      "$SHARED_DIRS_JSON" 2>/dev/null
+  fi
+}
+
+if [ -n "$SHARED_DIR_ARG" ]; then
+  SHARED_DIR="$(expand_tilde "$SHARED_DIR_ARG")"
+elif [ -n "$(read_shared_default)" ]; then
+  SHARED_DIR="$(expand_tilde "$(read_shared_default)")"
+  echo "Shared handoff root: $SHARED_DIR (from $SHARED_DIRS_JSON)"
+elif [ "$ASSUME_YES" = 0 ] && [ -t 0 ]; then
+  cat <<'EOF'
+
+Handoff docs — specs, reports, task ledgers — are written OUTSIDE your repos, so a
+project never fills up with .md files. Pick where they live (an Obsidian vault
+subfolder works well; it just has to be a directory you can write to).
+EOF
+  # `|| true`: read fails on EOF (Ctrl-D), which set -e would turn into a silent
+  # abort halfway through the install. Treat it as "take the default".
+  shared_ans=""
+  read -r -p "  Shared docs dir [$(tildify "$SHARED_DIR_DEFAULT")] " shared_ans || true
+  SHARED_DIR="$(expand_tilde "${shared_ans:-$SHARED_DIR_DEFAULT}")"
+else
+  SHARED_DIR="$SHARED_DIR_DEFAULT"
+fi
+
+case "$SHARED_DIR" in
+  /*) ;;
+  *) echo "shared dir must be an absolute path (or start with ~/): $SHARED_DIR" >&2; exit 2 ;;
 esac
+SHARED_DIR="${SHARED_DIR%/}"
+# The path is interpolated into JSON and into a sed replacement, so refuse the
+# characters that would corrupt either rather than trying to escape them.
+case "$SHARED_DIR" in
+  *[\"\\\|\&]*|*'
+'*) echo "shared dir may not contain \" \\ | & or newlines: $SHARED_DIR" >&2; exit 2 ;;
+esac
+SHARED_DIR_SETTINGS="$(tildify "$SHARED_DIR")"
 
 # ── run summary (printed at the end) ────────────────────────────────────────────
 SHELVED=()    # real content moved aside to .bak this run
@@ -56,8 +130,8 @@ confirm_replace() {
     echo "  (non-interactive) keeping existing; repo version NOT applied"
     return 1
   fi
-  local ans
-  read -r -p "  Replace with the repo version? existing -> .bak [y/N] " ans
+  local ans=""
+  read -r -p "  Replace with the repo version? existing -> .bak [y/N] " ans || true
   case "$ans" in [yY]*) return 0 ;; *) return 1 ;; esac
 }
 
@@ -129,7 +203,23 @@ prune_dangling() {
 echo "Linking config ..."
 link "$REPO/config/CLAUDE.md"     "$CLAUDE_DIR/CLAUDE.md"
 link "$REPO/config/statusline.sh" "$CLAUDE_DIR/statusline.sh"
-copy "$REPO/config/settings.template.json" "$CLAUDE_DIR/settings.json"
+
+# The template ships the default shared root in its permissions, its permafrost
+# Read-deny and its sandbox allowWrite. Substitute the chosen root before copying:
+# without this the sandbox refuses to write there, which is the whole feature.
+# Rendering (rather than patching the copy in place) keeps re-runs idempotent —
+# the comparison in copy() is against the same rendered bytes every time.
+SETTINGS_SRC="$REPO/config/settings.template.json"
+if [ "$SHARED_DIR_SETTINGS" != "$TEMPLATE_ROOT" ]; then
+  # Rendered next to the destination rather than in $TMPDIR — the temp dir is not
+  # always writable (the Claude Code sandbox denies it), and ~/.claude always is.
+  SETTINGS_SRC="$CLAUDE_DIR/.settings.rendered.$$.json"
+  trap 'rm -f "$SETTINGS_SRC"' EXIT
+  sed "s|$TEMPLATE_ROOT|$SHARED_DIR_SETTINGS|g" \
+    "$REPO/config/settings.template.json" > "$SETTINGS_SRC"
+  echo "  shared root in settings: $TEMPLATE_ROOT -> $SHARED_DIR_SETTINGS"
+fi
+copy "$SETTINGS_SRC" "$CLAUDE_DIR/settings.json"
 for h in "$REPO"/config/hooks/*.sh; do
   link "$h" "$CLAUDE_DIR/hooks/$(basename "$h")"
 done
@@ -155,7 +245,40 @@ echo "Wiring global npm config ..."
 link "$REPO/config/npmrc" "$HOME/.npmrc"
 
 echo "Creating shared handoff dir ..."
-mkdir -p "$HOME/Documents/claude-shared"
+mkdir -p "$SHARED_DIR"
+echo "  $SHARED_DIR"
+
+# Runtime resolution reads this file, not settings.json: hooks (warn-dangerous's
+# no-delete guard) and skills resolve the root from it, and `overrides` maps a
+# project root to its own shared dir. Only `default` is set here — overrides are
+# yours to add and are preserved on re-run.
+if [ ! -f "$SHARED_DIRS_JSON" ]; then
+  cat > "$SHARED_DIRS_JSON" <<EOF
+{
+  "default": "$SHARED_DIR",
+  "overrides": {}
+}
+EOF
+  echo "  wrote $SHARED_DIRS_JSON"
+elif [ "$(read_shared_default)" = "$SHARED_DIR" ]; then
+  echo "  ✓ $SHARED_DIRS_JSON (default already $SHARED_DIR)"
+elif command -v jq >/dev/null 2>&1; then
+  jq --arg d "$SHARED_DIR" '.default = $d' "$SHARED_DIRS_JSON" > "$SHARED_DIRS_JSON.tmp.$$" \
+    && mv "$SHARED_DIRS_JSON.tmp.$$" "$SHARED_DIRS_JSON"
+  echo "  updated $SHARED_DIRS_JSON default -> $SHARED_DIR"
+elif command -v python3 >/dev/null 2>&1; then
+  python3 - "$SHARED_DIRS_JSON" "$SHARED_DIR" <<'PY'
+import json, sys
+p, d = sys.argv[1], sys.argv[2]
+with open(p) as f: cfg = json.load(f)
+cfg["default"] = d
+with open(p, "w") as f: json.dump(cfg, f, indent=2); f.write("\n")
+PY
+  echo "  updated $SHARED_DIRS_JSON default -> $SHARED_DIR"
+else
+  echo "  NOTE: neither jq nor python3 found — set \"default\": \"$SHARED_DIR\" in"
+  echo "        $SHARED_DIRS_JSON by hand (existing overrides left untouched)."
+fi
 
 # ── summary ─────────────────────────────────────────────────────────────────────
 echo
@@ -172,12 +295,18 @@ fi
 if [ "${#RECONCILE[@]}" -gt 0 ]; then
   echo "Diverged from repo — reconcile by hand if you want the repo version:"
   for f in "${RECONCILE[@]}"; do echo "  diff '$f' '$REPO/config/settings.template.json'"; done
+  if [ "$SHARED_DIR_SETTINGS" != "$TEMPLATE_ROOT" ]; then
+    echo "  (that diff also shows the shared root: $TEMPLATE_ROOT -> $SHARED_DIR_SETTINGS)"
+  fi
 fi
 if [ "${#PRUNED[@]}" -gt 0 ]; then
   echo "Pruned dangling links (skill/hook removed from the repo):"
   printf '  %s\n' "${PRUNED[@]}"
 fi
-[ "$total" -eq 0 ] && echo "No conflicts to review."
+# `[ ... ] && echo` would abort the script under set -e whenever there IS something
+# to review, swallowing the steps below — the case that needs them most.
+if [ "$total" -eq 0 ]; then echo "No conflicts to review."; fi
+echo "Handoff docs: $SHARED_DIR"
 
 cat <<'EOF'
 
@@ -190,6 +319,10 @@ Remaining steps:
   2. Install jq if missing (hooks depend on it):  brew install jq
   3. Plugin-based skills (figma, serena, etc.) are restored from
      settings.json's enabledPlugins + extraKnownMarketplaces on first launch.
+
+To move the handoff docs later: re-run with --shared-dir <new path>, then move the
+existing contents across yourself (the script repoints, it never moves your files).
+A single project can keep its own dir via an "overrides" entry in shared-dirs.json.
 
 Then restart Claude Code.
 EOF
