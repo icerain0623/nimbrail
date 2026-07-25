@@ -19,6 +19,53 @@ HOOK_JSON
   exit 0
 }
 
+deny() {
+  local msg="$1"
+  cat <<HOOK_JSON
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"$msg"}}
+HOOK_JSON
+  exit 0
+}
+
+# ============================================================
+# A0. claude-shared is not git — deletion there is unrecoverable
+# ============================================================
+# The lifecycle rule is freeze, never raw-delete. Which paths count is decided by
+# shared-dirs.json, so the check is mechanical and belongs here rather than in
+# CLAUDE.md. `mv` stays allowed: that is how permafrost freezes.
+# Placed before the rm guard below so the deny wins over that guard's ask.
+# Test seam (unset in production): CLAUDE_HOOK_SHARED_ROOTS.
+shared_roots() {
+  if [ -n "${CLAUDE_HOOK_SHARED_ROOTS:-}" ]; then
+    # shellcheck disable=SC2086  # intentional word splitting: space-separated roots
+    printf '%s\n' $CLAUDE_HOOK_SHARED_ROOTS
+    return
+  fi
+  echo "$HOME/Documents/claude-shared"
+  [ -f "$HOME/.claude/shared-dirs.json" ] \
+    && jq -r '(.default // empty), (.overrides // {} | to_entries[]?.value)' \
+         "$HOME/.claude/shared-dirs.json" 2>/dev/null
+}
+
+# The root must end at a path boundary. A plain substring test also denied
+# sibling directories that merely start with the same string (claude-shared-old),
+# and a deny cannot be waved through.
+path_hit() { # <path>
+  local esc
+  esc=$(printf '%s' "$1" | sed 's/[][^$.*+?(){}|\\]/\\&/g')
+  echo "$cmd" | grep -qE "${esc}(/|[[:space:]]|[\"']|\$)"
+}
+
+if echo "$cmd" | grep -qE '(^|[|&;])[[:space:]]*(rm|rmdir|trash)[[:space:]]' \
+   || echo "$cmd" | grep -qE '\bfind\b.*-delete'; then
+  while IFS= read -r root; do
+    [ -z "$root" ] && continue
+    if path_hit "$root" || path_hit "${root/#$HOME/\~}"; then
+      deny "claude-shared 配下の削除は禁止です（git 管理外のため復元できません）。/permafrost で凍結してください（mv は許可されています）。"
+    fi
+  done < <(shared_roots)
+fi
+
 # ============================================================
 # A. File system destruction
 # ============================================================

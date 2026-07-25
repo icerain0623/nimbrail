@@ -36,6 +36,7 @@ claude-kit/
 │   ├── session-info/          # write session resume info to claude-shared
 │   ├── forecast/              # pre-release scenario-test checklist from the spec
 │   ├── weathering/            # spec-drift watch: diff SPEC.md against implemented reality
+│   ├── barometer/             # kit-vs-environment drift: live ~/.claude + harness surface
 │   ├── almanac/               # weekly digest (週報 draft) + shared-dir archive proposals
 │   ├── cirrus/                # incremental research notebook that survives context death
 │   └── sunbreak/              # mine past transcripts into an Obsidian report
@@ -86,7 +87,7 @@ petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
 
 It's a **loop, not a one-shot line**, and you enter it sized to the work:
 
-- **Small / clear change → express lane.** Skip the planning stations and just build → `check` → `verify` → commit (`monsoon` handles the git side). Don't run the full rail for a one-file fix.
+- **Small / clear change → express lane.** Skip the planning stations and just build → `check` → confirm real behavior → commit (`monsoon` handles the git side). Don't run the full rail for a one-file fix.
 - **Substantial / underspecified → start at `petrichor`** and walk the rail. When that feature ships, the next substantial one re-enters at `petrichor` — that's the loop closing. `monsoon` is the hub that triages which path a new piece of work takes.
 
 Each step ends by pointing you to the next, so you follow the prompts instead of memorizing the chain.
@@ -97,10 +98,10 @@ Each step ends by pointing you to the next, so you follow the prompts instead of
 
 1. **Design + config — `squall`.** Detailed design (how to build): reads the spec + existing code and produces repo design artifacts — dev-environment/README, coding conventions (Lint), DB physical schema, module/process design, API (OpenAPI)/sequence designs, infra detail — then records the `.claude/` config (`project.md` that `monsoon` reads + `CLAUDE.md` conventions) and enables opt-ins like release notes on confirmation. Explore-first, not an interview. (Skip the parts that don't apply.)
 
-2. **Build.** Coding stays in the normal loop — no separate skill drives it. The build discipline is **ambient** (global CLAUDE.md), so it applies without invoking anything: judge Serena onboarding (run it when it pays off), branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing. At a checkpoint, run `/monsoon` to route the next step (`check` → commit → push / PR / …). For an autonomously-runnable stretch of the ledger, `/downpour` burns it down wave by wave — subagents implement, fresh-context verifiers judge the EARS completion conditions, the orchestrator alone commits and writes the ledger (spec: `docs/SPEC-downpour.md`).
+2. **Build.** Coding stays in the normal loop — no separate skill drives it. The build discipline is **ambient** (global CLAUDE.md), so it applies without invoking anything: judge Serena onboarding (run it when it pays off), branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing, and log anything noticed in passing to `findings.md` (a per-project checklist `monsoon` surfaces at a checkpoint). At a checkpoint, run `/monsoon` to route the next step (`check` → commit → push / PR / …). For an autonomously-runnable stretch of the ledger, `/downpour` burns it down wave by wave — subagents implement, fresh-context verifiers judge the EARS completion conditions, the orchestrator alone commits and writes the ledger (spec: `docs/SPEC-downpour.md`).
 
 3. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
-   - a **new piece of work** → triage by size: small/clear takes the express lane (skip planning → build → `check` → `verify` → commit); substantial re-enters the rail at `petrichor`
+   - a **new piece of work** → triage by size: small/clear takes the express lane (skip planning → build → `check` → behavior confirmation → commit); substantial re-enters the rail at `petrichor`
    - uncommitted changes → `check` (lint/typecheck), then commits autonomously on the feature branch
    - version bump + release notes enabled → `release-note` (offered before the PR, so the changelog lands in the same push); a release with a spec also gets `forecast` offered (scenario walk-through before the push)
    - feature branch with checks passing → offers to push / open a PR
@@ -121,6 +122,7 @@ Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (
 | `session-info` | write the resume command (`claude --resume <id>`) to the shared root (default `~/Documents/claude-shared/`) |
 | `forecast` | generate a pre-release scenario-test checklist from the spec (coverage-traced to 機能 IDs) |
 | `weathering` | spec-drift report: where the code and `SPEC.md` disagree (+ stale ja+en rendering); edits on confirmation |
+| `barometer` | kit-vs-environment drift: live `~/.claude` against this repo (copied `settings.json`, symlink integrity, orphans) + whether the harness surface the kit assumes still exists. Read-only, proposes. Run it after upgrading Claude Code |
 | `almanac` | weekly digest across active repos (週報 draft) + the *propose* side of the shared-dir lifecycle: flags stale files for freezing (the store is `permafrost`) |
 | `permafrost` | the claude-shared information-lifecycle mechanism — freeze completed/stale docs into a hard-invisible cold store (Read/grep-denied, write-only; `thaw` to read) and keep warm files thin (eviction). Enforcement lives in `settings.json` + `config/CLAUDE.md`; the skill runs the sweep/thaw. `almanac` proposes candidates here |
 | `cirrus` | incremental research notebook — findings persist to Obsidian as found, resumable after context death |

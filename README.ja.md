@@ -34,7 +34,7 @@ petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
 
 **一直線ではなくループ**で、作業規模に応じて入口を選ぶ:
 
-- **小さい/明確 → express lane**: 企画駅を飛ばして 実装 → `check` → `verify` → commit。
+- **小さい/明確 → express lane**: 企画駅を飛ばして 実装 → `check` → 実挙動の確認 → commit。
 - **大きい/未確定 → petrichor から**: レールを一周。出荷後、次の substantial な作業がまた petrichor に戻る＝ループが閉じる。
 - **既存コードで spec が無い → overcast**（As-Is を spec 化）。
 - 迷ったら **monsoon** が現状を見て次手を提示。

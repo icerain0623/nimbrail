@@ -1,6 +1,6 @@
 ---
 name: cirrus
-description: Incremental research notebook that survives context death — findings land in an Obsidian note as they are found (not at the end), with a resume header so a dead or new session continues where the last one stopped. Use when researching or investigating a nontrivial topic (調べて/調査/リサーチ), when a research conversation is getting long, or when resuming an earlier research topic. For one-shot deep fan-out research, prefer deep-research — cirrus is the persistent notebook around it.
+description: Incremental research notebook that survives context death — findings land in an Obsidian note as they are found (not at the end), with a resume header so a dead or new session continues where the last one stopped. Use when researching or investigating a nontrivial topic (調べて/調査/リサーチ), when a research conversation is getting long, or when resuming an earlier research topic.
 ---
 
 # cirrus
@@ -28,7 +28,7 @@ Thin clouds accumulating high up — the sign that weather is about to change. c
 
 1. **On invoke**: settle the topic; if a note exists, read it and resume from its `Next:`. Otherwise create it. Put the user's question into `Open questions`.
 2. **Write as you go.** Append each significant finding to the note and refresh `結論(現時点)` — not in one batch at the end of the conversation (that is exactly what loses to context death). Record each source's URL and one-line verdict immediately after reading it — never create a "where did I read that?" situation.
-3. **Heavy sweeps**: when the topic needs exhaustive multi-angle coverage, delegate to `deep-research` and bind its report's key points and references into this note (link to wherever the full report lives). cirrus itself stays the running notebook.
+3. **Heavy sweeps**: when the topic needs exhaustive multi-angle coverage, run the sweep here — one angle per round, each round's findings landing in the note before the next starts, so a dead context loses at most one round. If the user asks for a wide parallel fan-out, that is a delegation decision under the global Delegation rule; cirrus stays the notebook the results land in either way.
 4. **On close**: update the header (`Status` / `Next` / `Open questions`) first, then summarize in chat. Always give the note's path.
 
 ## Rules

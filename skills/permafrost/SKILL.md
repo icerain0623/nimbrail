@@ -15,7 +15,7 @@ Information-lifecycle mechanism for claude-shared: freeze completed / stale / lo
 
 ## warm (never freeze whole)
 
-Current petrichor plan (`00-overview.md` + active `NN-topic.md`), live `feedback.md`, `TODO.md`, open reports. For `TODO.md`, evict the *completed lines*, not the file.
+Current petrichor plan (`00-overview.md` + active `NN-topic.md`), live `feedback.md`, `TODO.md`, `findings.md`, open reports. For a checklist file, the freezable unit is its trailing `## 対応済み` block once bulky — never the file, and never an open line. Closed lines stay struck through in place until then (global CLAUDE.md, completion convention).
 
 ## Sweep — propose → confirm → execute
 
