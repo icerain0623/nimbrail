@@ -1,6 +1,6 @@
 ---
 name: petrichor
-description: Greenfield planning front-door — interview the user to a spec at a chosen depth (L1 sketch / L2 spec / L3 要件定義; web and non-web — CLI/library/game). L2+ specs carry a v1 scope line, S/M/L estimates, and EARS-style acceptance criteria that squall's task ledger and the build's behavior checks enforce downstream; Done gates include a fresh-context adversarial review. Spec language defaults to ja (en / ja+en offered on audience signal). Hands off to squall.
+description: Greenfield planning front-door — interview the user to a spec at a chosen depth (L1 sketch / L2 spec / L3 要件定義; web and non-web — CLI/library/game). L2+ specs carry a v1 scope line, S/M/L estimates, and EARS-style acceptance criteria that squall's task ledger and the build's behavior checks enforce downstream; L3's Done gates include a fresh-context adversarial review. Spec language defaults to ja (en / ja+en offered on audience signal). Hands off to squall.
 disable-model-invocation: true
 ---
 
@@ -79,7 +79,7 @@ Three gates, in order:
 
 1. No open questions remain anywhere (L3: every applicable `requirements-jp.md` section meets its 終了条件).
 2. **The v1 line is drawn** (L2/L3): every 機能 carries a 優先度, and v1 read as a set still achieves the project's core purpose. Over-scoping is a spec bug, not an implementation problem — if v1 doesn't stand on its own, or contains everything, run one more scope round.
-3. Fresh-eyes review, scaled to level (skip L1, light L2, full L3): a fresh-context subagent reads *only* the plan files — no interview history — and hunts contradictions, ambiguities, missing exception paths, and unverifiable 受け入れ条件 (L3: also non-quantified 非機能). It reads the spec cold, the way `squall` and the build will. Triage its findings; anything real becomes one final round.
+3. Fresh-eyes review — **L3 only**: a fresh-context subagent reads *only* the plan files — no interview history — and hunts contradictions, ambiguities, missing exception paths, and unverifiable 受け入れ条件 (L3: also non-quantified 非機能). It reads the spec cold, the way `squall` and the build will. Triage its findings; anything real becomes one final round. L1 and L2 skip this gate: gates 1 and 2 still apply, and at that size a cold read costs a subagent without finding what the model's own pass over a short spec already catches.
 
 When all three hold, set header `Next: DONE`. The spec is `petrichor-plan/00-overview.md`.
 

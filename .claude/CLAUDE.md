@@ -17,7 +17,7 @@ absorb runtime `/config` toggles without dirtying the repo).
   `bash lint-skills.sh` — kit-specific conventions: frontmatter name↔dir match, slash-only rail
   skills, the `<shared-root>` convention (no undocumented `~/Documents/claude-shared` hardcodes),
   and README + Obsidian-guide sync with `skills/`.
-- **Restart needed?** Skill *body* + sibling-file edits apply on next invocation (read on-demand) — no restart. Restart only for: a new skill, a changed `name`/`description` frontmatter, or any `settings.json` edit (hooks / permissions / sandbox). No `/reload` exists.
+- **Restart needed?** Skill body and sibling-file edits apply on next invocation (read on-demand). A newly added skill and a changed `name`/`description` were both picked up mid-session without a restart (observed 2026-07-26 — the harness rescans), so treat restarting as what you try when a change doesn't show up, not as a required step. `settings.json` edits (hooks / permissions / sandbox) do still need one. No `/reload` exists.
 - Sandbox carve-out (harness bug): git ops that **rewrite working-tree files under `config/`** (checkout/merge/reset across branches that differ there) fail in-sandbox with `Operation not permitted`. The harness-injected `.git/config` protection is missing its `.git/` prefix and mis-hits the repo's `config/` dir instead. Run just those git ops with the sandbox disabled — Edit-tool edits and commits are unaffected. It's injected by the harness, so it can't be fixed from this repo's own settings.
 
 ## Who reads it (agent-facing vs human-facing)
