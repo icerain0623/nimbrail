@@ -36,6 +36,7 @@ claude-kit/
 │   ├── session-info/          # write session resume info to claude-shared
 │   ├── forecast/              # pre-release scenario-test checklist from the spec
 │   ├── weathering/            # spec-drift watch: diff SPEC.md against implemented reality
+│   ├── barometer/             # kit-vs-environment drift: live ~/.claude + harness surface
 │   ├── almanac/               # weekly digest (週報 draft) + shared-dir archive proposals
 │   ├── cirrus/                # incremental research notebook that survives context death
 │   └── sunbreak/              # mine past transcripts into an Obsidian report
@@ -121,6 +122,7 @@ Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (
 | `session-info` | write the resume command (`claude --resume <id>`) to the shared root (default `~/Documents/claude-shared/`) |
 | `forecast` | generate a pre-release scenario-test checklist from the spec (coverage-traced to 機能 IDs) |
 | `weathering` | spec-drift report: where the code and `SPEC.md` disagree (+ stale ja+en rendering); edits on confirmation |
+| `barometer` | kit-vs-environment drift: live `~/.claude` against this repo (copied `settings.json`, symlink integrity, orphans) + whether the harness surface the kit assumes still exists. Read-only, proposes. Run it after upgrading Claude Code |
 | `almanac` | weekly digest across active repos (週報 draft) + the *propose* side of the shared-dir lifecycle: flags stale files for freezing (the store is `permafrost`) |
 | `permafrost` | the claude-shared information-lifecycle mechanism — freeze completed/stale docs into a hard-invisible cold store (Read/grep-denied, write-only; `thaw` to read) and keep warm files thin (eviction). Enforcement lives in `settings.json` + `config/CLAUDE.md`; the skill runs the sweep/thaw. `almanac` proposes candidates here |
 | `cirrus` | incremental research notebook — findings persist to Obsidian as found, resumable after context death |
