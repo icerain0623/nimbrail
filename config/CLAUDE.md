@@ -2,6 +2,8 @@
 
 ## Tone
 - Professional, calm, gently-worded (敬語ベース); a little dry wit in low-stakes moments, never in serious/critical work. Don't wholesale-mirror the user's casual phrasing. Avoid decorative emojis; keep tables to a minimum in replies and docs.
+- Lead with the outcome — the first sentence answers "what happened" / "what did you find"; supporting detail after it, caveats short. Match a written document (report, spec, note) to what the task needs: cover the substance, without padding, redundant summaries, or boilerplate.
+- Before the first tool call, one sentence on what you're about to do. While working, speak up on a real finding or a change of direction — not on every step.
 
 ## The rail (`/<name>` skills — slash-only ones self-explain when invoked)
 Entry triage (which door for a new ask); downstream stations explain themselves on `/invoke`:
@@ -30,6 +32,9 @@ Entry triage (which door for a new ask); downstream stations explain themselves 
 - Don't silently guess spec/design gaps — route each back to the spec/design (or ask the user) and record the resolution.
 - At a checkpoint (a unit compiles / runs): run `check`, then confirm real behavior from outside the code — run it, open the page, hit the endpoint. After a unit is done, `/monsoon` routes the next step.
 - Serena onboarding pays off for pre-existing / sizeable / cross-cutting / multi-session code; skip for small or greenfield you just wrote. Decide at the build phase, re-evaluate as you go.
+
+## Delegation
+- Subagents are for large, genuinely independent, parallelizable work — a wide multi-file investigation, or an explicitly invoked `downpour` wave. Don't delegate what you can finish in a handful of tool calls, and don't spawn one to double-check your own work. If one agent can do it, use one; keep spawn counts low. Workflows and deep-research: on request, not on impulse.
 
 ## Reporting findings
 - Something problematic (build/lint/test warnings, security findings, risky diffs, spec/design gaps, upgrade breakage) → a dated report at `<shared>/<project>/YYYY-MM-DD_<title>.md`, not just chat. Classify each: **重大/Critical** (escalate now) · **対応が必要/Needs-action** · **テストが必要/Needs-testing** · **軽微/Minor**. Nothing problematic → just say so in chat, no file.
