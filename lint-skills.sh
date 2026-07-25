@@ -12,6 +12,9 @@
 #      override convention — see global CLAUDE.md, Handoff files)
 #   5. README.md mentions every authored skill (tree/table drift)
 #   6. the Obsidian guide, if present, mentions every authored skill
+#   7. backticked references that are shaped like a skill actually resolve to
+#      one — catches a phantom station (`verify`, `landing-page-nextjs`) written
+#      as if it were invocable
 #
 # Exit 0 = all green; exit 1 = at least one violation.
 
@@ -84,6 +87,47 @@ if [ -f "$GUIDE" ]; then
 else
   note "(guide not found at $GUIDE — skipped)"
 fi
+
+echo "[7] backticked skill-shaped references resolve to a skill"
+# Two narrow rules, chosen because they catch the phantom references this kit
+# actually shipped without demanding a dictionary of every tool name in prose:
+#   A. a backticked token containing a hyphen is skill-shaped by convention
+#   B. a backticked token chained to a real skill with → or / is being presented
+#      as a peer station, so it must be one
+# KNOWN_OTHER = skill-shaped tokens that are legitimately not a skill of this
+# kit: config keys, CLI flags, package names, and skills supplied from outside
+# the repo (harness / plugins). Add to it when prose gains a new such name.
+SKILLS=""
+for d in "$REPO"/skills/*/; do SKILLS="$SKILLS $(basename "${d%/}")"; done
+KNOWN_OTHER="cache-dir deep-research disable-model-invocation ignore-scripts
+in-progress min-release-age state-dir store-dir unrs-resolver update-config"
+is_skill() { case " $SKILLS " in *" $1 "*) return 0 ;; esac; return 1; }
+resolves() {
+  is_skill "$1" && return 0
+  case " $(echo "$KNOWN_OTHER" | tr '\n' ' ') " in *" $1 "*) return 0 ;; esac
+  return 1
+}
+LINT_FILES="$REPO/config/CLAUDE.md $REPO/.claude/CLAUDE.md $REPO/README.md $REPO/README.ja.md"
+LINT_FILES="$LINT_FILES $(find "$REPO/skills" -name '*.md' | tr '\n' ' ')"
+for f in $LINT_FILES; do
+  [ -f "$f" ] || continue
+  rel="${f#"$REPO"/}"
+  # A
+  while IFS=: read -r n tok; do
+    [ -n "${tok:-}" ] || continue
+    resolves "$tok" || err "unresolved skill-shaped reference \`$tok\` at $rel:$n"
+  done < <(grep -noE '`[a-z0-9]+(-[a-z0-9]+)+`' "$f" | tr -d '`')
+  # B
+  while IFS=: read -r n a b; do
+    [ -n "${b:-}" ] || continue
+    if is_skill "$a" && ! resolves "$b"; then
+      err "\`$b\` is chained to the real skill \`$a\` but resolves to nothing, at $rel:$n"
+    elif is_skill "$b" && ! resolves "$a"; then
+      err "\`$a\` is chained to the real skill \`$b\` but resolves to nothing, at $rel:$n"
+    fi
+  done < <(grep -noE '`[a-z0-9-]+`[[:space:]]*(→|/)[[:space:]]*`[a-z0-9-]+`' "$f" \
+             | sed -e 's/`//g' -e 's/[[:space:]]*→[[:space:]]*/:/' -e 's|[[:space:]]*/[[:space:]]*|:|')
+done
 
 echo
 if [ "$FAIL" = 0 ]; then echo "lint-skills: PASS"; else echo "lint-skills: FAIL"; fi
