@@ -1,6 +1,6 @@
 ---
 name: petrichor
-description: Greenfield planning front-door — interview the user to a spec at a chosen depth (L1 sketch / L2 spec / L3 要件定義; web and non-web — CLI/library/game). L2+ specs carry a v1 scope line, S/M/L estimates, and EARS-style acceptance criteria that squall's task ledger and the build's verify enforce downstream; Done gates include a fresh-context adversarial review. Spec language defaults to ja (en / ja+en offered on audience signal). Hands off to squall.
+description: Greenfield planning front-door — interview the user to a spec at a chosen depth (L1 sketch / L2 spec / L3 要件定義; web and non-web — CLI/library/game). L2+ specs carry a v1 scope line, S/M/L estimates, and EARS-style acceptance criteria that squall's task ledger and the build's behavior checks enforce downstream; Done gates include a fresh-context adversarial review. Spec language defaults to ja (en / ja+en offered on audience signal). Hands off to squall.
 disable-model-invocation: true
 ---
 

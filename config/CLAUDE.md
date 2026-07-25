@@ -11,7 +11,7 @@ Entry triage (which door for a new ask); downstream stations explain themselves 
 - "next sensible step given state?" → /monsoon
 
 ## Web / LP (Next.js)
-- LP / Figma→page: never skip verify after a visual change (the #1 source of rework); `landing-page-nextjs` holds the conventions. GTM via `@next/third-parties/google`, never raw `<script>`.
+- LP / Figma→page: always look at the rendered page after a visual change (the #1 source of rework). GTM via `@next/third-parties/google` — GTM's own install instructions hand you a raw `<script>`; don't paste it.
 
 ## Dev servers
 - Dev servers are hook-blocked; if one's needed, have the user run it via the `!` prefix. For an in-sandbox build check use `next build --webpack` (Turbopack panics; Docker/prod keep the default).
