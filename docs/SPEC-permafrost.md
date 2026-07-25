@@ -52,8 +52,10 @@ Claude がオンデマンドで読んでよい小集合のみ：
 
 ## eviction ルール（claude-shared は git 管理外 → **生 delete しない**）
 
+> 2026-07-26 改定: チェックリストの完了行は**その場に取り消し線で残す**（global CLAUDE.md の completion convention）。本節の「行を畳む／完了行を残さない」は、当時の「完了行は削除」方針に基づいていた。eviction の単位は行ではなく、膨れた `## 対応済み` ブロック。削除禁止は hook で強制済み（`warn-dangerous.sh`）。
+
 - open → `TODO.md` に載る（薄いまま）
-- 完了 & 残す価値あり → **issue へ昇格（手動）** または repo docs へ → `TODO.md` の行を畳む
+- 完了 & 残す価値あり → **issue へ昇格（手動）** または repo docs へ → `TODO.md` では取り消し線付きで `## 対応済み` へ移す
 - 完了 & 価値が薄い → **permafrost へ凍結**（生 delete しない。claude-shared に git 履歴の安全網が無いため、消去＝不可逆消失）。真に不要と人間が判断した物だけ、確認の上で人間が削除。
 - ログ／保存物（エラー解析ログ等）→ warm に置かず **permafrost 直行**
 - 壁打ちの長文 → TODO から独立ファイルへ切り出し、決着後 permafrost。
@@ -75,7 +77,7 @@ Claude がオンデマンドで読んでよい小集合のみ：
   - AC: `/permafrost thaw <path>` で、permafrost 内のファイルを warm 側へ `mv` で戻せる（Claude が読める状態に復帰）
   - AC: Claude が中身だけ確認したい場合の読み出し経路は「sandbox override 付き Bash 読み」＝明示操作に限る（casual には読めない）
 - **F-3 eviction ＋ デフォルト姿勢（`config/CLAUDE.md`）** — v1 / S
-  - AC: sweep 後、`TODO.md` に `完了`/`[x]`/`done` とマークされた行が残っていない（＝ open 項目のみ）
+  - AC（2026-07-26 改定）: sweep 後、`TODO.md` の完了行は取り消し線付きで `## 対応済み` にまとまっており、未対応セクションには open 項目のみが残る。旧 AC（完了行が 1 行も残っていない）は completion convention により失効。
   - AC: `config/CLAUDE.md` に「claude-shared を丸ごと探索せず名指しで開く／`permafrost/` は触らない」の一節が存在する（grep で確認可）
 - **F-4 issue 昇格 手動フロー** — v1 / S
   - AC: 昇格候補について Claude が issue 本文を下書きし、ユーザーが作成する（gh 自動化はしない）

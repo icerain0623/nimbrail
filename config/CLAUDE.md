@@ -6,7 +6,7 @@
 - Before the first tool call, one sentence on what you're about to do. While working, speak up on a real finding or a change of direction — not on every step.
 
 ## The rail (`/<name>` skills — slash-only ones self-explain when invoked)
-Entry triage (which door for a new ask); downstream stations explain themselves on `/invoke`:
+Entry triage (which door for a new ask); downstream stations explain themselves when invoked:
 - trivial / well-understood → express lane (just build it)
 - new capability worth planning → /petrichor (L1 sketch → L3 要件定義) → squall → build
 - existing code, no spec → /overcast
