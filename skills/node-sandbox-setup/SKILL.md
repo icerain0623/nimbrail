@@ -30,4 +30,4 @@ Remote version lookups fail in-sandbox (mise's CDN and `api.github.com` are unre
 - mise "Remote versions cannot be fetched" / cache write `Operation not permitted` → pin to installed versions; run version changes via the `!` shell.
 
 ## Note (related, not pnpm/mise)
-- `api.github.com` is unreachable in this environment (likely org policy — not worth chasing). It surfaces in the same sessions because mise's fallback and `gh` both depend on it; `gh`/PR work may fail here for the same reason.
+- `gh` fails **in-sandbox** with `tls: failed to verify certificate` — a cert-verification failure inside the sandbox, not an unreachable host (`api.github.com` is allowlisted, and `gh` works with the sandbox disabled). Run `gh` unsandboxed. mise's own remote lookups still fail here, for the CDN reason above.
