@@ -4,7 +4,7 @@ My portable [Claude Code](https://claude.com/claude-code) setup — config **and
 
 日本語のクイックスタート → [README.ja.md](README.ja.md)
 
-> **Private repo.** It mirrors `~/.claude`. No real secrets are committed (see [Secrets](#secrets)), but keep it private.
+> **Public repo, personal setup.** It mirrors `~/.claude`, so it is a reference to copy from rather than a project to contribute to — **pull requests are not accepted** ([CONTRIBUTING.md](CONTRIBUTING.md)); issues and forks are welcome. No real secrets are committed: the PAT lives only in `~/.claude/settings.local.json` (see [Secrets](#secrets)).
 >
 > **macOS-only.** Some paths are macOS/author-specific — `SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` point at `/etc/ssl/cert.pem`, `EDITOR` is WebStorm, and the sandbox write-roots are `~/Documents/GitHub` and `~/Developers`. On Linux these would need adjusting before `./install.sh`.
 
@@ -138,3 +138,11 @@ Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (
 - The real GitHub PAT lives **only** in `~/.claude/settings.local.json` (gitignored). `settings.local.json` overrides `env.GH_TOKEN` at runtime; the template carries a placeholder.
 - `.gitignore` also blocks any literal `settings.json` as a safety net.
 - If a real token ever lands in a commit: **rotate it immediately** on GitHub.
+- Secret scanning and push protection are enabled on this repo, so GitHub blocks a
+  recognised token at push time — a backstop, not a substitute for the two rules above.
+
+## Contributing & license
+
+- **Pull requests are not accepted** — this is a live personal setup. Issues are
+  welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). Hook bypasses: [SECURITY.md](SECURITY.md).
+- [Apache-2.0](LICENSE) — copy and adapt freely, keeping the notices the license asks for.

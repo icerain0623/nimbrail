@@ -3,7 +3,7 @@
 [Claude Code](https://claude.com/claude-code) の個人設定 **＋** 自作スキルを1つの repo にまとめたもの。新しいマシンでは `git clone` → `./install.sh` だけで復元できる。
 
 > これは英語版 [README.md](README.md) の要約です。**詳細・最新は README.md を正**とします（この日本語版は意図的に短く保ち、全訳はしません）。
-> 前提: **private repo**（`~/.claude` のミラー。実シークレットは非コミット）／**macOS 専用**（一部パスが author 固有）。
+> 前提: **public repo**（`~/.claude` のミラー。実シークレットは非コミット）／**macOS 専用**（一部パスが author 固有）。個人設定のため **PR は受け付けていません**（[CONTRIBUTING.md](CONTRIBUTING.md)）。Issue と fork は歓迎。
 
 ## 新マシンでのセットアップ
 
@@ -45,3 +45,7 @@ petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
 
 - 実 GitHub PAT は `~/.claude/settings.local.json`（gitignore 済み）**のみ**。テンプレートはプレースホルダ。
 - 万一コミットに実トークンが混入したら **即ローテーション**。
+
+## ライセンス
+
+[Apache-2.0](LICENSE)。改変・流用は自由（ライセンス表示の保持など、ライセンス本文の条件に従うこと）。
