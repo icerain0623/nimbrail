@@ -23,6 +23,14 @@
 #   --shared-dir PATH    where handoff docs live (default ~/Documents/claude-shared).
 #                        Omitted: keep the path already in shared-dirs.json, else ask,
 #                        else the default.
+#   --commit auto|ask    commit at checkpoints without asking, or confirm each one.
+#   --push ask|never|auto  what `git push` / `gh pr create` may do. auto pushes
+#                        without asking, but only in a repo that has a linter or CI
+#                        — nothing should land unreviewed where nothing checks it.
+#
+# Both policies are enforced by the git-workflow hook, which reads them from the
+# environment. A single project can override them in its own .claude/settings.json
+# (committed, team-wide) or .claude/settings.local.json (gitignored, just you).
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -35,12 +43,20 @@ mkdir -p "$CLAUDE_DIR/hooks" "$CLAUDE_DIR/skills"
 
 ASSUME_YES=0
 SHARED_DIR_ARG=""
+COMMIT_ARG=""
+PUSH_ARG=""
 while [ $# -gt 0 ]; do
   case "$1" in
     -y|--yes)     ASSUME_YES=1; shift ;;
     --shared-dir) [ $# -ge 2 ] || { echo "--shared-dir needs a path" >&2; exit 2; }
                   SHARED_DIR_ARG="$2"; shift 2 ;;
     --shared-dir=*) SHARED_DIR_ARG="${1#*=}"; shift ;;
+    --commit)     [ $# -ge 2 ] || { echo "--commit needs auto|ask" >&2; exit 2; }
+                  COMMIT_ARG="$2"; shift 2 ;;
+    --commit=*)   COMMIT_ARG="${1#*=}"; shift ;;
+    --push)       [ $# -ge 2 ] || { echo "--push needs ask|never|auto" >&2; exit 2; }
+                  PUSH_ARG="$2"; shift 2 ;;
+    --push=*)     PUSH_ARG="${1#*=}"; shift ;;
     -h|--help)    awk 'NR>1 && /^#/ {sub(/^# ?/, ""); print; next} NR>1 {exit}' "$0"; exit 0 ;;
     *)            echo "unknown argument: $1" >&2; exit 2 ;;
   esac
@@ -101,6 +117,45 @@ case "$SHARED_DIR" in
 '*) echo "shared dir may not contain \" \\ | & or newlines: $SHARED_DIR" >&2; exit 2 ;;
 esac
 SHARED_DIR_SETTINGS="$(tildify "$SHARED_DIR")"
+
+# ── git policy ──────────────────────────────────────────────────────────────────
+# Same precedence as the shared root: flag > what the live settings.json already
+# says > ask > default. Re-running therefore keeps your answer instead of resetting
+# it, and the rendered file matches the live one so copy() stays quiet.
+TEMPLATE_COMMIT="auto"   # values the template ships with; anything else is rendered
+TEMPLATE_PUSH="ask"
+
+read_setting_env() { # <key> — the live copy only; no jq dependency
+  [ -f "$CLAUDE_DIR/settings.json" ] || return 0
+  sed -n "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" \
+    "$CLAUDE_DIR/settings.json" 2>/dev/null | head -1
+}
+
+KIT_COMMIT="${COMMIT_ARG:-$(read_setting_env CLAUDE_KIT_COMMIT)}"
+KIT_PUSH="${PUSH_ARG:-$(read_setting_env CLAUDE_KIT_PUSH)}"
+
+if [ -z "$KIT_COMMIT$KIT_PUSH" ] && [ "$ASSUME_YES" = 0 ] && [ -t 0 ]; then
+  cat <<'EOF'
+
+Git policy. Claude commits as it works; pushing is a separate decision.
+EOF
+  commit_ans=""
+  read -r -p "  Commit at checkpoints without asking? [Y/n] " commit_ans || true
+  case "$commit_ans" in [nN]*) KIT_COMMIT="ask" ;; *) KIT_COMMIT="auto" ;; esac
+  echo "  Push / PR:  a = ask every time   n = never   auto = only where a linter or CI exists"
+  push_ans=""
+  read -r -p "  Choose [a/n/auto] " push_ans || true
+  case "$push_ans" in
+    [nN]*)    KIT_PUSH="never" ;;
+    auto|AUTO) KIT_PUSH="auto" ;;
+    *)        KIT_PUSH="ask" ;;
+  esac
+fi
+
+KIT_COMMIT="${KIT_COMMIT:-$TEMPLATE_COMMIT}"
+KIT_PUSH="${KIT_PUSH:-$TEMPLATE_PUSH}"
+case "$KIT_COMMIT" in auto|ask) ;; *) echo "--commit must be auto or ask: $KIT_COMMIT" >&2; exit 2 ;; esac
+case "$KIT_PUSH" in ask|never|auto) ;; *) echo "--push must be ask, never or auto: $KIT_PUSH" >&2; exit 2 ;; esac
 
 # ── run summary (printed at the end) ────────────────────────────────────────────
 SHELVED=()    # real content moved aside to .bak this run
@@ -204,21 +259,34 @@ echo "Linking config ..."
 link "$REPO/config/CLAUDE.md"     "$CLAUDE_DIR/CLAUDE.md"
 link "$REPO/config/statusline.sh" "$CLAUDE_DIR/statusline.sh"
 
-# The template ships the default shared root in its permissions, its permafrost
-# Read-deny and its sandbox allowWrite. Substitute the chosen root before copying:
-# without this the sandbox refuses to write there, which is the whole feature.
-# Rendering (rather than patching the copy in place) keeps re-runs idempotent —
-# the comparison in copy() is against the same rendered bytes every time.
+# The template ships this machine's answers as defaults: the shared root in its
+# permissions, its permafrost Read-deny and its sandbox allowWrite, plus the two
+# git-policy env keys. Substitute the chosen values before copying — for the shared
+# root that substitution IS the feature, since the sandbox otherwise refuses to
+# write there. Rendering (rather than patching the copy in place) keeps re-runs
+# idempotent: copy() compares against the same bytes every time.
+# `[ cond ] && arr+=(…)` would abort the script under set -e every time cond is
+# false, so each of these is a full if — the same trap as the summary line below.
 SETTINGS_SRC="$REPO/config/settings.template.json"
+render_args=()
 if [ "$SHARED_DIR_SETTINGS" != "$TEMPLATE_ROOT" ]; then
+  render_args+=(-e "s|$TEMPLATE_ROOT|$SHARED_DIR_SETTINGS|g")
+  echo "  shared root in settings: $TEMPLATE_ROOT -> $SHARED_DIR_SETTINGS"
+fi
+if [ "$KIT_COMMIT" != "$TEMPLATE_COMMIT" ]; then
+  render_args+=(-e "s|\(\"CLAUDE_KIT_COMMIT\"[[:space:]]*:[[:space:]]*\)\"[^\"]*\"|\1\"$KIT_COMMIT\"|")
+fi
+if [ "$KIT_PUSH" != "$TEMPLATE_PUSH" ]; then
+  render_args+=(-e "s|\(\"CLAUDE_KIT_PUSH\"[[:space:]]*:[[:space:]]*\)\"[^\"]*\"|\1\"$KIT_PUSH\"|")
+fi
+if [ "${#render_args[@]}" -gt 0 ]; then
   # Rendered next to the destination rather than in $TMPDIR — the temp dir is not
   # always writable (the Claude Code sandbox denies it), and ~/.claude always is.
   SETTINGS_SRC="$CLAUDE_DIR/.settings.rendered.$$.json"
   trap 'rm -f "$SETTINGS_SRC"' EXIT
-  sed "s|$TEMPLATE_ROOT|$SHARED_DIR_SETTINGS|g" \
-    "$REPO/config/settings.template.json" > "$SETTINGS_SRC"
-  echo "  shared root in settings: $TEMPLATE_ROOT -> $SHARED_DIR_SETTINGS"
+  sed "${render_args[@]}" "$REPO/config/settings.template.json" > "$SETTINGS_SRC"
 fi
+echo "  git policy: commit=$KIT_COMMIT push=$KIT_PUSH"
 copy "$SETTINGS_SRC" "$CLAUDE_DIR/settings.json"
 for h in "$REPO"/config/hooks/*.sh; do
   link "$h" "$CLAUDE_DIR/hooks/$(basename "$h")"

@@ -5,7 +5,9 @@
     "GIT_CONFIG_NOSYSTEM": "1",
     "GIT_TEMPLATE_DIR": "",
     "SSL_CERT_FILE": "/etc/ssl/cert.pem",
-    "CARGO_HTTP_CAINFO": "/etc/ssl/cert.pem"
+    "CARGO_HTTP_CAINFO": "/etc/ssl/cert.pem",
+    "CLAUDE_KIT_COMMIT": "auto",
+    "CLAUDE_KIT_PUSH": "ask"
   },
   "permissions": {
     "allow": [

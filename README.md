@@ -70,6 +70,22 @@ The answer is stored in `~/.claude/shared-dirs.json` and substituted into the
 | change it later | re-run with `--shared-dir <new path>`, then move the old contents across yourself — the script repoints, it never moves your files |
 | one project elsewhere | add an `"overrides"` entry (project root → its own dir) in `shared-dirs.json`; re-runs preserve it |
 
+It then asks **how much git it may do on its own.** Both answers are enforced by the
+`git-workflow.sh` hook, not by good intentions.
+
+| flag | values | |
+|---|---|---|
+| `--commit` | `auto` *(default)* | commit at checkpoints without asking |
+| | `ask` | confirm every commit |
+| `--push` | `ask` *(default)* | confirm every `git push` / `gh pr create` |
+| | `never` | refuse them outright; you push by hand |
+| | `auto` | push without asking — **but only in a repo that has a linter or CI** (`.github/workflows`, eslint, biome, golangci, ruff, rubocop, a `lint` script, `lint.sh`). Nothing lands unreviewed where nothing checks it. Force pushes, ref deletions and pushes on `main` still ask. |
+
+A re-run keeps whatever you chose last time. One project can differ: set
+`CLAUDE_KIT_COMMIT` / `CLAUDE_KIT_PUSH` in that repo's `.claude/settings.json`
+(committed, so the whole team gets it) or `.claude/settings.local.json` (gitignored,
+just you) — Claude Code layers user < project < project-local for you.
+
 Then:
 
 ```bash

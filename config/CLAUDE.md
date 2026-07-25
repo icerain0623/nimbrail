@@ -21,7 +21,7 @@ Entry triage for a new ask; each station explains itself when invoked:
 ## Git
 - Branch before editing.
 - Worktrees are for **agents running in parallel on one repo** — one per agent, deps per-worktree (no node_modules sharing), in a sibling `<repo>-worktrees/<branch>/`. A single agent takes an ordinary branch. `git worktree add` runs unsandboxed.
-- Commit autonomously at coherent checkpoints, before risky ops, and when a unit is done; keep commits scoped. Push is gated.
+- Commit autonomously at coherent checkpoints, before risky ops, and when a unit is done; keep commits scoped. Commit and push follow the policy chosen at install (`CLAUDE_KIT_COMMIT` / `CLAUDE_KIT_PUSH`), enforced by the git-workflow hook — don't work around a prompt it raises.
 - The sandbox denies writes to `.git/config`, nothing else under `.git`: `git config`, `git remote add/remove`, `git branch -m` and `git init` need it disabled. Branch create/delete, `switch -c`, `worktree add`, commit and checkout all run inside it.
 
 ## Packages & toolchains
