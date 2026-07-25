@@ -19,8 +19,8 @@ Entry triage (which door for a new ask); downstream stations explain themselves 
 - Dev servers are hook-blocked; if one's needed, have the user run it via the `!` prefix. For an in-sandbox build check use `next build --webpack` (Turbopack panics; Docker/prod keep the default).
 
 ## Git
-- Branch before editing — on main the hook asks once per session, so branching first just saves the prompt.
-- Worktrees are for **agents running in parallel on one repo** (a single agent wants an ordinary branch): one per agent, deps per-worktree (no node_modules sharing). Placement is hook-enforced — a sibling `<repo>-worktrees/<branch>/`. `git worktree add` runs unsandboxed (harness denies `.git/worktrees`).
+- Branch before editing; on main the hook asks once per session.
+- Worktrees are for **agents running in parallel on one repo** — one per agent, deps per-worktree (no node_modules sharing), placed in a sibling `<repo>-worktrees/<branch>/`. A single agent takes an ordinary branch. `git worktree add` runs unsandboxed (harness denies `.git/worktrees`).
 - Commit autonomously at coherent checkpoints / before risky ops / when a unit is done — don't wait to be asked; keep commits scoped. Push stays gated (settings `ask`; confirm each).
 - Config-rewriting git ops (`init`, `remote add`, `branch -d/-m`, `config`, `worktree add`) hit `.git` write denials in-sandbox — run just those unsandboxed; everyday commit/checkout/merge work in-sandbox.
 
@@ -32,21 +32,21 @@ Entry triage (which door for a new ask); downstream stations explain themselves 
 - Substantial build work: keep an in-flight `feedback.md` (Blockers + Open questions) in the shared dir, logged as you go; skip for trivial edits.
 - Don't silently guess spec/design gaps — route each back to the spec/design (or ask the user) and record the resolution.
 - At a checkpoint (a unit compiles / runs): run `check`, then confirm real behavior from outside the code — run it, open the page, hit the endpoint. After a unit is done, `/monsoon` routes the next step.
-- The bundled `/verify` and `/code-review` are user-invoked only (v2.1.215+): suggest one, don't plan to call it. Where a launch needs more than inference (DB, env file, multi-step build), `/run-skill-generator` records the recipe so `/run` and `/verify` work.
+- `/verify` and `/code-review` are user-invoked: suggest, don't call. A launch needing more than inference (DB, env, multi-step build) → `/run-skill-generator` records the recipe.
 - Serena onboarding pays off for pre-existing / sizeable / cross-cutting / multi-session code; skip for small or greenfield you just wrote. Decide at the build phase, re-evaluate as you go.
 
 ## Delegation
-- Subagents are for large, genuinely independent, parallelizable work — a wide multi-file investigation, or an explicitly invoked `downpour` wave. Don't delegate what you'd finish in a handful of tool calls, and don't spawn one to double-check your own work; the exception is a **cold read** of a long artifact by a fresh context (petrichor L3's gate), where the value is the absent history. One agent beats several. Workflows and deep-research: on request, not on impulse.
+- Subagents only for large, independent, parallelizable work — a wide multi-file investigation, an invoked `downpour` wave. Not for what you'd finish in a few tool calls, and not to check your own work, except petrichor L3's cold read. Keep counts low. Workflows and deep-research on request only.
 
 ## Reporting findings
 - Something problematic (build/lint/test warnings, security findings, risky diffs, spec/design gaps, upgrade breakage) → a dated report at `<shared>/<project>/YYYY-MM-DD_<title>.md`, not just chat. Classify each: 重大/Critical (escalate now) · 対応が必要/Needs-action · テストが必要/Needs-testing · 軽微/Minor. Nothing problematic → just say so in chat, no file.
-- A bug or gap noticed **while doing something else**, too small for its own report → append one line to `<shared>/<project>/findings.md` (format in that file's header; append-only, never rewrite a line). Needs real analysis → still a dated report, with a one-line link from findings.md rather than a copy.
+- A bug or gap noticed **while doing something else**, too small for its own report → one appended line in `<shared>/<project>/findings.md` (format in its header; append-only). Needs analysis → dated report, linked from findings.md in one line.
 
 ## Handoff files
 - Things the user opens/copies/runs → the shared root (Obsidian-readable). Don't make them copy from the terminal: write the file, `pbcopy < <file>`, give the path. Internal scratch → `/tmp` scratchpad.
 - Shared root resolves from `~/.claude/shared-dirs.json`: an `overrides` entry for the project root, else `default`, else `~/Documents/claude-shared`. In a linked worktree the repo root is the parent of `git rev-parse --git-common-dir`, not `--show-toplevel`. Cross-project artifacts (sunbreak/almanac/research) always use the default root; an override root needs a one-time settings grant (`update-config`; restart applies).
 
 ## Information lifecycle (claude-shared)
-- claude-shared is scratch memory, not an archive to mine — stale docs mislead. **Don't bulk-grep/read it; open the specific live file by name.** The cold store `<shared-root>/permafrost/` is off-limits (`Read`/`grep` denied in settings; `mv` in only, thaw to read out).
-- Keep the warm set thin: promote keepers (issue / repo docs), freeze the rest via `/permafrost`. Deleting under the shared root is hook-denied (it isn't git — freeze, don't delete); `mv` in is how freezing works. `almanac` proposes stale candidates.
-- Completion convention for a live checklist (`TODO.md`, `findings.md`, a forecast run): a closed item is struck through and moved to a trailing `## 対応済み` with its sha or date — **never deleted**. `- [x]` done, `- [-]` 見送り with the reason (so a rejected item can't return as a fresh proposal). `/permafrost` freezes the 対応済み block once bulky. The rule lives here, not in those files, so regenerating one loses nothing.
+- claude-shared is scratch memory, not an archive — stale docs mislead. **Don't bulk-grep/read it; open the live file by name.** `<shared-root>/permafrost/` is Read-denied: `mv` in, thaw to read out.
+- Keep the warm set thin: promote keepers (issue / repo docs), freeze the rest via `/permafrost`. `almanac` proposes candidates.
+- Closed checklist item (`TODO.md`, `findings.md`, a forecast run): strike it through and move it to a trailing `## 対応済み` with its sha or date. `- [x]` done, `- [-]` 見送り plus the reason. `/permafrost` freezes that block once bulky; the rule lives here, so regenerating a file loses nothing.

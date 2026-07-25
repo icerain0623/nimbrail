@@ -66,6 +66,18 @@ expect_wt() { # <cmd> <top> <deny|none>
   if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL worktree[$top]: want=$want got=$dec :: $cmd"; fi
 }
 
+# Phantom .env deletion guard — CLAUDE_HOOK_PORCELAIN injects `git status` output
+# and CLAUDE_HOOK_ENV_EXISTS forces the on-disk answer, so no real repo is needed.
+expect_env() { # <cmd> <porcelain> <exists:1|0|auto> <deny|ask|none>
+  local cmd=$1 por=$2 ex=$3 want=$4 out dec
+  out=$(printf '{"tool_input":{"command":%s}}' "$(jq -Rn --arg c "$cmd" '$c')" \
+        | CLAUDE_HOOK_PORCELAIN="$por" CLAUDE_HOOK_ENV_EXISTS="$ex" CLAUDE_HOOK_BRANCH=feat/x \
+          bash "$H/git-workflow.sh" 2>/dev/null)
+  dec=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "none"' 2>/dev/null)
+  [ -z "$dec" ] && dec="none"
+  if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL env-guard: want=$want got=$dec :: $cmd [$por]"; fi
+}
+
 # claude-shared deletion guard — CLAUDE_HOOK_SHARED_ROOTS is the seam so the test
 # does not depend on the real HOME or on shared-dirs.json.
 expect_shared() { # <cmd> <deny|ask|none>
@@ -151,6 +163,16 @@ expect_wt 'git worktree add "../repo-worktrees/feat"'       /r none
 expect_wt "git worktree add '../repo-worktrees/feat'"       /r none
 expect_wt 'git worktree add "../repo-worktrees/my feat"'    /r none
 expect_wt 'git worktree add "wt/feat"'                      /r deny
+
+# ── phantom .env deletion: deny staging a "deleted" file that is still on disk ─
+expect_env "git add -A"          " D .env.example"  1    deny
+expect_env "git commit -m x"     "D  .env"          1    deny
+expect_env "git add .env.local"  " D .env.local"    1    deny
+expect_env "git add -A"          " D .env.example"  0    none   # really gone → fine
+expect_env "git status"          " D .env.example"  1    none   # not a staging cmd
+expect_env "git add -A"          " D src/foo.ts"    1    none   # not a .env path
+expect_env "git add -A"          " D .envrc"        1    none   # not a denied pattern
+expect_env "git add -A"          ""                 auto none
 
 # ── claude-shared: deletion denied (freeze instead), mv still allowed ─────────
 expect_shared "rm /sh/claude-shared/foo/report.md"          deny

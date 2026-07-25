@@ -38,6 +38,31 @@ if echo "$cmd" | grep -qE '\bgit[[:space:]]+(merge|rebase)\b'; then
   fi
 fi
 
+# Phantom `.env*` deletion. The sandbox denies reads on ./.env and ./.env.*, so git
+# cannot stat them and reports an existing file as deleted; staging that removes the
+# real file from the repo. Fires only when git claims a deletion AND the path is
+# still on disk, so a genuine deletion still goes through.
+# Test seams (unset in production): CLAUDE_HOOK_PORCELAIN injects status output,
+# CLAUDE_HOOK_ENV_EXISTS forces the on-disk answer.
+if echo "$cmd" | grep -qE '(^|[[:space:];&|(])[[:space:]]*git[[:space:]]+(add|commit|rm|stage)([[:space:]]|$)'; then
+  if [ -n "${CLAUDE_HOOK_PORCELAIN+x}" ]; then
+    status_out="$CLAUDE_HOOK_PORCELAIN"
+  else
+    status_out=$(git status --porcelain 2>/dev/null)
+  fi
+  while IFS= read -r p; do
+    [ -z "$p" ] && continue
+    case "${CLAUDE_HOOK_ENV_EXISTS:-auto}" in
+      1) on_disk=1 ;;
+      0) on_disk=0 ;;
+      *) if [ -e "$p" ]; then on_disk=1; else on_disk=0; fi ;;
+    esac
+    if [ "$on_disk" = 1 ]; then
+      deny "'$p' は git 上で削除扱いですが実ディスクに存在します（サンドボックスが .env* の読み取りを拒否するための artifact）。このままステージすると実在ファイルの削除がコミットされます。ls で確認し、本当に削除する場合はサンドボックス無効で実行してください。"
+    fi
+  done < <(printf '%s\n' "$status_out" | awk '$1 ~ /D/ { print $NF }' | grep -E '(^|/)\.env(\.|$)' || true)
+fi
+
 # Worktree placement: the convention is a sibling `<repo>-worktrees/<branch>/`, never
 # inside the repo (a worktree under the repo gets picked up by builds, lints and the
 # repo's own globs). Only the path argument is needed to judge this, so it is a deny
