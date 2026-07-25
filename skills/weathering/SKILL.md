@@ -25,7 +25,7 @@ After shipping, specs weather — the code moves on and SPEC.md becomes "the old
 
 1. Establish the drift window: last commit touching `SPEC.md` (or the plan file's mtime) → HEAD.
 2. Sweep the window's commits/diff for feature-shaped change (new routes, commands, tables, screens) and map each to a 機能 ID — failing to map is itself a finding.
-3. Walk the spec's v1 機能 ID list in the other direction: does each still exist in code, behaving per its 受け入れ条件? Spot-check the riskiest — full re-verification is `verify`'s job at checkpoints, not this skill's.
+3. Walk the spec's v1 機能 ID list in the other direction: does each still exist in code, behaving per its 受け入れ条件? Spot-check the riskiest — full re-checking belongs to the build's own checkpoints, not this skill.
 4. Check the data model: the spec's ER / データ項目定義 vs the actual schema and migrations.
 5. **ja+en projects**: compare the canonical and rendered files — a rendered file older than the canonical is translation rot. Offer a re-render.
 

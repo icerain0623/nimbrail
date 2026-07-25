@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # downpour
 
-Rain the ledger's tasks down all at once. An **optional accelerator**, not a standard station: the default build stays the interactive normal loop — invoke this explicitly when the ledger has a stretch that can run autonomously. It is also **not a new execution engine**: the orchestrator is the main-loop Claude itself; what this skill supplies is discipline — a single ledger writer, wave planning, two-stage verification with separated graders, stop conditions. Acceptance criteria live in `docs/SPEC-downpour.md` (AC-1〜9 — the bar `verify` and `weathering` check against).
+Rain the ledger's tasks down all at once. An **optional accelerator**, not a standard station: the default build stays the interactive normal loop — invoke this explicitly when the ledger has a stretch that can run autonomously. It is also **not a new execution engine**: the orchestrator is the main-loop Claude itself; what this skill supplies is discipline — a single ledger writer, wave planning, two-stage verification with separated graders, stop conditions. Acceptance criteria live in `docs/SPEC-downpour.md` (AC-1〜9 — the bar downpour's own verifiers and `weathering` judge against).
 
 ## Preflight (AC-9)
 

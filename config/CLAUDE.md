@@ -28,7 +28,7 @@ Entry triage (which door for a new ask); downstream stations explain themselves 
 ## Build discipline
 - Substantial build work: keep an in-flight `feedback.md` (Blockers + Open questions) in the shared dir, logged as you go; skip for trivial edits.
 - Don't silently guess spec/design gaps — route each back to the spec/design (or ask the user) and record the resolution.
-- At a checkpoint (a unit compiles / runs): run `check`, then `verify` real behavior. After a unit is done, `/monsoon` routes the next step.
+- At a checkpoint (a unit compiles / runs): run `check`, then confirm real behavior from outside the code — run it, open the page, hit the endpoint. After a unit is done, `/monsoon` routes the next step.
 - Serena onboarding pays off for pre-existing / sizeable / cross-cutting / multi-session code; skip for small or greenfield you just wrote. Decide at the build phase, re-evaluate as you go.
 
 ## Reporting findings

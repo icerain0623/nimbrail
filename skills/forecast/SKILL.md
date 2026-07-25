@@ -5,7 +5,7 @@ description: Generate a pre-release manual scenario-test checklist from the proj
 
 # forecast
 
-The pre-release weather report — generate a scenario-test checklist from the spec and walk, by hand, whether it will hold once shipped. Not a substitute for automated tests (those belong to `check` / `verify` during the build). This is the **end-to-end walk from the user's seat**: follow the 業務フロー, step on the exceptions, knock on the permission boundaries.
+The pre-release weather report — generate a scenario-test checklist from the spec and walk, by hand, whether it will hold once shipped. Not a substitute for automated tests (those belong to `check` and the behavior confirmation during the build). This is the **end-to-end walk from the user's seat**: follow the 業務フロー, step on the exceptions, knock on the permission boundaries.
 
 ## Input
 

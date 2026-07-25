@@ -16,7 +16,7 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 
 ## Decision (first match wins; propose, don't force)
 0. **A new piece of work is being requested** (an actual new feature/change — not "look at the state and tell me what's next"): triage by size before anything else. This is what makes the lifecycle a loop rather than a one-shot line.
-   - **Trivial / small / well-understood → express lane.** Skip the planning stations (petrichor/squall); implement in the normal loop, then `check` → `verify` → commit. Don't drag a one-file fix through the full rail.
+   - **Trivial / small / well-understood → express lane.** Skip the planning stations (petrichor/squall); implement in the normal loop, then `check` → confirm real behavior → commit. Don't drag a one-file fix through the full rail.
    - **Substantial / underspecified → re-enter the rail at `petrichor`** (plan → `squall` for design + config, then build in the normal loop). After one feature ships, the next substantial one comes back through here — that's the loop closing.
    If instead the ask is "do the next sensible thing" given current state, fall through to the state-based steps below. When a claude-shared `tasks.md` exists and a build is mid-flight, "the next sensible thing" is the next **unblocked** task (dependencies marked done in the ledger); name it and its completion condition rather than guessing.
 1. No `.claude/project.md`: unplanned and empty → suggest `petrichor` (plan it); the repo **already has code but no spec** → suggest `overcast` (reverse-engineer the As-Is first — squall and weathering need a spec to work against); a spec exists but no detailed design/config → suggest `squall`. (After `squall`, build in the normal loop — see Build discipline below.)
@@ -30,7 +30,7 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 9. On explicit request, or when nothing else is pending → offer `sunbreak`.
 
 ## Build discipline
-The during-build discipline — `feedback.md` (blockers + open questions), routing spec/design gaps back, Serena onboarding judgment, branch-first, `check` → `verify` at checkpoints — is **ambient** (global CLAUDE.md), so it applies during any build without invoking monsoon. monsoon doesn't own it; monsoon routes the discrete next-step decisions above, typically called at a checkpoint once a unit of work is done.
+The during-build discipline — `feedback.md` (blockers + open questions), routing spec/design gaps back, Serena onboarding judgment, branch-first, `check` → behavior confirmation at checkpoints — is **ambient** (global CLAUDE.md), so it applies during any build without invoking monsoon. monsoon doesn't own it; monsoon routes the discrete next-step decisions above, typically called at a checkpoint once a unit of work is done.
 
 ## Behavior
 - Read-only steps (check, inspecting state) run automatically.
