@@ -41,7 +41,16 @@ SHARED_DIRS_JSON="$CLAUDE_DIR/shared-dirs.json"
 SHARED_DIR_DEFAULT="$HOME/Documents/claude-shared"
 # shellcheck disable=SC2088  # a literal ~ on purpose: this is the template's own text
 TEMPLATE_ROOT="~/Documents/claude-shared"   # literal string the template ships with
-mkdir -p "$CLAUDE_DIR/hooks" "$CLAUDE_DIR/skills"
+TEMPLATE_CA="/etc/ssl/cert.pem"             # macOS CA bundle the template ships with
+TEMPLATE_EDITOR="webstorm --wait"
+
+# Test seam (unset in production): CLAUDE_KIT_UNAME.
+case "${CLAUDE_KIT_UNAME:-$(uname -s 2>/dev/null || echo unknown)}" in
+  Darwin)               PLATFORM=macos ;;
+  Linux)                PLATFORM=linux ;;   # WSL reports Linux, which is the point
+  MINGW*|MSYS*|CYGWIN*) PLATFORM=winshell ;;
+  *)                    PLATFORM=other ;;
+esac
 
 ASSUME_YES=0
 SHARED_DIR_ARG=""
@@ -106,6 +115,24 @@ esac
 phrase() { if [ "$KIT_LANG" = ja ]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
 say()    { printf '%s\n' "$(phrase "$1" "$2")"; }
 
+# ── platform ────────────────────────────────────────────────────────────────────
+# Windows is supported through WSL, not natively, and the reason is not the
+# installer: settings.json runs every hook and the status line as `bash ~/.claude/
+# …`. A PowerShell port would install a config whose hooks cannot execute. Git Bash
+# has a bash, but its symlinks and its $HOME both differ from what Claude Code
+# reads, so it fails later and less clearly — better to stop here.
+if [ "$PLATFORM" = winshell ]; then
+  say "Git Bash / MSYS / Cygwin is not supported. Install this under WSL instead:" \
+      "Git Bash / MSYS / Cygwin では動きません。WSL 上で入れてください:"
+  say "  the hooks and the status line run as 'bash ~/.claude/…', and Claude Code on Windows reads a different \$HOME than this shell does." \
+      "  フックとステータス行は 'bash ~/.claude/…' として実行され、Windows 版 Claude Code が読む \$HOME はこのシェルのものと異なります。"
+  say "  Clone inside the WSL filesystem (~/…), not under /mnt/c — permissions on the Windows mount break the symlinks." \
+      "  clone は WSL 側のファイルシステム（~/…）に置いてください。/mnt/c 配下は権限の都合で symlink が壊れます。"
+  exit 1
+fi
+
+mkdir -p "$CLAUDE_DIR/hooks" "$CLAUDE_DIR/skills"
+
 # ── shared handoff root ─────────────────────────────────────────────────────────
 # Precedence: --shared-dir > the path already in shared-dirs.json > ask > default.
 # Asked up front so the whole run is decided before anything is written.
@@ -162,6 +189,31 @@ case "$SHARED_DIR" in
 '*) echo "shared dir may not contain \" \\ | & or newlines: $SHARED_DIR" >&2; exit 2 ;;
 esac
 SHARED_DIR_SETTINGS="$(tildify "$SHARED_DIR")"
+
+# ── machine-specific values the template guesses at ─────────────────────────────
+# The template carries this author's macOS answers. Both of these break quietly
+# rather than loudly when they are wrong — a missing CA bundle makes TLS fail
+# inside curl and cargo, and a missing $EDITOR only surfaces when something opens
+# one — so resolve them against the machine instead of shipping the guess.
+detect_ca_bundle() {
+  local c
+  for c in /etc/ssl/cert.pem /etc/ssl/certs/ca-certificates.crt \
+           /etc/pki/tls/certs/ca-bundle.crt /etc/ssl/ca-bundle.pem; do
+    if [ -r "$c" ]; then echo "$c"; return; fi
+  done
+}
+KIT_CA="$(detect_ca_bundle)"
+KIT_CA="${KIT_CA:-$TEMPLATE_CA}"   # none found → leave the template's value alone
+
+# Editor: only off macOS. `command -v` reads whatever PATH this shell happens to
+# have, and a GUI launcher often is not on it — testing this from a restricted
+# shell on the author's own Mac silently rewrote EDITOR to vi. Getting a wrong
+# $EDITOR is a loud failure when something opens one; getting it silently changed
+# is not. So the guess is only replaced where it is almost certainly wrong.
+KIT_EDITOR="$TEMPLATE_EDITOR"
+if [ "$PLATFORM" != macos ] && ! command -v webstorm >/dev/null 2>&1; then
+  if command -v code >/dev/null 2>&1; then KIT_EDITOR="code --wait"; else KIT_EDITOR="vi"; fi
+fi
 
 # ── git policy ──────────────────────────────────────────────────────────────────
 # Same precedence as the shared root: flag > what the live settings.json already
@@ -326,6 +378,15 @@ if [ "$KIT_COMMIT" != "$TEMPLATE_COMMIT" ]; then
 fi
 if [ "$KIT_PUSH" != "$TEMPLATE_PUSH" ]; then
   render_args+=(-e "s|\(\"CLAUDE_KIT_PUSH\"[[:space:]]*:[[:space:]]*\)\"[^\"]*\"|\1\"$KIT_PUSH\"|")
+fi
+if [ "$KIT_CA" != "$TEMPLATE_CA" ]; then
+  render_args+=(-e "s|$TEMPLATE_CA|$KIT_CA|g")   # SSL_CERT_FILE and CARGO_HTTP_CAINFO
+  say "  CA bundle: $TEMPLATE_CA -> $KIT_CA" "  CA バンドル: $TEMPLATE_CA -> $KIT_CA"
+fi
+if [ "$KIT_EDITOR" != "$TEMPLATE_EDITOR" ]; then
+  render_args+=(-e "s|$TEMPLATE_EDITOR|$KIT_EDITOR|g")   # EDITOR and VISUAL
+  say "  editor: $TEMPLATE_EDITOR not on PATH -> $KIT_EDITOR" \
+      "  エディタ: $TEMPLATE_EDITOR が PATH に無いため $KIT_EDITOR にしました"
 fi
 if [ "${#render_args[@]}" -gt 0 ]; then
   # Rendered next to the destination rather than in $TMPDIR — the temp dir is not
