@@ -74,7 +74,7 @@ The answer is stored in `~/.claude/shared-dirs.json` and substituted into the
 | one project elsewhere | add an `"overrides"` entry (project root → its own dir) in `shared-dirs.json`; re-runs preserve it |
 
 It then asks **how much git it may do on its own.** Both answers are enforced by the
-`git-workflow.sh` hook, not by good intentions.
+`git-workflow` hook, not by good intentions.
 
 | flag | values | |
 |---|---|---|

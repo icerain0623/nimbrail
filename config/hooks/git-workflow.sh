@@ -109,8 +109,27 @@ if echo "$cmd" | grep -qE '(^|[[:space:];&|(])[[:space:]]*git[[:space:]]+(add|co
   else
     status_out=$(git status --porcelain 2>/dev/null)
   fi
-  while IFS= read -r p; do
+  # awk emits "<S|W> <path>": S when the deletion is already staged (index column
+  # D), W when it is only in the worktree. Everything else is decided in the loop.
+  while IFS=' ' read -r where p; do
     [ -z "$p" ] && continue
+    printf '%s\n' "$p" | grep -qE '(^|/)\.env(\.|$)' || continue
+
+    # Only deny when the command would actually carry this deletion: it is staged
+    # already, it names the path, or it sweeps the tree (-A / -u / --all / `.`).
+    # Testing the whole tree denied `git add src/app.ts` and even
+    # `git commit -m unrelated` while the artifact sat elsewhere — and a deny
+    # cannot be waved through, so an affected repo could not be committed to.
+    carried=0
+    [ "$where" = "S" ] && carried=1
+    case "$cmd" in
+      *"$p"*) carried=1 ;;
+    esac
+    case "$cmd" in
+      *" -A"*|*" -u"*|*" --all"*|*" .") carried=1 ;;
+    esac
+    [ "$carried" = 1 ] || continue
+
     case "${CLAUDE_HOOK_ENV_EXISTS:-auto}" in
       1) on_disk=1 ;;
       0) on_disk=0 ;;
@@ -119,7 +138,8 @@ if echo "$cmd" | grep -qE '(^|[[:space:];&|(])[[:space:]]*git[[:space:]]+(add|co
     if [ "$on_disk" = 1 ]; then
       deny "'$p' は git 上で削除扱いですが実ディスクに存在します（サンドボックスが .env* の読み取りを拒否するための artifact）。このままステージすると実在ファイルの削除がコミットされます。ls で確認し、本当に削除する場合はサンドボックス無効で実行してください。"
     fi
-  done < <(printf '%s\n' "$status_out" | awk '$1 ~ /D/ { print $NF }' | grep -E '(^|/)\.env(\.|$)' || true)
+  done < <(printf '%s\n' "$status_out" \
+             | awk '$1 ~ /D/ { print (substr($0,1,1) == "D" ? "S " : "W ") $NF }')
 fi
 
 # Worktree placement: the convention is a sibling `<repo>-worktrees/<branch>/`, never
