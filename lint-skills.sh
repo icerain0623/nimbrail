@@ -15,6 +15,9 @@
 #   7. backticked references that are shaped like a skill actually resolve to
 #      one — catches a phantom station (`verify`, `landing-page-nextjs`) written
 #      as if it were invocable
+#   8. config/CLAUDE.md stays inside a size budget — it is always loaded
+#   9. the model-invocable skills' name+description total stays inside a budget —
+#      that listing is always loaded too (rail skills are slash-only and excluded)
 #
 # Exit 0 = all green; exit 1 = at least one violation.
 
@@ -158,6 +161,42 @@ for f in $LINT_FILES; do
   done < <(grep -noE '`[a-z0-9-]+`[[:space:]]*(→|/)[[:space:]]*`[a-z0-9-]+`' "$f" \
              | sed -e 's/`//g' -e 's/[[:space:]]*→[[:space:]]*/:/' -e 's|[[:space:]]*/[[:space:]]*|:|')
 done
+
+# Every rule added here is paid for on every request of every session, and each one
+# arrives justified by a trap someone just hit — nothing in the writing pushes back.
+# 2026-07-26 measured a single session growing this file 11.5%. The budget is not a
+# prohibition: raise the number when the content earns it, but raise it on purpose.
+echo "[8] config/CLAUDE.md size budget (always loaded)"
+ALWAYS_LOADED_BUDGET="${ALWAYS_LOADED_BUDGET:-6000}"   # env override is a test seam
+size=$(wc -c < "$REPO/config/CLAUDE.md" | tr -d ' ')
+if [ "$size" -gt "$ALWAYS_LOADED_BUDGET" ]; then
+  err "config/CLAUDE.md is $size chars, over the $ALWAYS_LOADED_BUDGET budget — trim it, or raise ALWAYS_LOADED_BUDGET in this script deliberately"
+else
+  note "$size / $ALWAYS_LOADED_BUDGET chars"
+fi
+
+# The same pressure, one layer over: every model-invocable skill puts its name and
+# description in the listing that sits in context all session, so adding a skill is
+# adding always-loaded text. The rail skills are excluded because they carry
+# `disable-model-invocation: true` and never appear in that listing — measured
+# 2026-07-26, which is also why shortening THEIR descriptions saves nothing.
+# Claude Code truncates the listing near ~1% of the context window; past that,
+# skill routing degrades before raw token cost ever becomes the problem.
+echo "[9] listed-skill description budget (model-invocable skills only)"
+LISTING_BUDGET="${LISTING_BUDGET:-4700}"   # env override is a test seam
+listing=0 listed=0
+for d in "$REPO"/skills/*/; do
+  s="$(basename "${d%/}")"
+  case " $RAIL " in *" $s "*) continue ;; esac
+  desc="$(sed -n 's/^description:[[:space:]]*//p' "$d/SKILL.md" | head -1)"
+  listing=$(( listing + ${#s} + ${#desc} ))
+  listed=$(( listed + 1 ))
+done
+if [ "$listing" -gt "$LISTING_BUDGET" ]; then
+  err "$listed listed skills total $listing chars of name+description, over the $LISTING_BUDGET budget — shorten a description, retire a skill, or raise LISTING_BUDGET in this script deliberately"
+else
+  note "$listed listed skills, $listing / $LISTING_BUDGET chars"
+fi
 
 echo
 if [ "$FAIL" = 0 ]; then echo "lint-skills: PASS"; else echo "lint-skills: FAIL"; fi

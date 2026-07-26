@@ -14,16 +14,13 @@ Entry triage for a new ask; each station explains itself when invoked:
 
 ## Web / LP (Next.js)
 - LP / Figma→page: look at the rendered page after every visual change. GTM via `@next/third-parties/google`, not the raw `<script>` its install page hands you.
-
-## Dev servers
-- A dev server needs the user — ask them to run it via `!`. In-sandbox build check: `next build --webpack` (Turbopack panics; Docker and prod keep the default).
+- In-sandbox build check: `next build --webpack` (Turbopack panics; Docker and prod keep the default).
 
 ## Git
 - Branch before editing.
 - Worktrees are for **agents running in parallel on one repo** — one per agent, deps per-worktree (no node_modules sharing), in a sibling `<repo>-worktrees/<branch>/`. A single agent takes an ordinary branch. `git worktree add` runs unsandboxed.
-- Commit autonomously at coherent checkpoints, before risky ops, and when a unit is done; keep commits scoped. Commit and push follow the policy chosen at install (`CLAUDE_KIT_COMMIT` / `CLAUDE_KIT_PUSH`), enforced by the git-workflow hook — don't work around a prompt it raises.
-- The sandbox denies writes to `.git/config`, nothing else under `.git`: `git config`, `git remote add/remove`, `git branch -m` and `git init` need it disabled. Branch create/delete, `switch -c`, `worktree add`, commit and checkout all run inside it.
-- `git push` over HTTPS and `gh` need the sandbox disabled too — the credential helper reads the keychain under `~/Library`, which is Read-denied, and the failure reads as `could not read Username` / `token is invalid` rather than as a permission error.
+- Commit autonomously at coherent checkpoints, before risky ops, and when a unit is done; keep commits scoped. How far that goes is set at install and enforced by the git-workflow hook — don't work around a prompt it raises.
+- Sandbox off for: `git config`, `git remote add/remove`, `git branch -m`, `git init` (the deny is `.git/config` only), and `git push` / `gh` (the credential helper reads `~/Library`; it fails as `could not read Username` or `token is invalid`, not as a permission error). Everything else runs inside, though `git branch -d` leaves a stale `[branch]` section behind.
 
 ## Packages & toolchains
 - Prefer pnpm for Node; match an existing repo's lockfile, don't switch it. Tool versions via mise — respect the project's `.mise.toml` / `.tool-versions` pin, run via mise shims (`mise exec --`).
@@ -32,7 +29,7 @@ Entry triage for a new ask; each station explains itself when invoked:
 ## Build discipline
 - Substantial build work: keep an in-flight `feedback.md` (Blockers + Open questions) in the shared dir, logged as you go; skip it for trivial edits.
 - Don't silently guess spec/design gaps — route each back to the spec or design (or ask), and record the resolution.
-- At a checkpoint (a unit compiles / runs): run `check`, then confirm real behavior from outside the code — run it, open the page, hit the endpoint. After a unit is done, `/monsoon` routes the next step.
+- At a checkpoint (a unit compiles / runs): run `check`, then confirm real behavior from outside the code — run it, open the page, hit the endpoint. Never start a long-running server yourself; ask the user to run it via `!`. After a unit is done, `/monsoon` routes the next step.
 - `/verify` and `/code-review` are user-invoked: suggest, don't call. A launch needing more than inference (DB, env, multi-step build) → `/run-skill-generator` records the recipe.
 - Serena onboarding pays off for pre-existing / sizeable / cross-cutting / multi-session code; skip it for small or greenfield work you just wrote. Decide at the build phase, re-evaluate as you go.
 
@@ -42,7 +39,6 @@ Entry triage for a new ask; each station explains itself when invoked:
 ## Reporting findings
 - Something problematic (build/lint/test warnings, security findings, risky diffs, spec/design gaps, upgrade breakage) → a dated report at `<shared>/<project>/YYYY-MM-DD_<title>.md`, not just chat. Classify each: 重大/Critical (escalate now) · 対応が必要/Needs-action · テストが必要/Needs-testing · 軽微/Minor. Nothing problematic → say so in chat, no file.
 - A bug or gap noticed **while doing something else**, too small for its own report → one appended line in `<shared>/<project>/findings.md` (format in its header; append-only). Needs analysis → dated report, linked from findings.md in one line.
-- A project whose own CLAUDE.md says findings go to its issue tracker overrides that destination: one issue per finding, same 分類, and no findings.md line — a finding recorded in two places gets closed in one.
 
 ## Handoff files
 - Things the user opens/copies/runs → the shared root (Obsidian-readable): write the file, `pbcopy < <file>`, give the path. Internal scratch → `/tmp` scratchpad.
