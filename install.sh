@@ -128,6 +128,8 @@ if [ "$PLATFORM" = winshell ]; then
       "  フックとステータス行は 'bash ~/.claude/…' として実行され、Windows 版 Claude Code が読む \$HOME はこのシェルのものと異なります。"
   say "  Clone inside the WSL filesystem (~/…), not under /mnt/c — permissions on the Windows mount break the symlinks." \
       "  clone は WSL 側のファイルシステム（~/…）に置いてください。/mnt/c 配下は権限の都合で symlink が壊れます。"
+  say "  Both routes, including a manual native-Windows setup: docs/windows.md" \
+      "  WSL と、native Windows を手作業で入れる手順の両方: docs/windows.md"
   exit 1
 fi
 

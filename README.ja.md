@@ -4,7 +4,7 @@
 
 > これは英語版 [README.md](README.md) の要約です。**詳細・最新は README.md を正**とします（この日本語版は意図的に短く保ち、全訳はしません）。
 > 前提: **public repo**（`~/.claude` のミラー。実シークレットは非コミット）／**macOS と Linux（WSL 含む）**。個人設定のため **PR は受け付けていません**（[CONTRIBUTING.md](CONTRIBUTING.md)）。Issue と fork は歓迎。
-> **native Windows は非対応**。`settings.json` がフックとステータス行を `bash ~/.claude/…` として実行するので、PowerShell 版インストーラを書いてもフックが動かない設定が入るだけ。Windows では **WSL** を使い、clone は **WSL 側のファイルシステム（`~/…`）** に置くこと（`/mnt/c` 配下は権限の都合で symlink が壊れる）。Git Bash / MSYS / Cygwin から実行した場合は `install.sh` が案内を出して止まる。
+> Windows では **WSL** を使う。clone は **WSL 側のファイルシステム（`~/…`）** に置くこと（`/mnt/c` 配下は権限の都合で symlink が壊れる）。Git Bash / MSYS / Cygwin から実行した場合は `install.sh` が案内を出して止まる。native Windows に手作業で入れる手順は [docs/windows.md](docs/windows.md)（**未検証**。不明な箇所はそう明記してある）。
 
 ## 新マシンでのセットアップ
 

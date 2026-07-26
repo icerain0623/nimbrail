@@ -6,7 +6,7 @@ My portable [Claude Code](https://claude.com/claude-code) setup — config **and
 
 > **Public repo, personal setup.** It mirrors `~/.claude`, so it is a reference to copy from rather than a project to contribute to — **pull requests are not accepted** ([CONTRIBUTING.md](CONTRIBUTING.md)); issues and forks are welcome. No real secrets are committed: the PAT lives only in `~/.claude/settings.local.json` (see [Secrets](#secrets)).
 >
-> **macOS and Linux (including WSL). Not native Windows** — `settings.json` runs every hook and the status line as `bash ~/.claude/…`, so a PowerShell port would install a config whose hooks cannot execute. `install.sh` stops with instructions if you run it from Git Bash / MSYS / Cygwin. On Windows, use WSL and clone inside the WSL filesystem (`~/…`), not under `/mnt/c` — the Windows mount's permissions break the symlinks.
+> **macOS and Linux, including WSL.** `install.sh` is bash and builds a tree of symlinks, so on Windows the route is WSL — clone inside the WSL filesystem (`~/…`), not under `/mnt/c`, whose permissions break symlinks. Running it from Git Bash / MSYS / Cygwin stops with that advice. A manual native-Windows setup is written up in [docs/windows.md](docs/windows.md), untested and honest about which parts are unknown.
 >
 > Some values are still author-specific: the sandbox write-roots are `~/Documents/GitHub` and `~/Developers`, and `EDITOR` is WebStorm (kept as-is on macOS; off macOS it falls back to `code --wait` or `vi` when WebStorm is absent). The CA bundle for `SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` is probed at install time, so Debian/Ubuntu gets `/etc/ssl/certs/ca-certificates.crt` rather than the macOS path.
 
