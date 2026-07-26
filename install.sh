@@ -92,9 +92,8 @@ elif [ -n "$(read_shared_default)" ]; then
 elif [ "$ASSUME_YES" = 0 ] && [ -t 0 ]; then
   cat <<'EOF'
 
-Handoff docs — specs, reports, task ledgers — are written OUTSIDE your repos, so a
-project never fills up with .md files. Pick where they live (an Obsidian vault
-subfolder works well; it just has to be a directory you can write to).
+Handoff docs — specs, reports, task ledgers — live outside your repos, so a project never fills up with .md files.
+Pick where they live: an Obsidian vault subfolder works well, it only has to be a directory you can write to.
 EOF
   # `|| true`: read fails on EOF (Ctrl-D), which set -e would turn into a silent
   # abort halfway through the install. Treat it as "take the default".
@@ -142,7 +141,10 @@ EOF
   commit_ans=""
   read -r -p "  Commit at checkpoints without asking? [Y/n] " commit_ans || true
   case "$commit_ans" in [nN]*) KIT_COMMIT="ask" ;; *) KIT_COMMIT="auto" ;; esac
-  echo "  Push / PR:  a = ask every time   n = never   auto = only where a linter or CI exists"
+  echo "  Push / PR —"
+  echo "    a    ask every time"
+  echo "    n    never"
+  echo "    auto only where a linter or CI exists"
   push_ans=""
   read -r -p "  Choose [a/n/auto] " push_ans || true
   case "$push_ans" in
@@ -383,13 +385,12 @@ Remaining steps:
   1. SECRET (never committed) — create ~/.claude/settings.local.json:
        { "env": { "GH_TOKEN": "github_pat_..." } }
      (settings.json is now a plain copy; runtime /config toggles land there
-      safely without touching the repo, and the real PAT stays in *.local.json.)
+      safely without touching the repo; the real PAT stays in *.local.json.)
   2. Install jq if missing (hooks depend on it):  brew install jq
   3. Plugin-based skills (figma, serena, etc.) are restored from
      settings.json's enabledPlugins + extraKnownMarketplaces on first launch.
 
-To move the handoff docs later: re-run with --shared-dir <new path>, then move the
-existing contents across yourself (the script repoints, it never moves your files).
+To move the handoff docs later: re-run with --shared-dir <new path>, then move the existing contents across yourself — the script repoints, it never moves your files.
 A single project can keep its own dir via an "overrides" entry in shared-dirs.json.
 
 Then restart Claude Code.
