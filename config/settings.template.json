@@ -39,11 +39,14 @@
       "Bash(pnpm exec *)",
       "Bash(pnpm why *)",
       "Bash(pnpm list *)",
-      "Bash(docker *)",
-      "Bash(docker)",
-      "Bash(docker-compose *)",
-      "Bash(kubectl *)",
-      "Bash(kubectl)",
+      "Bash(docker ps*)",
+      "Bash(docker images*)",
+      "Bash(docker logs*)",
+      "Bash(docker compose logs*)",
+      "Bash(docker compose ps*)",
+      "Bash(kubectl get*)",
+      "Bash(kubectl describe*)",
+      "Bash(kubectl logs*)",
       "Bash(colima *)",
       "Bash(colima)",
       "Bash(make *)",
@@ -53,8 +56,20 @@
       "Bash(g++ *)",
       "Bash(clang *)",
       "Bash(clang++ *)",
-      "Bash(go *)",
-      "Bash(cargo *)",
+      "Bash(go build*)",
+      "Bash(go test*)",
+      "Bash(go vet*)",
+      "Bash(go fmt*)",
+      "Bash(go mod*)",
+      "Bash(go doc*)",
+      "Bash(go version)",
+      "Bash(cargo build*)",
+      "Bash(cargo test*)",
+      "Bash(cargo check*)",
+      "Bash(cargo clippy*)",
+      "Bash(cargo fmt*)",
+      "Bash(cargo tree*)",
+      "Bash(cargo --version)",
       "Bash(java *)",
       "Bash(javac *)",
       "Bash(gradle *)",
@@ -97,7 +112,9 @@
       "Bash(git show:*)",
       "Bash(git status:*)",
       "Bash(git branch:*)",
-      "Bash(git remote:*)",
+      "Bash(git remote -v)",
+      "Bash(git remote show:*)",
+      "Bash(git remote get-url:*)",
       "Bash(git tag:*)",
       "Bash(git describe:*)",
       "Bash(git rev-parse:*)",
@@ -122,6 +139,13 @@
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(./secrets/**)",
+      "Read(~/.ssh/**)",
+      "Edit(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.claude/.credentials.json)",
+      "Read(~/.claude/settings.local.json)",
       "Read(~/Library/**)",
       "Read(~/Documents/claude-shared/permafrost/**)",
       "Edit(~/Library/**)",
@@ -255,6 +279,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/branch-guard.sh",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -331,7 +367,10 @@
       "allowRead": [
         "/etc/gitconfig",
         "/etc/gitattributes",
-        "/etc/ssl"
+        "/etc/ssl",
+        "./.env.example",
+        "./.env.sample",
+        "./.env.template"
       ]
     },
     "excludedCommands": [

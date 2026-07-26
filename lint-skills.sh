@@ -119,6 +119,12 @@ is_skill() { case " $SKILLS " in *" $1 "*) return 0 ;; esac; return 1; }
 resolves() {
   is_skill "$1" && return 0
   case " $(echo "$KNOWN_OTHER" | tr '\n' ' ') " in *" $1 "*) return 0 ;; esac
+  # A token that names a real file in this repo is not a phantom skill. Without
+  # this, every hook and script had to be written with its extension or added to
+  # the allowlist — `git-workflow` failed while `git-workflow.sh` passed, which is
+  # a spelling rule, not the rule this check is for.
+  [ -e "$REPO/config/hooks/$1.sh" ] && return 0
+  [ -e "$REPO/$1.sh" ] && return 0
   return 1
 }
 LINT_FILES="$REPO/config/CLAUDE.md $REPO/.claude/CLAUDE.md $REPO/README.md $REPO/README.ja.md"

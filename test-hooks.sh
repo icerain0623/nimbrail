@@ -57,6 +57,15 @@ expect_guard() { # <file_path> <branch> <state_dir> <ask|none>
   if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL branch-guard[$br sd=$sd]: want=$want got=$dec :: $fp"; fi
 }
 
+# The PostToolUse half: it only runs when the edit actually happened, which is how
+# "approved" is distinguished from "declined". Emits nothing; it just marks.
+guard_post() { # <file_path> <branch> <state_dir>
+  printf '{"tool_input":{"file_path":%s},"session_id":"t","hook_event_name":"PostToolUse"}' \
+    "$(jq -Rn --arg c "$1" '$c')" \
+    | CLAUDE_HOOK_BRANCH="$2" CLAUDE_HOOK_STATE_DIR="$3" CLAUDE_HOOK_REPO_TOP="/r" \
+      bash "$H/branch-guard.sh" >/dev/null 2>&1
+}
+
 # git worktree placement — CLAUDE_HOOK_REPO_TOP is the seam for the repo toplevel.
 expect_wt() { # <cmd> <top> <deny|none>
   local cmd=$1 top=$2 want=$3 out dec
@@ -90,6 +99,18 @@ expect_policy() { # <cmd> <branch> <commit> <push> <checks:1|0|-> <allow|deny|as
   dec=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "none"' 2>/dev/null)
   [ -z "$dec" ] && dec="none"
   if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL git-policy[c=$cp p=$pp chk=$hc br=$br]: want=$want got=$dec :: $cmd"; fi
+}
+
+# Scope of the phantom-.env guard: it must fire on what the command carries, not
+# on whatever else sits in the tree. Same seams as expect_env.
+expect_env_scope() { # <cmd> <porcelain> <deny|none>
+  local cmd=$1 por=$2 want=$3 out dec
+  out=$(printf '{"tool_input":{"command":%s}}' "$(jq -Rn --arg c "$cmd" '$c')" \
+        | env CLAUDE_HOOK_PORCELAIN="$por" CLAUDE_HOOK_ENV_EXISTS=1 CLAUDE_HOOK_BRANCH=feat/x \
+          bash "$H/git-workflow.sh" 2>/dev/null)
+  dec=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "none"' 2>/dev/null)
+  [ -z "$dec" ] && dec="none"
+  if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL env-scope: want=$want got=$dec :: $cmd [$por]"; fi
 }
 
 # claude-shared deletion guard — CLAUDE_HOOK_SHARED_ROOTS is the seam so the test
@@ -212,6 +233,15 @@ expect_env "git status"          " D .env.example"  1    none   # not a staging 
 expect_env "git add -A"          " D src/foo.ts"    1    none   # not a .env path
 expect_env "git add -A"          " D .envrc"        1    none   # not a denied pattern
 expect_env "git add -A"          ""                 auto none
+# Scope: the phantom deletion must be one the command actually carries. Denying on
+# whatever else sat in the tree made every commit in an affected repo impossible.
+expect_env_scope "git add src/app.ts"        " D .env.example" none
+expect_env_scope "git commit -m unrelated"   " D .env.example" none
+expect_env_scope "git add -A"                " D .env.example" deny  # sweeps the tree
+expect_env_scope "git add .env.example"      " D .env.example" deny  # names the path
+expect_env_scope "git commit -m x"           "D  .env.example" deny  # already staged
+expect_env_scope "git add -u"                " D .env.example" deny
+expect_env_scope "git add ."                 " D .env.example" deny
 
 # ── claude-shared: deletion denied (freeze instead), mv still allowed ─────────
 expect_shared "rm /sh/claude-shared/foo/report.md"          deny
@@ -229,6 +259,30 @@ expect_shared "rm -rf /sh/claude-shared"                    deny   # the root it
 expect_shared "rm /sh/claude-shared-old/x.md"               none
 expect_shared "rm /sh/claude-sharedX/x.md"                  none
 expect_shared "rm -rf /sh/claude-shared-old"                ask
+# The tilde form — how these paths are actually written, and the case the seam's
+# absolute roots hid: the guard only ever matched absolute paths.
+expect_shared_home() { # <cmd> <deny|ask|none>
+  local cmd=$1 want=$2 out dec
+  out=$(printf '{"tool_input":{"command":%s}}' "$(jq -Rn --arg c "$cmd" '$c')" \
+        | env HOME=/fake/home CLAUDE_HOOK_SHARED_ROOTS="/fake/home/Documents/claude-shared" \
+          bash "$H/warn-dangerous.sh" 2>/dev/null)
+  dec=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "none"' 2>/dev/null)
+  [ -z "$dec" ] && dec="none"
+  if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL shared-guard[~]: want=$want got=$dec :: $cmd"; fi
+}
+expect_shared_home "rm -rf ~/Documents/claude-shared/proj"      deny
+expect_shared_home "rm /fake/home/Documents/claude-shared/a.md" deny
+expect_shared_home "rm -rf ~/Documents/claude-shared-old"       ask   # boundary still holds
+# A root merely MENTIONED beside an unrelated deletion is not a deletion of it.
+# What matters is that these are no longer DENY (unwaivable); the generic rm guard
+# below still asks on any command carrying an absolute path, which is correct.
+expect_shared "mv /sh/claude-shared/a.md /tmp/ && rm -rf /tmp/a.md"       ask
+expect_shared "cp /sh/claude-shared/a.md /tmp/; rm /tmp/a.md"             none
+# …while the same shape genuinely deleting inside the root is still denied.
+expect_shared "cp /sh/claude-shared/a.md /tmp/; rm /sh/claude-shared/a.md" deny
+# Known gap, asserted so it stays visible: the rm carries no path, so the root is
+# invisible to a per-segment check. The generic guard still asks.
+expect_shared "cd /sh/claude-shared && rm -rf proj"                       ask
 
 # ── branch-guard: once per session per repo, regardless of tree state ─────────
 # mktemp -d is not usable here: the sandbox denies the system TMPDIR. Try the
@@ -239,14 +293,23 @@ done
 if [ -z "${TB:-}" ]; then
   echo "SKIP branch-guard: no writable temp dir"; fail=$((fail+1))
 else
-  mkdir -p "$TB/1" "$TB/2" "$TB/3" "$TB/4"
+  mkdir -p "$TB/1" "$TB/2" "$TB/3" "$TB/4" "$TB/5" "$TB/6"
   expect_guard "/r/f.txt" main   "$TB/1" ask
-  expect_guard "/r/f.txt" main   "$TB/1" none   # already nudged this session → silent
+  guard_post   "/r/f.txt" main   "$TB/1"        # approved → the edit ran
+  expect_guard "/r/f.txt" main   "$TB/1" none   # …so it stays silent for the session
   expect_guard "/r/f.txt" master "$TB/2" ask
   expect_guard "/r/f.txt" feat/x "$TB/3" none   # feature branch → never fires
   # Regression: a session that STARTS with a dirty tree must still be nudged. The
   # old clean-tree proxy silenced this case for the whole session.
   expect_guard "/r/f.txt" main   "$TB/4" ask
+  # Regression: DECLINING must not spend the session's nudge. No PostToolUse runs
+  # when the edit is refused, so the next attempt on main asks again — writing the
+  # marker in PreToolUse made "no, don't edit main" disable the guard instead.
+  expect_guard "/r/f.txt" main   "$TB/5" ask
+  expect_guard "/r/f.txt" main   "$TB/5" ask
+  # A second repo in the same session gets its own nudge.
+  guard_post   "/r/f.txt" main   "$TB/6"
+  expect_guard "/r/f.txt" main   "$TB/6" none
   rm -rf "$TB"
 fi
 

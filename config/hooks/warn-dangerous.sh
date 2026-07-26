@@ -50,21 +50,31 @@ shared_roots() {
 # The root must end at a path boundary. A plain substring test also denied
 # sibling directories that merely start with the same string (claude-shared-old),
 # and a deny cannot be waved through.
-path_hit() { # <path>
+path_hit() { # <path> <haystack>
   local esc
   esc=$(printf '%s' "$1" | sed 's/[][^$.*+?(){}|\\]/\\&/g')
-  echo "$cmd" | grep -qE "${esc}(/|[[:space:]]|[\"']|\$)"
+  printf '%s' "$2" | grep -qE "${esc}(/|[[:space:]]|[\"']|\$)"
 }
 
-if echo "$cmd" | grep -qE '(^|[|&;])[[:space:]]*(rm|rmdir|trash)[[:space:]]' \
-   || echo "$cmd" | grep -qE '\bfind\b.*-delete'; then
+# Only the segment that actually deletes is searched for a shared root. Testing
+# the whole command denied `mv <root>/a.md /tmp/ && rm -rf /tmp/a.md`, where the
+# root is merely mentioned — and a deny cannot be waved through.
+# shellcheck disable=SC2020  # mapping each separator to a newline is the intent
+while IFS= read -r seg; do
+  echo "$seg" | grep -qE '^[[:space:]]*(rm|rmdir|trash)[[:space:]]' \
+    || echo "$seg" | grep -qE '\bfind\b.*-delete' \
+    || continue
   while IFS= read -r root; do
     [ -z "$root" ] && continue
-    if path_hit "$root" || path_hit "${root/#$HOME/\~}"; then
+    # `${root/#$HOME/\~}` kept the backslash, and the escaper above then turned
+    # it into `\\~` — a regex looking for a literal backslash. The tilde form is
+    # how these paths are normally written, so the guard was only ever catching
+    # absolute paths; everything else fell through to the generic rm ask below.
+    if path_hit "$root" "$seg" || path_hit "${root/#$HOME/~}" "$seg"; then
       deny "claude-shared 配下の削除は禁止です（git 管理外のため復元できません）。/permafrost で凍結してください（mv は許可されています）。"
     fi
   done < <(shared_roots)
-fi
+done < <(printf '%s\n' "$cmd" | tr ';|&' '\n\n\n')
 
 # ============================================================
 # A. File system destruction
