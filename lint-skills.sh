@@ -15,6 +15,7 @@
 #   7. backticked references that are shaped like a skill actually resolve to
 #      one — catches a phantom station (`verify`, `landing-page-nextjs`) written
 #      as if it were invocable
+#   8. config/CLAUDE.md stays inside a size budget — it is loaded on every request
 #
 # Exit 0 = all green; exit 1 = at least one violation.
 
@@ -158,6 +159,19 @@ for f in $LINT_FILES; do
   done < <(grep -noE '`[a-z0-9-]+`[[:space:]]*(→|/)[[:space:]]*`[a-z0-9-]+`' "$f" \
              | sed -e 's/`//g' -e 's/[[:space:]]*→[[:space:]]*/:/' -e 's|[[:space:]]*/[[:space:]]*|:|')
 done
+
+# Every rule added here is paid for on every request of every session, and each one
+# arrives justified by a trap someone just hit — nothing in the writing pushes back.
+# 2026-07-26 measured a single session growing this file 11.5%. The budget is not a
+# prohibition: raise the number when the content earns it, but raise it on purpose.
+echo "[8] config/CLAUDE.md size budget (it is loaded on every request)"
+ALWAYS_LOADED_BUDGET="${ALWAYS_LOADED_BUDGET:-6000}"   # env override is a test seam
+size=$(wc -c < "$REPO/config/CLAUDE.md" | tr -d ' ')
+if [ "$size" -gt "$ALWAYS_LOADED_BUDGET" ]; then
+  err "config/CLAUDE.md is $size chars, over the $ALWAYS_LOADED_BUDGET budget — trim it, or raise ALWAYS_LOADED_BUDGET in this script deliberately"
+else
+  note "$size / $ALWAYS_LOADED_BUDGET chars"
+fi
 
 echo
 if [ "$FAIL" = 0 ]; then echo "lint-skills: PASS"; else echo "lint-skills: FAIL"; fi
