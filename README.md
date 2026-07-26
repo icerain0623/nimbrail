@@ -12,9 +12,11 @@ My portable [Claude Code](https://claude.com/claude-code) setup — config **and
 
 ```
 claude-kit/
-├── install.sh                 # symlinks everything below into ~/.claude
+├── install.sh                 # asks 3 questions, then symlinks everything below into ~/.claude
 ├── test-hooks.sh              # behavioral regression suite for config/hooks/*.sh
-├── lint.sh                    # shellcheck over the hooks (needs `brew install shellcheck`)
+├── lint.sh                    # shellcheck over install/test/statusline + the hooks (`brew install shellcheck`)
+├── lint-skills.sh             # skill conventions: frontmatter, slash-only rail, shared-root, cross-references
+├── docs/                      # promoted petrichor specs (downpour, permafrost)
 ├── config/
 │   ├── CLAUDE.md              # global instructions       → ~/.claude/CLAUDE.md
 │   ├── settings.template.json # permissions/sandbox/hooks → ~/.claude/settings.json (COPIED, not linked; PAT placeholder)
@@ -38,6 +40,7 @@ claude-kit/
 │   ├── weathering/            # spec-drift watch: diff SPEC.md against implemented reality
 │   ├── barometer/             # kit-vs-environment drift: live ~/.claude + harness surface
 │   ├── almanac/               # weekly digest (週報 draft) + shared-dir archive proposals
+│   ├── permafrost/            # freeze stale shared docs into a Read-denied cold store
 │   ├── cirrus/                # incremental research notebook that survives context death
 │   └── sunbreak/              # mine past transcripts into an Obsidian report
 └── .claude/CLAUDE.md          # project-scoped rules for working on claude-kit itself
@@ -57,7 +60,7 @@ cd claude-kit
 ./install.sh
 ```
 
-The install asks one question: **where handoff docs should live.** Specs, reports and
+The install asks three things. First, **where handoff docs should live.** Specs, reports and
 task ledgers are written outside your repos so a project never fills up with `.md`
 files — pick a directory you can write to (an Obsidian vault subfolder works well).
 The answer is stored in `~/.claude/shared-dirs.json` and substituted into the
@@ -121,7 +124,7 @@ It's a **loop, not a one-shot line**, and you enter it sized to the work:
 
 Each step ends by pointing you to the next, so you follow the prompts instead of memorizing the chain.
 
-0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `<shared-root>/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase; shared root defaults to `~/Documents/claude-shared`, per-project override via `~/.claude/shared-dirs.json` — see the global CLAUDE.md Handoff rule). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`.
+0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `<shared-root>/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase; shared root is the one you chose at install, per-project override via `~/.claude/shared-dirs.json` — see the global CLAUDE.md Handoff rule). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`.
 
 0′. **Existing codebase, no spec — `overcast`.** The other entrance: reverse-engineer the As-Is into the same spec artifact — 機能 IDs from routes/commands, acceptance criteria from tests, real permissions from auth code — every statement confidence-marked (事実/推定/不明), unknowns asked once in a batched round. Inherited code then rides the same rail (squall / forecast / weathering).
 
@@ -133,13 +136,13 @@ Each step ends by pointing you to the next, so you follow the prompts instead of
    - a **new piece of work** → triage by size: small/clear takes the express lane (skip planning → build → `check` → behavior confirmation → commit); substantial re-enters the rail at `petrichor`
    - uncommitted changes → `check` (lint/typecheck), then commits autonomously on the feature branch
    - version bump + release notes enabled → `release-note` (offered before the PR, so the changelog lands in the same push); a release with a spec also gets `forecast` offered (scenario walk-through before the push)
-   - feature branch with checks passing → offers to push / open a PR
+   - feature branch with checks passing → push / open a PR, as far as your `--push` policy allows
    - merged branches piling up → `clean-branches`
    - many feature commits since `SPEC.md` last changed → `weathering` (spec-drift report)
    - a shipped work unit left stale docs in claude-shared → `permafrost` (freeze/promote sweep, propose-only)
    - on request → `sunbreak`
 
-   Read-only steps and commits run automatically; outward or irreversible steps (push, PR, deletion) are proposed first.
+   Read-only steps run automatically; deletions are always proposed first. Where commits and pushes sit on that line is the install-time policy above, enforced by the hook rather than by this paragraph.
 
 Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (`petrichor`, `overcast`, `squall`, `downpour`, `monsoon`, `sunbreak`) are **slash-only** (`disable-model-invocation`) — you invoke them explicitly, so a heavy interview never auto-fires from a stray phrase. The **utility** skills below *also* trigger from context (their descriptions are tuned to fire on the right intent and stay quiet otherwise), or you can call them directly for a single step:
 
