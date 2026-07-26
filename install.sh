@@ -18,6 +18,8 @@
 # settings.json copy, which is what makes it writable under the sandbox.
 #
 # Flags:
+#   --lang en|ja         language for the prompts and the closing notes. Omitted:
+#                        ask, defaulting to what $LANG suggests.
 #   -y, --yes            non-interactive: replace diverging files without prompting
 #                        (the existing content is still shelved to .bak first)
 #   --shared-dir PATH    where handoff docs live (default ~/Documents/claude-shared).
@@ -45,9 +47,13 @@ ASSUME_YES=0
 SHARED_DIR_ARG=""
 COMMIT_ARG=""
 PUSH_ARG=""
+LANG_ARG=""
 while [ $# -gt 0 ]; do
   case "$1" in
     -y|--yes)     ASSUME_YES=1; shift ;;
+    --lang)       [ $# -ge 2 ] || { echo "--lang needs en|ja" >&2; exit 2; }
+                  LANG_ARG="$2"; shift 2 ;;
+    --lang=*)     LANG_ARG="${1#*=}"; shift ;;
     --shared-dir) [ $# -ge 2 ] || { echo "--shared-dir needs a path" >&2; exit 2; }
                   SHARED_DIR_ARG="$2"; shift 2 ;;
     --shared-dir=*) SHARED_DIR_ARG="${1#*=}"; shift ;;
@@ -61,6 +67,44 @@ while [ $# -gt 0 ]; do
     *)            echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
+
+# ── language ────────────────────────────────────────────────────────────────────
+# Asked before anything else, because everything below is read in the answer. The
+# question itself has to be legible either way, so it is a bilingual menu rather
+# than a sentence. $LANG only supplies the default — a Japanese locale on a machine
+# whose owner prefers English is common enough not to decide for them.
+detect_lang() {
+  case "${LC_ALL:-${LC_MESSAGES:-${LANG:-}}}" in
+    ja*|Ja*|JA*) echo ja ;;
+    *)           echo en ;;
+  esac
+}
+
+KIT_LANG="$LANG_ARG"
+if [ -z "$KIT_LANG" ]; then
+  lang_default="$(detect_lang)"
+  if [ "$ASSUME_YES" = 0 ] && [ -t 0 ]; then
+    echo
+    echo "  Language / 言語"
+    echo "    en   English"
+    echo "    ja   日本語"
+    lang_ans=""
+    read -r -p "  [$lang_default] " lang_ans || true
+    KIT_LANG="${lang_ans:-$lang_default}"
+  else
+    KIT_LANG="$lang_default"
+  fi
+fi
+case "$KIT_LANG" in
+  en|ja) ;;
+  *) echo "--lang must be en or ja: $KIT_LANG" >&2; exit 2 ;;
+esac
+
+# Translations sit side by side at the call site rather than in a key table, so a
+# change to one is visibly a change to the other. `say` prints a line, `phrase`
+# returns the string for building a read -p prompt.
+phrase() { if [ "$KIT_LANG" = ja ]; then printf '%s' "$2"; else printf '%s' "$1"; fi; }
+say()    { printf '%s\n' "$(phrase "$1" "$2")"; }
 
 # ── shared handoff root ─────────────────────────────────────────────────────────
 # Precedence: --shared-dir > the path already in shared-dirs.json > ask > default.
@@ -88,17 +132,19 @@ if [ -n "$SHARED_DIR_ARG" ]; then
   SHARED_DIR="$(expand_tilde "$SHARED_DIR_ARG")"
 elif [ -n "$(read_shared_default)" ]; then
   SHARED_DIR="$(expand_tilde "$(read_shared_default)")"
-  echo "Shared handoff root: $SHARED_DIR (from $SHARED_DIRS_JSON)"
+  say "Shared handoff root: $SHARED_DIR (from $SHARED_DIRS_JSON)" \
+      "ハンドオフ ドキュメントの置き場所: $SHARED_DIR（$SHARED_DIRS_JSON より）"
 elif [ "$ASSUME_YES" = 0 ] && [ -t 0 ]; then
-  cat <<'EOF'
-
-Handoff docs — specs, reports, task ledgers — live outside your repos, so a project never fills up with .md files.
-Pick where they live: an Obsidian vault subfolder works well, it only has to be a directory you can write to.
-EOF
+  echo
+  say "Handoff docs — specs, reports, task ledgers — live outside your repos, so a project never fills up with .md files." \
+      "ハンドオフ ドキュメント（仕様書・報告書・タスク台帳）は repo の外に置きます。プロジェクトが .md ファイルで埋まらないようにするためです。"
+  say "Pick where they live: an Obsidian vault subfolder works well, it only has to be a directory you can write to." \
+      "置き場所を選んでください。Obsidian vault のサブフォルダが便利ですが、書き込めるディレクトリであれば何でも構いません。"
   # `|| true`: read fails on EOF (Ctrl-D), which set -e would turn into a silent
   # abort halfway through the install. Treat it as "take the default".
   shared_ans=""
-  read -r -p "  Shared docs dir [$(tildify "$SHARED_DIR_DEFAULT")] " shared_ans || true
+  read -r -p "$(phrase "  Shared docs dir [$(tildify "$SHARED_DIR_DEFAULT")] " \
+                       "  ドキュメントの置き場所 [$(tildify "$SHARED_DIR_DEFAULT")] ")" shared_ans || true
   SHARED_DIR="$(expand_tilde "${shared_ans:-$SHARED_DIR_DEFAULT}")"
 else
   SHARED_DIR="$SHARED_DIR_DEFAULT"
@@ -134,19 +180,19 @@ KIT_COMMIT="${COMMIT_ARG:-$(read_setting_env CLAUDE_KIT_COMMIT)}"
 KIT_PUSH="${PUSH_ARG:-$(read_setting_env CLAUDE_KIT_PUSH)}"
 
 if [ -z "$KIT_COMMIT$KIT_PUSH" ] && [ "$ASSUME_YES" = 0 ] && [ -t 0 ]; then
-  cat <<'EOF'
-
-Git policy. Claude commits as it works; pushing is a separate decision.
-EOF
+  echo
+  say "Git policy. Claude commits as it works; pushing is a separate decision." \
+      "git の扱い。Claude は作業しながらコミットします。push はそれとは別の判断です。"
   commit_ans=""
-  read -r -p "  Commit at checkpoints without asking? [Y/n] " commit_ans || true
+  read -r -p "$(phrase "  Commit at checkpoints without asking? [Y/n] " \
+                       "  区切りごとに確認なしでコミットしてよいですか [Y/n] ")" commit_ans || true
   case "$commit_ans" in [nN]*) KIT_COMMIT="ask" ;; *) KIT_COMMIT="auto" ;; esac
-  echo "  Push / PR —"
-  echo "    a    ask every time"
-  echo "    n    never"
-  echo "    auto only where a linter or CI exists"
+  say "  Push / PR —"                                    "  push / PR —"
+  say "    a    ask every time"                          "    a    毎回確認する"
+  say "    n    never"                                   "    n    行わない"
+  say "    auto only where a linter or CI exists"        "    auto linter か CI がある repo でのみ自動"
   push_ans=""
-  read -r -p "  Choose [a/n/auto] " push_ans || true
+  read -r -p "$(phrase "  Choose [a/n/auto] " "  選択 [a/n/auto] ")" push_ans || true
   case "$push_ans" in
     [nN]*)    KIT_PUSH="never" ;;
     auto|AUTO) KIT_PUSH="auto" ;;
@@ -352,46 +398,69 @@ fi
 
 # ── summary ─────────────────────────────────────────────────────────────────────
 echo
-echo "── Summary ─────────────────────────────────────────────"
+say "── Summary ─────────────────────────────────────────────" \
+    "── まとめ ───────────────────────────────────────────────"
 total=$(( ${#SHELVED[@]} + ${#KEPT[@]} + ${#RECONCILE[@]} ))
 if [ "${#SHELVED[@]}" -gt 0 ]; then
-  echo "Shelved (review, then delete once you're happy):"
+  say "Shelved (review, then delete once you're happy):" \
+      "退避しました（確認して、問題なければ削除してください）:"
   printf '  %s\n' "${SHELVED[@]}"
 fi
 if [ "${#KEPT[@]}" -gt 0 ]; then
-  echo "Kept your version (repo changes NOT applied — re-run with --yes to take them):"
+  say "Kept your version (repo changes NOT applied — re-run with --yes to take them):" \
+      "既存のまま残しました（repo の変更は未適用です。取り込むには --yes で再実行してください）:"
   printf '  %s\n' "${KEPT[@]}"
 fi
 if [ "${#RECONCILE[@]}" -gt 0 ]; then
-  echo "Diverged from repo — reconcile by hand if you want the repo version:"
+  say "Diverged from repo — reconcile by hand if you want the repo version:" \
+      "repo と差があります。repo 版にしたい場合は手で突き合わせてください:"
   for f in "${RECONCILE[@]}"; do echo "  diff '$f' '$REPO/config/settings.template.json'"; done
   if [ "$SHARED_DIR_SETTINGS" != "$TEMPLATE_ROOT" ]; then
-    echo "  (that diff also shows the shared root: $TEMPLATE_ROOT -> $SHARED_DIR_SETTINGS)"
+    say "  (that diff also shows the shared root: $TEMPLATE_ROOT -> $SHARED_DIR_SETTINGS)" \
+        "  （その差分には置き場所の置換も含まれます: $TEMPLATE_ROOT -> $SHARED_DIR_SETTINGS）"
   fi
 fi
 if [ "${#PRUNED[@]}" -gt 0 ]; then
-  echo "Pruned dangling links (skill/hook removed from the repo):"
+  say "Pruned dangling links (skill/hook removed from the repo):" \
+      "repo から消えたスキル / フックへの壊れたリンクを削除しました:"
   printf '  %s\n' "${PRUNED[@]}"
 fi
 # `[ ... ] && echo` would abort the script under set -e whenever there IS something
 # to review, swallowing the steps below — the case that needs them most.
-if [ "$total" -eq 0 ]; then echo "No conflicts to review."; fi
-echo "Handoff docs: $SHARED_DIR"
+if [ "$total" -eq 0 ]; then
+  say "No conflicts to review." "確認が必要な競合はありません。"
+fi
+say "Handoff docs: $SHARED_DIR" "ハンドオフ ドキュメント: $SHARED_DIR"
 
-cat <<'EOF'
+echo
+if [ "$KIT_LANG" = ja ]; then
+  cat <<'EOF'
+残りの手順:
 
+  1. シークレット（コミット禁止）— ~/.claude/settings.local.json を作成:
+       { "env": { "GH_TOKEN": "github_pat_..." } }
+     settings.json はコピー運用なので、実行時の /config の変更はそちらに入り、repo を汚しません。実 PAT は *.local.json にだけ置きます。
+  2. jq が無ければ入れてください（フックが依存します）:  brew install jq
+  3. プラグイン由来のスキル（figma / serena など）は初回起動時に settings.json の enabledPlugins と extraKnownMarketplaces から自動復元されます。
+
+置き場所をあとから変えるには --shared-dir <新しいパス> を付けて再実行してください。中身の移動はご自身で行ってください — スクリプトは参照先を張り替えるだけで、ファイルは動かしません。
+特定のプロジェクトだけ別の場所にしたい場合は、shared-dirs.json の "overrides" に足してください。
+
+そのあと Claude Code を再起動してください。
+EOF
+else
+  cat <<'EOF'
 Remaining steps:
 
   1. SECRET (never committed) — create ~/.claude/settings.local.json:
        { "env": { "GH_TOKEN": "github_pat_..." } }
-     (settings.json is now a plain copy; runtime /config toggles land there
-      safely without touching the repo; the real PAT stays in *.local.json.)
+     settings.json is a plain copy, so runtime /config toggles land there without touching the repo, and the real PAT stays in *.local.json.
   2. Install jq if missing (hooks depend on it):  brew install jq
-  3. Plugin-based skills (figma, serena, etc.) are restored from
-     settings.json's enabledPlugins + extraKnownMarketplaces on first launch.
+  3. Plugin-based skills (figma, serena, etc.) are restored from settings.json's enabledPlugins + extraKnownMarketplaces on first launch.
 
 To move the handoff docs later: re-run with --shared-dir <new path>, then move the existing contents across yourself — the script repoints, it never moves your files.
 A single project can keep its own dir via an "overrides" entry in shared-dirs.json.
 
 Then restart Claude Code.
 EOF
+fi
