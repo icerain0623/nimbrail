@@ -28,7 +28,7 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 6. Branches merged into the default branch are piling up → suggest `clean-branches`.
 7. `SPEC.md` (or a petrichor plan) exists and substantial feature commits have landed since it last changed → suggest `weathering` (spec-drift report; also catches a stale ja+en rendering).
 8. A work unit has shipped and left stale material in claude-shared — consumed `NN-topic.md` plan files, or reports/plans for an already-shipped release (**struck-through closed lines are history, not stale material** — see the completion convention) → suggest `permafrost` (freeze/promote sweep that keeps warm thin; propose-only, never moves without confirmation). The claude-shared analogue of step 6's branch cleanup — gate it on a concrete stale signal, don't propose it on every checkpoint just because a unit finished.
-9. `findings.md` has unchecked lines **above its `## 対応済み` heading** that none of the steps above already covers → surface them, most severe 分類 first, and ask which to take. Don't fix them silently: each was logged precisely because it was out of scope when found, so picking it up is the user's call.
+9. `findings.md` has unchecked lines **above its `## 対応済み` heading** that none of the steps above already covers → surface them, most severe 分類 first, and ask which to take. Don't fix them silently: each was logged precisely because it was out of scope when found, so picking it up is the user's call. Where the project routes findings to its issue tracker instead (global CLAUDE.md, Reporting findings), read open issues in place of the file.
 10. On explicit request, or when nothing else is pending → offer `sunbreak`.
 
 ## Build discipline

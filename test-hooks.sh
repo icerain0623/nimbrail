@@ -78,6 +78,20 @@ expect_env() { # <cmd> <porcelain> <exists:1|0|auto> <deny|ask|none>
   if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL env-guard: want=$want got=$dec :: $cmd [$por]"; fi
 }
 
+# git commit / push policy — CLAUDE_KIT_COMMIT and CLAUDE_KIT_PUSH are the env keys
+# install.sh writes into settings.json; CLAUDE_HOOK_HAS_CHECKS forces the linter/CI
+# answer so the result does not depend on the repo the tests happen to run in.
+expect_policy() { # <cmd> <branch> <commit> <push> <checks:1|0|-> <allow|deny|ask|none>
+  local cmd=$1 br=$2 cp=$3 pp=$4 hc=$5 want=$6 out dec
+  local vars=(CLAUDE_HOOK_BRANCH="$br" CLAUDE_KIT_COMMIT="$cp" CLAUDE_KIT_PUSH="$pp")
+  [ "$hc" != "-" ] && vars+=(CLAUDE_HOOK_HAS_CHECKS="$hc")
+  out=$(printf '{"tool_input":{"command":%s}}' "$(jq -Rn --arg c "$cmd" '$c')" \
+        | env "${vars[@]}" bash "$H/git-workflow.sh" 2>/dev/null)
+  dec=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "none"' 2>/dev/null)
+  [ -z "$dec" ] && dec="none"
+  if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL git-policy[c=$cp p=$pp chk=$hc br=$br]: want=$want got=$dec :: $cmd"; fi
+}
+
 # claude-shared deletion guard — CLAUDE_HOOK_SHARED_ROOTS is the seam so the test
 # does not depend on the real HOME or on shared-dirs.json.
 expect_shared() { # <cmd> <deny|ask|none>
@@ -148,6 +162,31 @@ expect_stdout git-workflow.sh "git branch -d main"            deny
 expect_stdout git-workflow.sh "git branch -D master"          deny
 expect_stdout git-workflow.sh "git push origin --delete main" deny
 expect_stdout git-workflow.sh "git branch -d feature/x"       none
+
+# ── git-workflow: commit / push policy (install-time choice) ──────────────────
+# commit
+expect_policy "git commit -m x"  feat/x  auto ask  -  none
+expect_policy "git commit -m x"  feat/x  ask  ask  -  ask
+expect_policy "git commit -m x"  main    ask  ask  -  ask   # main message wins, still ask
+# push: the three policies
+expect_policy "git push"                 feat/x auto ask   -  ask
+expect_policy "git push"                 feat/x auto never -  deny
+expect_policy "gh pr create --fill"      feat/x auto never -  deny
+expect_policy "git push"                 feat/x auto auto  1  allow
+expect_policy "gh pr create --fill"      feat/x auto auto  1  allow
+# auto is gated on something actually checking the code
+expect_policy "git push"                 feat/x auto auto  0  ask
+# and never covers the irreversible shapes, checks or not
+expect_policy "git push --force"             feat/x auto auto 1 ask
+expect_policy "git push --force-with-lease"  feat/x auto auto 1 ask
+expect_policy "git push -f origin feat/x"    feat/x auto auto 1 ask
+expect_policy "git push"                     main   auto auto 1 ask
+expect_policy "git push origin --delete main" feat/x auto auto 1 deny  # hard guard still first
+# unrelated commands are untouched by the policy
+expect_policy "git status"               feat/x auto never -  none
+expect_policy "git log --oneline -5"     feat/x ask  never -  none
+# anchored like the commit check: a push MENTIONED in a quoted string is not a push
+expect_policy 'git commit -m "git push"' feat/x auto never -  none
 
 # ── git worktree placement: sibling dir required, in-repo denied ──────────────
 expect_wt "git worktree add wt/feat"                        /r deny

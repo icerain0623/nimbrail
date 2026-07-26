@@ -21,7 +21,7 @@ The clearing after the storm — look back over recent sessions and surface what
    - general friction — many-attempt tasks, recurring permission or sandbox denials.
 3. Cluster the signals into a few concrete, generalizable lessons. Discard one-offs.
 4. **Classify each kept lesson by scope** — the key judgement. A global candidate recurs across more than one project or is obviously stack-agnostic, and only those are worth proposing for the global CLAUDE.md, a global memory, or a skill. Anything seen in one project only, or tied to that repo's stack, stays project-scoped; promoting it to global config is pointless noise.
-5. Write one report — never edit memory or CLAUDE.md. Path: `~/Documents/claude-shared/sunbreak/<YYYY-MM-DD>-report.md`, always the default shared root rather than a per-project override, since a cross-project report belongs to no single project (create the dir if missing). If today's report exists, append a new run section instead of overwriting.
+5. Write one report — never edit memory or CLAUDE.md. Path: `<default shared root>/sunbreak/<YYYY-MM-DD>-report.md` (default `~/Documents/claude-shared`), always the default shared root rather than a per-project override, since a cross-project report belongs to no single project (create the dir if missing). If today's report exists, append a new run section instead of overwriting.
 6. Report back where the file was written, counts per bucket, and how many transcripts and projects were reviewed. Then stop — applying is the user's call, later. Do not open an apply-now dialog.
 
 ## Report format

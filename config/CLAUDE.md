@@ -21,7 +21,7 @@ Entry triage for a new ask; each station explains itself when invoked:
 ## Git
 - Branch before editing.
 - Worktrees are for **agents running in parallel on one repo** — one per agent, deps per-worktree (no node_modules sharing), in a sibling `<repo>-worktrees/<branch>/`. A single agent takes an ordinary branch. `git worktree add` runs unsandboxed.
-- Commit autonomously at coherent checkpoints, before risky ops, and when a unit is done; keep commits scoped. Push is gated.
+- Commit autonomously at coherent checkpoints, before risky ops, and when a unit is done; keep commits scoped. Commit and push follow the policy chosen at install (`CLAUDE_KIT_COMMIT` / `CLAUDE_KIT_PUSH`), enforced by the git-workflow hook — don't work around a prompt it raises.
 - The sandbox denies writes to `.git/config`, nothing else under `.git`: `git config`, `git remote add/remove`, `git branch -m` and `git init` need it disabled. Branch create/delete, `switch -c`, `worktree add`, commit and checkout all run inside it.
 
 ## Packages & toolchains
@@ -41,6 +41,7 @@ Entry triage for a new ask; each station explains itself when invoked:
 ## Reporting findings
 - Something problematic (build/lint/test warnings, security findings, risky diffs, spec/design gaps, upgrade breakage) → a dated report at `<shared>/<project>/YYYY-MM-DD_<title>.md`, not just chat. Classify each: 重大/Critical (escalate now) · 対応が必要/Needs-action · テストが必要/Needs-testing · 軽微/Minor. Nothing problematic → say so in chat, no file.
 - A bug or gap noticed **while doing something else**, too small for its own report → one appended line in `<shared>/<project>/findings.md` (format in its header; append-only). Needs analysis → dated report, linked from findings.md in one line.
+- A project whose own CLAUDE.md says findings go to its issue tracker overrides that destination: one issue per finding, same 分類, and no findings.md line — a finding recorded in two places gets closed in one.
 
 ## Handoff files
 - Things the user opens/copies/runs → the shared root (Obsidian-readable): write the file, `pbcopy < <file>`, give the path. Internal scratch → `/tmp` scratchpad.
