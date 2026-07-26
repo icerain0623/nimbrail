@@ -60,7 +60,11 @@ cd claude-kit
 ./install.sh
 ```
 
-The install asks three things. First, **where handoff docs should live.** Specs, reports and
+It opens by asking which language to run in — English or 日本語 — and everything
+after that, prompts and closing notes alike, follows the answer. `$LANG` only picks
+the default; `--lang en|ja` skips the question.
+
+Then it asks three things. First, **where handoff docs should live.** Specs, reports and
 task ledgers are written outside your repos so a project never fills up with `.md`
 files — pick a directory you can write to (an Obsidian vault subfolder works well).
 The answer is stored in `~/.claude/shared-dirs.json` and substituted into the
