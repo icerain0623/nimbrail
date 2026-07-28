@@ -162,7 +162,7 @@ if [ -n "$SHARED_DIR_ARG" ]; then
 elif [ -n "$(read_shared_default)" ]; then
   SHARED_DIR="$(expand_tilde "$(read_shared_default)")"
   say "Shared handoff root: $SHARED_DIR (from $SHARED_DIRS_JSON)" \
-      "ハンドオフ ドキュメントの置き場所: $SHARED_DIR（$SHARED_DIRS_JSON より）"
+      "ハンドオフ ドキュメントの置き場所: ${SHARED_DIR}（${SHARED_DIRS_JSON} より）"
 elif [ "$ASSUME_YES" = 0 ] && [ -t 0 ]; then
   echo
   say "Handoff docs — specs, reports, task ledgers — live outside your repos, so a project never fills up with .md files." \
@@ -480,7 +480,7 @@ if [ "${#RECONCILE[@]}" -gt 0 ]; then
   for f in "${RECONCILE[@]}"; do echo "  diff '$f' '$REPO/config/settings.template.json'"; done
   if [ "$SHARED_DIR_SETTINGS" != "$TEMPLATE_ROOT" ]; then
     say "  (that diff also shows the shared root: $TEMPLATE_ROOT -> $SHARED_DIR_SETTINGS)" \
-        "  （その差分には置き場所の置換も含まれます: $TEMPLATE_ROOT -> $SHARED_DIR_SETTINGS）"
+        "  （その差分には置き場所の置換も含まれます: $TEMPLATE_ROOT -> ${SHARED_DIR_SETTINGS}）"
   fi
 fi
 if [ "${#PRUNED[@]}" -gt 0 ]; then

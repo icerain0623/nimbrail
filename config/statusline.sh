@@ -46,6 +46,7 @@ usage_color() {
 }
 
 # Abbreviate $HOME to ~
+# shellcheck disable=SC2016  # the $ in the sed class is a literal regex metachar
 home_escaped=$(printf '%s' "$HOME" | sed 's/[[\.*^$()+?{|]/\\&/g')
 abbrev() {
   printf '%s' "$1" | sed "s|^${home_escaped}|~|"

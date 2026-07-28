@@ -25,8 +25,9 @@ cd claude-kit
 - 続けて 3 つ聞かれる。まず **ハンドオフ ドキュメントの置き場所**。仕様書・報告書・タスク台帳は repo の外に書くので、プロジェクトが `.md` で埋まらない（Obsidian vault のサブフォルダなどが便利）。Enter で既定の `~/Documents/claude-shared`、非対話なら `./install.sh --shared-dir ~/vault/claude-docs`。回答は `~/.claude/shared-dirs.json` に入り、`settings.json` のコピーにも差し込まれる（**これがないとサンドボックスがそこへ書けない**）。あとから変えるには `--shared-dir` 付きで再実行（**中身の移動は自分でやる**。スクリプトは参照先を張り替えるだけ）。特定プロジェクトだけ別の場所にしたい場合は `shared-dirs.json` の `overrides` に足す（再実行でも保持される）。
 - 続けて **git をどこまで自動でやらせるか** も聞かれる（`--commit auto|ask` / `--push ask|never|auto`）。既定は「コミットは自動、push は毎回確認」。`--push auto` は **linter か CI がある repo でだけ**自動 push する（`.github/workflows`・eslint・biome・golangci・ruff・rubocop・`package.json` の lint スクリプト・`lint.sh` のいずれか）。force push・ref 削除・main への push は auto でも確認する。再実行すると前回の選択を引き継ぐ。プロジェクト単位で変えたい場合は、その repo の `.claude/settings.json`（コミットされる＝チーム共有）か `.claude/settings.local.json`（gitignore＝自分だけ）に `CLAUDE_KIT_COMMIT` / `CLAUDE_KIT_PUSH` を書く（優先順位はハーネスが user < project < project.local で処理する）。判定は CLAUDE.md ではなく **hook が強制**する。
 - **`jq` 必須**（PreToolUse フックが使う。`brew install jq`）。
-- **プラグイン**（figma / serena / context7 など）は install.sh では入らない。初回起動時に `settings.json` の `enabledPlugins` から自動復元される。
+- **プラグイン**（serena / context7 など）は install.sh では入らない。初回起動時に `settings.json` の `enabledPlugins` から復元される。`false` のものは復元されないので、無効化はテンプレート側にも反映しておく（さもないと `--yes` で復活する）。
 - `./install.sh` は**再実行安全**。diverge したライブファイルは既定で**温存**（`--yes` で一括反映、旧版は `.bak` へ退避）。`settings.json` はコピー運用なので、マシン固有調整と `settings.local.json` の実 PAT は保持される。
+- **スキルを新規追加したら再実行が必要**。`skills/<name>/` は `~/.claude/skills/` へ symlink されて初めてスキルになる（既存スキルの編集は再実行不要）。
 
 ## ワークフロー（レール）
 
@@ -41,7 +42,7 @@ petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
 - **小さい/明確 → express lane**: 企画駅を飛ばして 実装 → `check` → 実挙動の確認 → commit。
 - **大きい/未確定 → petrichor から**: レールを一周。出荷後、次の substantial な作業がまた petrichor に戻る＝ループが閉じる。
 - **既存コードで spec が無い → overcast**（As-Is を spec 化）。
-- 迷ったら **monsoon** が現状を見て次手を提示。
+- 迷ったら **monsoon** が現状を見て次手を提示。**プロジェクトを横断して**「全体で今どこか・何が自分の検証待ちで止まっているか」は `synoptic`。
 
 各スキルの詳細・一覧は README.md の Workflow 節とスキル表を参照。rail 系（petrichor / overcast / squall / downpour / monsoon / sunbreak）は **slash 専用**、utility 系は文脈からも自動起動する。
 

@@ -32,6 +32,7 @@ claude-kit/
 │   ├── squall/                # detailed design (how to build) + record .claude config — after petrichor
 │   ├── downpour/              # optional build accelerator: burn down tasks.md wave by wave with subagents
 │   ├── monsoon/               # router: read state, carry build discipline, delegate to the right skill
+│   ├── synoptic/              # cross-project current position: what is stuck on you, ranked
 │   ├── check/                 # run lint/typecheck (+test/build), log + summarize
 │   ├── release-note/          # opt-in RELEASE_NOTE.md changelog
 │   ├── clean-branches/        # delete merged local/remote branches
@@ -106,6 +107,10 @@ Restart Claude Code.
 
 ### Updating / re-running
 
+**Authoring a new skill needs a re-run**: a `skills/<name>/` directory only becomes a live
+skill once `install.sh` symlinks it into `~/.claude/skills/`. Editing an existing skill needs
+nothing — the symlink already points here.
+
 `./install.sh` is safe to re-run. Already-correct symlinks are skipped (no churn); a
 live file that has **diverged** from the repo is shown as a diff and **kept by default**
 — the repo version is never silently forced on you. Confirm per file to replace it, or
@@ -132,11 +137,11 @@ Each step ends by pointing you to the next, so you follow the prompts instead of
 
 0. **New / empty project — `petrichor`.** Interview to a full spec, kept **outside the repo** in `<shared-root>/<project>/petrichor-plan/00-overview.md` (Obsidian-editable; never clutters the codebase; shared root is the one you chose at install, per-project override via `~/.claude/shared-dirs.json` — see the global CLAUDE.md Handoff rule). When done, petrichor offers to copy just that spec into the repo as `SPEC.md`.
 
-0′. **Existing codebase, no spec — `overcast`.** The other entrance: reverse-engineer the As-Is into the same spec artifact — 機能 IDs from routes/commands, acceptance criteria from tests, real permissions from auth code — every statement confidence-marked (事実/推定/不明), unknowns asked once in a batched round. Inherited code then rides the same rail (squall / forecast / weathering).
+0′. **Existing codebase, no spec — `overcast`.** The other entrance: reverse-engineer the As-Is into the same spec artifact — 機能 IDs from routes/commands, acceptance criteria from tests, real permissions from auth code — every statement confidence-marked (事実/推定/不明), unknowns asked once in a batched round. Inherited code then rides the same rail (squall / forecast / weathering). This is also where Serena onboarding is judged and offered — pre-existing, sizable, cross-cutting code is exactly where it pays off, and it asks before indexing.
 
 1. **Design + config — `squall`.** Detailed design (how to build): reads the spec + existing code and produces repo design artifacts — dev-environment/README, coding conventions (Lint), DB physical schema, module/process design, API (OpenAPI)/sequence designs, infra detail — then records the `.claude/` config (`project.md` that `monsoon` reads + `CLAUDE.md` conventions) and enables opt-ins like release notes on confirmation. Explore-first, not an interview. (Skip the parts that don't apply.)
 
-2. **Build.** Coding stays in the normal loop — no separate skill drives it. The build discipline is **ambient** (global CLAUDE.md), so it applies without invoking anything: judge Serena onboarding (run it when it pays off), branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing, and log anything noticed in passing to `findings.md` (a per-project checklist `monsoon` surfaces at a checkpoint). At a checkpoint, run `/monsoon` to route the next step (`check` → commit → push / PR / …). For an autonomously-runnable stretch of the ledger, `/downpour` burns it down wave by wave — subagents implement, fresh-context verifiers judge the EARS completion conditions, the orchestrator alone commits and writes the ledger (spec: `docs/SPEC-downpour.md`).
+2. **Build.** Coding stays in the normal loop — no separate skill drives it. The build discipline is **ambient** (global CLAUDE.md), so it applies without invoking anything: branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing, and log anything noticed in passing to `findings.md` (a per-project checklist `monsoon` surfaces at a checkpoint). At a checkpoint, run `/monsoon` to route the next step (`check` → commit → push / PR / …). For an autonomously-runnable stretch of the ledger, `/downpour` burns it down wave by wave — subagents implement, fresh-context verifiers judge the EARS completion conditions, the orchestrator alone commits and writes the ledger (spec: `docs/SPEC-downpour.md`).
 
 3. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and does the next sensible thing, delegating to the right skill:
    - a **new piece of work** → triage by size: small/clear takes the express lane (skip planning → build → `check` → behavior confirmation → commit); substantial re-enters the rail at `petrichor`
@@ -145,10 +150,10 @@ Each step ends by pointing you to the next, so you follow the prompts instead of
    - feature branch with checks passing → push / open a PR, as far as your `--push` policy allows
    - merged branches piling up → `clean-branches`
    - many feature commits since `SPEC.md` last changed → `weathering` (spec-drift report)
-   - a shipped work unit left stale docs in claude-shared → `permafrost` (freeze/promote sweep, propose-only)
-   - on request → `sunbreak`
+   - a shipped work unit left stale docs in claude-shared, or a checklist file whose `## 対応済み` block outgrew its open lines → `permafrost` (freeze/promote sweep, propose-only)
+   - nothing pending for this project → `synoptic`, because this router only ever sees the current repo; `sunbreak` on request
 
-   Read-only steps run automatically; deletions are always proposed first. Where commits and pushes sit on that line is the install-time policy above, enforced by the hook rather than by this paragraph.
+   It reports which numbered condition matched and which earlier ones it ruled out, so the routing is legible instead of arriving as a verdict. Read-only steps run automatically; deletions are always proposed first. Where commits and pushes sit on that line is the install-time policy above, enforced by the hook rather than by this paragraph.
 
 Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (`petrichor`, `overcast`, `squall`, `downpour`, `monsoon`, `sunbreak`) are **slash-only** (`disable-model-invocation`) — you invoke them explicitly, so a heavy interview never auto-fires from a stray phrase. The **utility** skills below *also* trigger from context (their descriptions are tuned to fire on the right intent and stay quiet otherwise), or you can call them directly for a single step:
 
@@ -160,11 +165,12 @@ Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (
 | `session-info` | write the resume command (`claude --resume <id>`) to the shared root (default `~/Documents/claude-shared/`) |
 | `forecast` | generate a pre-release scenario-test checklist from the spec (coverage-traced to 機能 IDs) |
 | `weathering` | spec-drift report: where the code and `SPEC.md` disagree (+ stale ja+en rendering); edits on confirmation |
+| `synoptic` | cross-project current position — reads each ledger's head + live git, ranks by what blocks you (your verification first), regenerates `status.md`, recommends one next action. `monsoon` routes one project; this one covers all of them |
 | `barometer` | kit-vs-environment drift: live `~/.claude` against this repo (copied `settings.json`, symlink integrity, orphans) + whether the harness surface the kit assumes still exists. Read-only, proposes. Run it after upgrading Claude Code |
 | `almanac` | weekly digest across active repos (週報 draft) + the *propose* side of the shared-dir lifecycle: flags stale files for freezing (the store is `permafrost`) |
 | `permafrost` | the claude-shared information-lifecycle mechanism — freeze completed/stale docs into a hard-invisible cold store (Read/grep-denied, write-only; `thaw` to read) and keep warm files thin (eviction). Enforcement lives in `settings.json` + `config/CLAUDE.md`; the skill runs the sweep/thaw. `almanac` proposes candidates here |
 | `cirrus` | incremental research notebook — findings persist to Obsidian as found, resumable after context death |
-| `sunbreak` | review past transcripts; write an Obsidian report (global vs project-specific lessons), applied later |
+| `sunbreak` | **slash-only** (listed here, not on the rail) — review past transcripts; write an Obsidian report (global vs project-specific lessons), applied later |
 | `python-setup` | set up a sandbox-safe Python venv |
 | `node-sandbox-setup` | unblock pnpm + mise under the sandbox (symptom→fix for the install dance) |
 

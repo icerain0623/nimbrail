@@ -31,7 +31,6 @@ Entry triage for a new ask; each station explains itself when invoked:
 - Don't silently guess spec/design gaps — route each back to the spec or design (or ask), and record the resolution.
 - At a checkpoint (a unit compiles / runs): run `check`, then confirm real behavior from outside the code — run it, open the page, hit the endpoint. Never start a long-running server yourself; ask the user to run it via `!`. After a unit is done, `/monsoon` routes the next step.
 - `/verify` and `/code-review` are user-invoked: suggest, don't call. A launch needing more than inference (DB, env, multi-step build) → `/run-skill-generator` records the recipe.
-- Serena onboarding pays off for pre-existing / sizeable / cross-cutting / multi-session code; skip it for small or greenfield work you just wrote. Decide at the build phase, re-evaluate as you go.
 
 ## Delegation
 - Subagents only for large, independent, parallelizable work — a wide multi-file investigation, an invoked `downpour` wave. Not for what you'd finish in a few tool calls, and not to check your own work, except petrichor L3's cold read. Keep counts low. Workflows and deep-research on request only.
@@ -47,4 +46,5 @@ Entry triage for a new ask; each station explains itself when invoked:
 ## Information lifecycle (claude-shared)
 - claude-shared is scratch memory, not an archive — stale docs mislead. **Don't bulk-grep/read it; open the live file by name.** `<shared-root>/permafrost/` is Read-denied: `mv` in, thaw to read out.
 - Keep the warm set thin: promote keepers (issue / repo docs), freeze the rest via `/permafrost`. `almanac` proposes candidates.
+- **One question, one file**: mutable progress → `tasks.md`, incidental finds → `findings.md`, facts outliving the project → `memory/`. Any cross-project view is regenerated from them, never a source.
 - Closed checklist item (`TODO.md`, `findings.md`, a forecast run): strike it through and move it to a trailing `## 対応済み` with its sha or date. `- [x]` done, `- [-]` 見送り plus the reason. `/permafrost` freezes that block once bulky; the rule lives here, so regenerating a file loses nothing.
