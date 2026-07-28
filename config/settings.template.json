@@ -301,7 +301,6 @@
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
     "serena@claude-plugins-official": true,
-    "ui-ux-pro-max@ui-ux-pro-max-skill": false,
     "figma@claude-plugins-official": false,
     "chrome-devtools-mcp@claude-plugins-official": false,
     "deploy-on-aws@agent-plugins-for-aws": false,
