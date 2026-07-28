@@ -41,7 +41,7 @@ petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
 - **小さい/明確 → express lane**: 企画駅を飛ばして 実装 → `check` → 実挙動の確認 → commit。
 - **大きい/未確定 → petrichor から**: レールを一周。出荷後、次の substantial な作業がまた petrichor に戻る＝ループが閉じる。
 - **既存コードで spec が無い → overcast**（As-Is を spec 化）。
-- 迷ったら **monsoon** が現状を見て次手を提示。
+- 迷ったら **monsoon** が現状を見て次手を提示。**プロジェクトを横断して**「全体で今どこか・何が自分の検証待ちで止まっているか」は `synoptic`。
 
 各スキルの詳細・一覧は README.md の Workflow 節とスキル表を参照。rail 系（petrichor / overcast / squall / downpour / monsoon / sunbreak）は **slash 専用**、utility 系は文脈からも自動起動する。
 

@@ -13,7 +13,6 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 - `<shared-root>/<project>/tasks.md` if present (shared root: per the global Handoff rule; the build ledger squall produced for a substantial build, beside `feedback.md`): the dependency-ordered plan **and** live progress in one Obsidian-readable file, outside the repo. Each task carries ID, dependencies, a completion condition, and a status (todo / in-progress / done / **保留** — a 保留 task blocks its downstream: neither it nor its dependents count as unblocked), plus an append-only `## 進捗ログ` for cross-worktree visibility. Read it to see what's left and which tasks are unblocked. It is the **source of truth for task progress** — and a clean git tree does **not** mean the build is done. Being repo-external, it carries mutable progress freely and is never committed (throwaway, like `feedback.md`).
 - `<shared-root>/<project>/findings.md` if present: incidental discoveries logged during other work (append-only checklist; unchecked lines are open, `## 対応済み` is history). Not a task ledger — untriaged cheap items, which is why they wait for a checkpoint instead of interrupting.
 - Live state: `git status`, current branch, `git tag`, unpushed commits, branches merged into the default branch.
-- Optional hint: a gitignored `.claude/state.json` for cross-session goals — a hint only. If it conflicts with live git, live git wins.
 
 ## Decision (first match wins; propose, don't force)
 0. **A new piece of work is being requested** (an actual new feature/change — not "look at the state and tell me what's next"): triage by size before anything else. This is what makes the lifecycle a loop rather than a one-shot line.
@@ -27,19 +26,19 @@ The recurring router. Not a fixed pipeline — it inspects state and picks the n
 5. On a feature branch, everything committed, checks pass → offer to push / open a PR.
 6. Branches merged into the default branch are piling up → suggest `clean-branches`.
 7. `SPEC.md` (or a petrichor plan) exists and substantial feature commits have landed since it last changed → suggest `weathering` (spec-drift report; also catches a stale ja+en rendering).
-8. A work unit has shipped and left stale material in claude-shared — consumed `NN-topic.md` plan files, or reports/plans for an already-shipped release (**struck-through closed lines are history, not stale material** — see the completion convention) → suggest `permafrost` (freeze/promote sweep that keeps warm thin; propose-only, never moves without confirmation). The claude-shared analogue of step 6's branch cleanup — gate it on a concrete stale signal, don't propose it on every checkpoint just because a unit finished.
+8. A work unit has shipped and left stale material in claude-shared — consumed `NN-topic.md` plan files, or reports/plans for an already-shipped release, or a checklist file whose trailing `## 対応済み` block has outgrown its open lines (**a struck-through line is history, not stale material** — that bulky block is the one freezable case; see the completion convention) → suggest `permafrost` (freeze/promote sweep that keeps warm thin; propose-only, never moves without confirmation). The claude-shared analogue of step 6's branch cleanup — gate it on a concrete stale signal, don't propose it on every checkpoint just because a unit finished.
 9. `findings.md` has unchecked lines **above its `## 対応済み` heading** that none of the steps above already covers → surface them, most severe 分類 first, and ask which to take. Don't fix them silently: each was logged precisely because it was out of scope when found, so picking it up is the user's call. A project whose own CLAUDE.md routes findings to its issue tracker instead: read its open issues in place of the file, and don't write both — a finding recorded twice gets closed once.
-10. On explicit request, or when nothing else is pending → offer `sunbreak`.
+10. Nothing pending for this project → offer `synoptic`: this router only ever sees the current repo, so a sibling project stopped on the user's verification is invisible from here. `sunbreak` on explicit request.
 
 ## Build discipline
-The during-build discipline — `feedback.md` (blockers + open questions), routing spec/design gaps back, Serena onboarding judgment, branch-first, `check` → behavior confirmation at checkpoints — is **ambient** (global CLAUDE.md), so it applies during any build without invoking monsoon. monsoon doesn't own it; monsoon routes the discrete next-step decisions above, typically called at a checkpoint once a unit of work is done.
+The during-build discipline — `feedback.md` (blockers + open questions), routing spec/design gaps back, branch-first, `check` → behavior confirmation at checkpoints — is **ambient** (global CLAUDE.md), so it applies during any build without invoking monsoon. monsoon doesn't own it; monsoon routes the discrete next-step decisions above, typically called at a checkpoint once a unit of work is done.
 
 ## Behavior
 - Read-only steps (check, inspecting state) run automatically.
 - Outward or irreversible steps — push, PR, branch deletion, release tagging — are proposed and run only on confirmation. Commits run autonomously (CLAUDE.md Git rules); push is where the gate begins.
 - Never start a dev server.
-- State which branch and which conditions it observed, and which skill it is delegating to.
+- State which branch and which conditions it observed, **which numbered step matched and which earlier steps it ruled out**, and which skill it is delegating to — the routing is otherwise invisible until it fires.
 
 ## Rules
-- Don't keep mutable workflow state in committed files: use the in-session task list, the claude-shared `tasks.md` ledger (a substantial build's task progress — repo-external, never committed), or the gitignored `.claude/state.json` hint.
+- Don't keep mutable workflow state in committed files: use the in-session task list, or the claude-shared `tasks.md` ledger (a substantial build's task progress — repo-external, never committed). One question, one file: don't mirror the ledger's Resume into a second state file.
 - monsoon only routes — defer to the dedicated skill for the actual work. Exception: committing has no dedicated skill; do it with the built-in harness behavior.

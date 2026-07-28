@@ -21,7 +21,7 @@ The sky is already clouded when you arrive — enter a codebase you didn't write
 
 ## Method — explore-first; the interview comes last and stays small
 
-1. This is precisely the case where Serena onboarding pays off (pre-existing, sizable, multi-session) — trigger it here per the global Indexing rule if not yet onboarded. The opposite call from petrichor.
+1. This is precisely the case where Serena onboarding pays off — pre-existing, sizable, cross-cutting or multi-session code, the opposite call from petrichor (skip it for small or greenfield work you just wrote). **Ask before onboarding** rather than deciding silently, and re-evaluate as the sweep reveals the real size. This station is the only place that judgment lives: leaving it in always-loaded guidance made it a rule nothing acted on.
 2. Sweep in layer order, each layer correcting the previous one's claims: README/docs (claims) → entry points, routes/commands (surface) → schema/migrations (data truth) → auth/authorization code (the real 権限マトリクス) → tests (executable acceptance criteria) → CI/deploy config (non-functional reality) → recent git history (what is actually alive).
 3. Build the 機能一覧 by assigning IDs from the surface (routes/commands/screens), then trace each 機能 to its data and permissions. A route or table that traces to no 機能, or the reverse, is a finding to record rather than an error to hide.
 4. **Mark confidence on every statement**: 事実 (the code says so — cite `file:line`) / 推定 (inferred intent — say from what) / 不明 (only a human can answer). Tests are the strongest 事実 for behavior, so derive acceptance criteria from them where they exist; where they don't, the 受け入れ条件 column reads 不明, and that gap stays visible to `forecast` and to the behavior checks later.

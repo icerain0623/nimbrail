@@ -32,6 +32,7 @@ claude-kit/
 │   ├── squall/                # detailed design (how to build) + record .claude config — after petrichor
 │   ├── downpour/              # optional build accelerator: burn down tasks.md wave by wave with subagents
 │   ├── monsoon/               # router: read state, carry build discipline, delegate to the right skill
+│   ├── synoptic/              # cross-project current position: what is stuck on you, ranked
 │   ├── check/                 # run lint/typecheck (+test/build), log + summarize
 │   ├── release-note/          # opt-in RELEASE_NOTE.md changelog
 │   ├── clean-branches/        # delete merged local/remote branches
@@ -160,6 +161,7 @@ Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (
 | `session-info` | write the resume command (`claude --resume <id>`) to the shared root (default `~/Documents/claude-shared/`) |
 | `forecast` | generate a pre-release scenario-test checklist from the spec (coverage-traced to 機能 IDs) |
 | `weathering` | spec-drift report: where the code and `SPEC.md` disagree (+ stale ja+en rendering); edits on confirmation |
+| `synoptic` | cross-project current position — reads each ledger's head + live git, ranks by what blocks you (your verification first), regenerates `status.md`, recommends one next action. `monsoon` routes one project; this one covers all of them |
 | `barometer` | kit-vs-environment drift: live `~/.claude` against this repo (copied `settings.json`, symlink integrity, orphans) + whether the harness surface the kit assumes still exists. Read-only, proposes. Run it after upgrading Claude Code |
 | `almanac` | weekly digest across active repos (週報 draft) + the *propose* side of the shared-dir lifecycle: flags stale files for freezing (the store is `permafrost`) |
 | `permafrost` | the claude-shared information-lifecycle mechanism — freeze completed/stale docs into a hard-invisible cold store (Read/grep-denied, write-only; `thaw` to read) and keep warm files thin (eviction). Enforcement lives in `settings.json` + `config/CLAUDE.md`; the skill runs the sweep/thaw. `almanac` proposes candidates here |
