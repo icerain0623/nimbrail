@@ -173,7 +173,7 @@ if echo "$cmd" | grep -qE '(^|[[:space:];&|(])[[:space:]]*git[[:space:]]+worktre
       *) inside=1 ;;
     esac
     if [ "$inside" = 1 ]; then
-      deny "worktree を repo 内に作ろうとしています（$wt_path）。兄弟ディレクトリ <repo>-worktrees/<branch>/ に作ってください（CLAUDE.md の Git）。"
+      deny "worktree を repo 内に作ろうとしています（${wt_path}）。兄弟ディレクトリ <repo>-worktrees/<branch>/ に作ってください（CLAUDE.md の Git）。"
     fi
   fi
 fi
