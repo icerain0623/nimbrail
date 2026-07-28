@@ -304,9 +304,7 @@
     "figma@claude-plugins-official": false,
     "chrome-devtools-mcp@claude-plugins-official": false,
     "deploy-on-aws@agent-plugins-for-aws": false,
-    "swift-lsp@claude-plugins-official": false,
-    "frontend-design@claude-plugins-official": false,
-    "skill-creator@claude-plugins-official": false
+    "frontend-design@claude-plugins-official": false
   },
   "extraKnownMarketplaces": {
     "agent-plugins-for-aws": {

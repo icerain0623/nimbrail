@@ -41,7 +41,7 @@ done | sort -n | head -1           # → "<unmerged> <base>"
 
 An empty result means the current branch **is** the integration base, so unmerged is 0 — not a missing value to carry through as a sentinel.
 
-Measured 2026-07-28 on a repo whose `origin/HEAD` is `main` while the feature branch forked from `develop`: going by `origin/HEAD` reported 27 unpushed commits where the true figure was 2. **A view that prints a wrong number stops being read**, so derive the base, don't assume it.
+When a branch forked from `develop` while `origin/HEAD` is `main`, going by `origin/HEAD` reports every commit since `main` — an order of magnitude off. **A view that prints a wrong number stops being read**, so derive the base, don't assume it.
 
 A branch with no `@{u}` has never been pushed; that alone is a signal, independent of the count.
 
