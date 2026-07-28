@@ -28,6 +28,8 @@ tot=$(grep -cE '^\| T-[0-9]+ \|' tasks.md)
 done_n=$(grep -E '^\| T-[0-9]+ \|' tasks.md | grep -cE '\*\*done\*\*|\| done')
 ```
 
+**Two different counts — never conflate them.** Unpushed is `@{u}..HEAD` when an upstream exists (no upstream at all = never pushed, a signal on its own). Unmerged is the distance from the integration base, which is what still needs a PR or a merge. A branch can be 0 unpushed and 5 unmerged with a PR already open; reporting that as "5 unpushed" is the wrong-number failure this section exists to prevent.
+
 The integration base is **the candidate branch with the smallest ahead count**, not `origin/HEAD`:
 
 ```bash
