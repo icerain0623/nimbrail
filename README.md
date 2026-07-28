@@ -107,6 +107,10 @@ Restart Claude Code.
 
 ### Updating / re-running
 
+**Authoring a new skill needs a re-run**: a `skills/<name>/` directory only becomes a live
+skill once `install.sh` symlinks it into `~/.claude/skills/`. Editing an existing skill needs
+nothing — the symlink already points here.
+
 `./install.sh` is safe to re-run. Already-correct symlinks are skipped (no churn); a
 live file that has **diverged** from the repo is shown as a diff and **kept by default**
 — the repo version is never silently forced on you. Confirm per file to replace it, or
