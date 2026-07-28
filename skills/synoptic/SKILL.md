@@ -36,8 +36,10 @@ The integration base is **the candidate branch with the smallest ahead count**, 
 for c in develop main master; do   # skip $c when it is the current branch
   git show-ref -q --verify "refs/heads/$c" &&
     echo "$(git rev-list --count "$c..HEAD") $c"
-done | sort -n | head -1           # → "<unpushed> <base>"
+done | sort -n | head -1           # → "<unmerged> <base>"
 ```
+
+An empty result means the current branch **is** the integration base, so unmerged is 0 — not a missing value to carry through as a sentinel.
 
 Measured 2026-07-28 on a repo whose `origin/HEAD` is `main` while the feature branch forked from `develop`: going by `origin/HEAD` reported 27 unpushed commits where the true figure was 2. **A view that prints a wrong number stops being read**, so derive the base, don't assume it.
 
