@@ -84,6 +84,7 @@ done < <(printf '%s\n' "$cmd" | tr ';|&' '\n\n\n')
 # home, or a top-level glob. `rm` is anchored to command position so `git rm`
 # and words like "charm"/"form" do not trigger. Relative paths (node_modules,
 # ./dist, src/foo) are intentionally NOT flagged — only /, ~, $HOME, * targets.
+# shellcheck disable=SC2016  # `$HOME` is matched literally in the command text, not expanded
 if echo "$cmd" | grep -qE '(^|[|&;])[[:space:]]*rm[[:space:]]' \
    && echo "$cmd" | grep -qE '(-[a-zA-Z]*r|--recursive)' \
    && echo "$cmd" | grep -qE '(-[a-zA-Z]*f|--force)' \

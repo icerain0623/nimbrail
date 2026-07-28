@@ -28,3 +28,4 @@ This repo is the source of the global Claude Code config: `install.sh` symlinks 
 
 ## Secrets
 - Never commit a real PAT. It lives only in `~/.claude/settings.local.json`; the template carries a placeholder and `.gitignore` blocks any literal `settings.json`.
+- **This repo is public, so private identifiers stay out of it** — other projects' names, vault paths, anything under `~/Library`. A measured example needs the behaviour, not the repo it came from; a machine-specific path belongs in `shared-dirs.json` or a runtime grant, both untracked. `~/Developers` and `~/Documents/GitHub` are already public as documented author-specific values.
