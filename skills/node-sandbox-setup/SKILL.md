@@ -12,6 +12,7 @@ The install "dance" is a predictable multi-failure sequence; apply the fix per s
 - `ERR_PNPM_IGNORED_BUILDS` → `ignore-scripts` is on globally, so declare the named package(s) in `pnpm-workspace.yaml` `allowBuilds:` (or `pnpm approve-builds`). Common allowlist for these stacks: `@prisma/engines`, `@prisma/client`, `prisma`, `esbuild`, `sharp`, `argon2`, `unrs-resolver`, `@biomejs/biome`.
 - `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` → `CI=true pnpm install`.
 - `minimumReleaseAge` rejects existing lockfile entries → `rm pnpm-lock.yaml && pnpm install`, but only when the lockfile predates the policy; it re-resolves to older compliant versions, so review the diff.
+- `ERR_PNPM_NO_MATURE_MATCHING_VERSION` → every version satisfying the range is younger than `minimumReleaseAge`; pin the dependency to the newest version that is old enough, rather than widening the range or lowering the policy.
 - `ERR_PNPM_TRUST_DOWNGRADE` → turn off `trustPolicy: no-downgrade` for that project (with a comment).
 - `pnpm-workspace.yaml: packages field missing or empty` → pnpm <11 chokes on a workspace file holding only settings keys (e.g. `minimumReleaseAge`). Pin pnpm 11.
 - a pnpm op fails writing under `~/Library` → its `cache-dir`/`state-dir` default there and the path is sandbox-denied; point them at a writable path (e.g. `~/.cache/pnpm`) via a gitignored project `.npmrc`. The store needs nothing — pnpm auto-locates it on the project's drive (e.g. `~/Developers/.pnpm-store`).
