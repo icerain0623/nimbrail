@@ -77,6 +77,17 @@ expect_rc() { # <hook> <file_path> <want_rc> [env_assignments...]
   if [ "$rc" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL $hook: want=$want got=$rc :: $fp"; fi
 }
 
+# README parity at push time. CLAUDE_HOOK_RANGE_FILES stands in for the outgoing
+# range, so no second checkout is needed (git init is blocked in the sandbox).
+expect_parity() { # <command> <newline-separated files> <top> <ask|none>
+  local cmd=$1 files=$2 top=$3 want=$4 out dec
+  out=$(printf '{"tool_input":{"command":%s},"cwd":%s}' "$(jq -Rn --arg c "$cmd" '$c')" "$(jq -Rn --arg c "$top" '$c')" \
+    | CLAUDE_HOOK_REPO_TOP="$top" CLAUDE_HOOK_RANGE_FILES="$files" bash "$H/kit-checks.sh" 2>/dev/null)
+  dec=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "none"' 2>/dev/null)
+  [ -z "$dec" ] && dec="none"
+  if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL kit-checks[parity]: want=$want got=$dec :: $cmd :: $files"; fi
+}
+
 # git worktree placement — CLAUDE_HOOK_REPO_TOP is the seam for the repo toplevel.
 expect_wt() { # <cmd> <top> <deny|none>
   local cmd=$1 top=$2 want=$3 out dec
@@ -376,6 +387,17 @@ else
   expect_rc kit-checks.sh "$K/config/hooks/x.sh"    2 CLAUDE_HOOK_REPO_TOP="$K"
   # Out of scope for either suite → silent, however broken the repo is.
   expect_rc kit-checks.sh "$K/install.sh"           0 CLAUDE_HOOK_REPO_TOP="$K"
+
+  # README parity, judged on the outgoing range rather than mid-edit.
+  expect_parity "git push"      "README.md"$'\n'"README.ja.md" "$K" none
+  expect_parity "git push"      "README.md"                    "$K" ask
+  expect_parity "git push"      "README.ja.md"                 "$K" ask
+  expect_parity "git push"      "install.sh"                   "$K" none
+  expect_parity "gh pr create"  "README.md"                    "$K" ask
+  # Not a push → not this branch's business.
+  expect_parity "git status"    "README.md"                    "$K" none
+  # A substring that only looks like the target must not match a real filename.
+  expect_parity "git push"      "docs/README.md"               "$K" none
   rm -rf "$JB"
 fi
 

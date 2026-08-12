@@ -22,6 +22,50 @@
 # repo root so the suite needs no second checkout.
 
 input=$(cat)
+command=$(printf '%s' "$input" | jq -r '.tool_input.command // empty')
+
+# ── PreToolUse (Bash): README parity, judged on what the push would carry ─────
+# Mid-edit is the wrong moment to ask — one README is always touched before the
+# other. The range is the first point where "only one of them changed" is a fact
+# rather than a work-in-progress. ASK, not deny: an English-only typo fix is real.
+if [ -n "$command" ]; then
+  case "$command" in
+    *"git push"*|*"gh pr create"*) ;;
+    *) exit 0 ;;
+  esac
+  cwd=$(printf '%s' "$input" | jq -r '.cwd // empty')
+  repo="${CLAUDE_HOOK_REPO_TOP:-$(git -C "${cwd:-.}" rev-parse --show-toplevel 2>/dev/null)}"
+  [ -n "$repo" ] || exit 0
+  [ -f "$repo/lint-skills.sh" ] || exit 0
+  [ -f "$repo/README.ja.md" ] || exit 0
+
+  if [ -n "${CLAUDE_HOOK_RANGE_FILES+x}" ]; then
+    files="$CLAUDE_HOOK_RANGE_FILES"
+  else
+    if git -C "$repo" rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
+      range='@{u}..HEAD'
+    else
+      base=$(git -C "$repo" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null)
+      [ -n "$base" ] || exit 0
+      range="$base..HEAD"
+    fi
+    files=$(git -C "$repo" diff --name-only "$range" 2>/dev/null) || exit 0
+  fi
+
+  en=0; ja=0
+  printf '%s\n' "$files" | grep -qx 'README\.md' && en=1
+  printf '%s\n' "$files" | grep -qx 'README\.ja\.md' && ja=1
+  if [ "$en" != "$ja" ]; then
+    [ "$en" = 1 ] && only="README.md" || only="README.ja.md"
+    [ "$en" = 1 ] && other="README.ja.md" || other="README.md"
+    cat <<HOOK_JSON
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"この push は $only だけを変更し、$other は変更していません。両者は全訳の関係なので、対応する変更を $other にも入れてください。片方だけで正しい変更（英語のみのタイポ修正など）なら承認して続行できます。"}}
+HOOK_JSON
+  fi
+  exit 0
+fi
+
+# ── PostToolUse (Write|Edit): run the suites an edit puts in scope ────────────
 file_path=$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty')
 [ -z "$file_path" ] && exit 0
 
