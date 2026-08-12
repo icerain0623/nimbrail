@@ -176,6 +176,13 @@ expect_secret "password = \"mysecretpw123\"" ask
 expect_secret "password = 'mysecretpw123'" ask
 expect_secret "api_key = 'AKIAIOSFODNN7EXAMPLE1234'" ask
 expect_secret "const x = 1" none
+# Fine-grained PATs. `gh[pousr]_` cannot reach `github_pat_`, so until this case
+# existed the one token format the README documents slipped through the hook.
+expect_secret "GH_TOKEN=ghp_abcdefghijklmnopqrstuvwxyz0123456789" ask
+expect_secret "GH_TOKEN=github_pat_11ABCDEFG0abcdefghijkl_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" ask
+expect_secret '{ "env": { "GH_TOKEN": "github_pat_11ABCDEFG0abcdefghijkl_ABCDEFGHIJ0123456789" } }' ask
+# …and the documented placeholder must stay quiet, or editing the README asks.
+expect_secret '{ "env": { "GH_TOKEN": "github_pat_..." } }' none
 
 # ── git-workflow: branch-first (commit / merge on main) + delete guards ────────
 # commit onto main/master → ask; onto a feature branch → allowed

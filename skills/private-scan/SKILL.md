@@ -1,14 +1,21 @@
 ---
 name: private-scan
-description: Scan the outgoing commit range for private identifiers — home-dir and vault paths, ~/Library, emails, internal hosts. Use before a push or PR, especially on a public repo. Read-only, proposes.
+description: Scan the outgoing commit range for what must not be published — PATs and credentials, home-dir and vault paths, ~/Library, emails, internal hosts. Use before a push or PR. Read-only, proposes.
 ---
 
 # private-scan
 
-`warn-secrets.sh` catches credentials as they are written. This catches the other
-half, which no pattern of a token will match: identifiers that are merely *yours* —
-a vault path, another client's project name, a machine path. They are harmless in a
-private repo and permanent in a public one.
+The last check before work leaves the machine, over two things prose cannot enforce.
+
+**Credentials.** `warn-secrets.sh` sees content passing through Write/Edit, which is
+not how every line reaches a commit — a file written by a shell command, an editor
+outside the session, or a `git add` of something generated never crosses that hook.
+So the range gets its own pass, and a hit here means the hook was bypassed, not that
+it failed.
+
+**Private identifiers**, which no token pattern will ever match: a vault path,
+another client's project name, a machine path. Harmless in a private repo,
+permanent in a public one.
 
 Run it before the push, because after it the fix is a history rewrite.
 
@@ -31,6 +38,11 @@ are made public later.
 
 Decidable without judgement, so state them as findings:
 
+- **Credentials**: GitHub PATs in both shapes (`ghp_`/`gho_`/`ghu_`/`ghs_`/`ghr_`
+  and `github_pat_`), AWS keys, PEM private keys, Slack tokens, connection strings
+  carrying a password, `.env` files that are tracked rather than ignored. Reuse the
+  patterns in `config/hooks/warn-secrets.sh` so the two never disagree; a shape that
+  belongs in one belongs in both.
 - Home-directory absolute paths (`/Users/<name>/`, `/home/<name>/`), minus the
   allowlist below.
 - `~/Library`, `Library/Mobile Documents` (iCloud), and any vault path.
@@ -73,5 +85,8 @@ something specific.
   and often not worth it — say so rather than starting one.
 - Removing a line at the tip does not remove it from the range. If the fix is a
   rewrite, say that plainly instead of proposing an edit that publishes anyway.
+- A credential found here is **compromised the moment it is pushed**, and a rewrite
+  does not un-leak it if the push already happened. Rotation comes first; cleaning
+  the history is the second step, never the only one.
 - No auto-added allowlist entries: an entry silences future runs, so it needs a
   human yes.

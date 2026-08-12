@@ -1,6 +1,6 @@
 ---
 name: weathering
-description: Spec-drift watch — diff the spec (SPEC.md / petrichor plan) against implemented reality (code, schema, README, git history) and report where the spec has weathered; also flags a stale rendered translation (ja+en). Use after a stretch of building, when many commits landed since SPEC.md last changed, when the user wonders whether docs still match the code, or when monsoon routes here. Read-only analysis + report; spec edits are proposed, applied only on confirmation.
+description: Spec-drift watch — diff the spec (SPEC.md / petrichor plan) against implemented reality (code, schema, README, git history) and report where the spec has weathered; also flags a stale rendered translation (ja+en). Use after a stretch of building, when many commits landed since SPEC.md last changed, or when the user wonders whether docs still match the code. Read-only, proposes.
 ---
 
 # weathering

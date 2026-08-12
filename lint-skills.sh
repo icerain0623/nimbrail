@@ -187,10 +187,11 @@ fi
 # Claude Code truncates the listing near ~1% of the context window; past that,
 # skill routing degrades before raw token cost ever becomes the problem.
 echo "[9] listed-skill description budget (model-invocable skills only)"
-# Raised from 4700 on adding `private-scan`: a pre-push exposure check has to be
-# model-invocable to be worth having — you want it to fire on "check before I
-# push", not only when remembered — so its ~200 chars are spent on purpose.
-LISTING_BUDGET="${LISTING_BUDGET:-4800}"   # env override is a test seam
+# Held at 4700 across adding `private-scan`: every listed description is always in
+# context, and a budget that rises whenever something wants in is not a budget.
+# The new skill was paid for out of weathering's description, which restated a
+# rule its own body already carries.
+LISTING_BUDGET="${LISTING_BUDGET:-4700}"   # env override is a test seam
 listing=0 listed=0
 for d in "$REPO"/skills/*/; do
   s="$(basename "${d%/}")"
