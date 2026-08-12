@@ -31,6 +31,6 @@ After shipping, specs weather — the code moves on and SPEC.md becomes the old 
 
 ## Output
 
-Report to `<shared-root>/<project>/YYYY-MM-DD_weathering-report.md`, each finding carrying a severity on weathering's own four-level scale — 重大 (broken / dangerous) / 対応が必要 (a real defect to fix) / テストが必要 (behavior unconfirmed) / 軽微 (note and defer) — plus direction, evidence (`file:line` or commit), affected ID, and a proposed spec edit, or a proposed code issue where the spec is right and the code drifted. If nothing drifted, say so in chat; an all-clear gets no file.
+Report to `<shared-root>/<project>/reports/YYYY-MM-DD_weathering.md` on the global Reporting findings form (深刻度 headings, one line per finding). Each line carries, beyond that form, the direction of the drift, the affected 機能 ID, and a proposed spec edit — or a proposed code issue where the spec is right and the code drifted. If nothing drifted, say so in chat; an all-clear gets no file.
 
 After confirmation, apply the agreed spec edits in one pass, re-render the translation if stale, and note the update in the spec header (date + drift window). Substantial new scope discovered here re-enters the rail via `petrichor` — weathering records the gap and never specs new features itself.

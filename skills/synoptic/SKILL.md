@@ -9,7 +9,7 @@ The synoptic chart — the whole region at one moment, on one sheet. `monsoon` r
 
 ## Scope
 
-Default is every project. An argument narrows it: one or more project names (`/synoptic foliastra starbelt`), or `.` for the current repo only. **A narrowed run reports in chat and leaves `status.md` untouched** — regenerating the whole file from a subset would silently drop the projects that were filtered out, and the file is the one place claiming to cover everything.
+Default is every project. An argument narrows it: one or more project names (`/synoptic <project> <project>`), or `.` for the current repo only. **A narrowed run reports in chat and leaves `status.md` untouched** — regenerating the whole file from a subset would silently drop the projects that were filtered out, and the file is the one place claiming to cover everything.
 
 ## Inputs
 

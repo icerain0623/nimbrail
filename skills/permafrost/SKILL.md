@@ -15,13 +15,13 @@ Information-lifecycle mechanism for claude-shared: freeze completed / stale / lo
 
 ## warm (never freeze whole)
 
-Current petrichor plan (`00-overview.md` + active `NN-topic.md`), live `feedback.md`, `TODO.md`, `findings.md`, open reports. For a checklist file, the freezable unit is its trailing `## 対応済み` block once bulky — never the file, and never an open line. Closed lines stay struck through in place until then (global CLAUDE.md, completion convention).
+Current petrichor plan (`00-overview.md` + active `NN-topic.md`), live `feedback.md`, `TODO.md`, `findings.md`, and any `reports/` file with an action still open. For a checklist file, the freezable unit is its trailing `## 対応済み` block once bulky — never the file, and never an open line. Closed lines stay struck through in place until then (global CLAUDE.md, completion convention).
 
 ## Sweep — propose → confirm → execute
 
 Trigger: a work unit finishes, claude-shared bloats, a cleanup/freeze request, or `/permafrost`.
 
-1. Present candidates as one list, moving nothing yet — **freeze** (consumed `NN-topic.md`, shipped forecasts/reports, long-settled scratch, logs, non-durable files untouched 4+ weeks; `almanac` proposals land here) and **promote** (keep-worthy info → draft an issue body, or repo docs).
+1. Present candidates as one list, moving nothing yet — **freeze** (consumed `NN-topic.md`, a consumed `reports/` file — every action it proposed now closed in `TODO.md` / `tasks.md` — shipped forecasts, long-settled scratch, logs, non-durable files untouched 4+ weeks; `almanac` proposals land here) and **promote** (keep-worthy info → draft an issue body, or repo docs).
 2. Over-freeze guard: freeze only what's shipped *and* whose info survives in code / committed repo docs / an issue. When unsure, leave it warm.
 3. Get confirmation. No candidates → report "none" and stop.
 

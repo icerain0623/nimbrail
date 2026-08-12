@@ -66,6 +66,24 @@ guard_post() { # <file_path> <branch> <state_dir>
       bash "$H/branch-guard.sh" >/dev/null 2>&1
 }
 
+# branch-guard, live-config half — CLAUDE_HOOK_LIVE_ROOT is the seam for the
+# checkout that ~/.claude/* resolves into. repo_top is passed separately so a
+# worktree (own toplevel, same live root) can be told apart from the live checkout.
+expect_guard_live() { # <file_path> <branch> <state_dir> <live_root> <repo_top> <ask|none>
+  local fp=$1 br=$2 sd=$3 lr=$4 top=$5 want=$6 out dec
+  out=$(printf '{"tool_input":{"file_path":%s},"session_id":"t"}' "$(jq -Rn --arg c "$fp" '$c')" | CLAUDE_HOOK_BRANCH="$br" CLAUDE_HOOK_STATE_DIR="$sd" CLAUDE_HOOK_LIVE_ROOT="$lr" CLAUDE_HOOK_REPO_TOP="$top" bash "$H/branch-guard.sh" 2>/dev/null)
+  dec=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "none"' 2>/dev/null)
+  [ -z "$dec" ] && dec="none"
+  if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL branch-guard-live[$br live=$lr top=$top]: want=$want got=$dec :: $fp"; fi
+}
+
+guard_post_live() { # <file_path> <branch> <state_dir> <live_root> <repo_top>
+  printf '{"tool_input":{"file_path":%s},"session_id":"t","hook_event_name":"PostToolUse"}' \
+    "$(jq -Rn --arg c "$1" '$c')" \
+    | CLAUDE_HOOK_BRANCH="$2" CLAUDE_HOOK_STATE_DIR="$3" CLAUDE_HOOK_LIVE_ROOT="$4" CLAUDE_HOOK_REPO_TOP="$5" \
+      bash "$H/branch-guard.sh" >/dev/null 2>&1
+}
+
 # validate-json / kit-checks are PostToolUse: they cannot decide, so the signal
 # is the exit code — 2 means "reported to Claude", 0 means "nothing to say".
 expect_rc() { # <hook> <file_path> <want_rc> [env_assignments...]
@@ -342,6 +360,26 @@ else
   # A second repo in the same session gets its own nudge.
   guard_post   "/r/f.txt" main   "$TB/6"
   expect_guard "/r/f.txt" main   "$TB/6" none
+
+  # ── branch-guard: the live-config checkout, on ANY branch ──────────────────
+  mkdir -p "$TB/L1" "$TB/L2" "$TB/L3" "$TB/L4" "$TB/L5" "$TB/L6" "$TB/L7"
+  # The case the main/master gate used to miss entirely: a feature branch IN the
+  # live checkout still mutates the running install.
+  expect_guard_live "/r/config/hooks/x.sh"   feat/x "$TB/L1" /r /r ask
+  expect_guard_live "/r/skills/foo/SKILL.md" feat/x "$TB/L2" /r /r ask
+  expect_guard_live "/r/config/CLAUDE.md"    main   "$TB/L3" /r /r ask
+  # A worktree is the fix, so it must never fire: same live root, own toplevel.
+  expect_guard_live "/w/config/hooks/x.sh"   feat/x "$TB/L4" /r /w none
+  # Not linked into ~/.claude → only the ordinary branch rule applies.
+  expect_guard_live "/r/README.md"           feat/x "$TB/L5" /r /r none
+  # ~/.claude/CLAUDE.md is not a symlink (no kit install) → fail open, stay silent.
+  expect_guard_live "/r/config/hooks/x.sh"   feat/x "$TB/L6" ""  /r none
+  # Separate markers: approving the live nudge must not silence the main nudge for
+  # a file outside config//skills, and asking again about live must stop.
+  expect_guard_live "/r/config/hooks/x.sh"   main   "$TB/L7" /r /r ask
+  guard_post_live   "/r/config/hooks/x.sh"   main   "$TB/L7" /r /r
+  expect_guard_live "/r/config/hooks/x.sh"   main   "$TB/L7" /r /r none
+  expect_guard_live "/r/README.md"           main   "$TB/L7" /r /r ask
   rm -rf "$TB"
 fi
 
