@@ -32,7 +32,7 @@ Entry triage for a new ask; each station explains itself when invoked:
 - `/verify` and `/code-review` are user-invoked: suggest them. A launch needing more than inference (DB, env, multi-step build) → `/run-skill-generator` records the recipe.
 
 ## Delegation
-- Subagents only for large, independent, parallelizable work — a wide multi-file investigation, an invoked `downpour` wave. Not for what you'd finish in a few tool calls, and not to check your own work, except petrichor L3's cold read. Keep counts low. Workflows and deep-research on request only.
+- Subagents only for large, independent, parallelizable work, such as a wide multi-file investigation. Not for what you'd finish in a few tool calls, and not to check your own work, except petrichor L3's cold read. Keep counts low. Workflows and deep-research on request only.
 
 ## Reporting findings
 - **A report records findings; `TODO.md` records work.** All actions and nothing else → no report, just the TODO lines. It gets a file only when its evidence still reads after those actions close — a measurement, a repro. Fixed on the spot, nothing problematic, or 軽微 alone → chat only.
