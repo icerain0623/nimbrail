@@ -1,6 +1,6 @@
 ---
 name: barometer
-description: Kit-vs-environment drift — the live ~/.claude install against this repo (copied settings.json, symlinks, orphans), and whether the harness surface the kit assumes still exists (settings keys, hook events, plugins). Use after a Claude Code upgrade, when a hook or permission misbehaves, or when config drift is suspected. Read-only, proposes.
+description: Kit-vs-environment drift — the live ~/.claude install against this repo, and whether the harness surface the kit assumes still exists (settings keys, hook events, plugins). Use after a Claude Code upgrade, when a hook or permission misbehaves, or when config drift is suspected. Read-only, proposes.
 ---
 
 # barometer

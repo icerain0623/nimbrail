@@ -1,6 +1,6 @@
 ---
 name: release-note
-description: Maintain a RELEASE_NOTE.md changelog. A repo opts in by having RELEASE_NOTE.md at its root (that file's presence is the toggle); this skill creates it on first use after confirmation, then prepends entries generated from commits since the last release. Use when preparing a release or version bump — not on every commit.
+description: Maintain a RELEASE_NOTE.md changelog. A repo opts in by having RELEASE_NOTE.md at its root (that file's presence is the toggle); entries are generated from commits since the last release. Use when preparing a release or version bump — not on every commit.
 ---
 
 # Release Note

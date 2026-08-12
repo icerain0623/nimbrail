@@ -1,6 +1,6 @@
 ---
 name: synoptic
-description: Cross-project status view — read each ledger's head plus live git state, rank by what blocks progress (your verification first), regenerate `status.md`, and recommend one next action. Use when asked what to do next across projects, how far things got, or what is waiting on you.
+description: Cross-project status view — read each ledger's head plus live git state, rank by what blocks progress (your verification first), and recommend one next action. Use when asked what to do next across projects, how far things got, or what is waiting on you.
 ---
 
 # synoptic

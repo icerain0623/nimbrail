@@ -1,6 +1,6 @@
 ---
 name: almanac
-description: Weekly work digest + shared-dir housekeeping — sweep the week's git history across active repos, tasks.md states, and feedback.md friction into one Obsidian note (usable as a 週報 draft), judge whether a sunbreak run is worth it, and propose archiving stale claude-shared files. Use when the user asks for a weekly summary / 週報 / "what did I do this week", at week boundaries, or on a schedule.
+description: Weekly work digest + shared-dir housekeeping — sweep the week's git history across active repos, tasks.md states, and feedback.md friction into one Obsidian note (usable as a 週報 draft). Use when the user asks for a weekly summary / 週報 / "what did I do this week", at week boundaries, or on a schedule.
 ---
 
 # almanac

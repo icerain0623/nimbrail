@@ -1,6 +1,6 @@
 ---
 name: python-setup
-description: Set up a sandbox-safe Python environment for a project — reuse an existing interpreter/venv if present, else create a project-local venv. Use when `python` is missing, pip installs fail under the sandbox, or a project needs an isolated interpreter.
+description: Set up a sandbox-safe Python environment for a project. Use when `python` is missing, pip installs fail under the sandbox, or a project needs an isolated interpreter.
 ---
 
 # Python Setup

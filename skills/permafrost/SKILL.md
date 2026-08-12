@@ -1,6 +1,6 @@
 ---
 name: permafrost
-description: claude-shared information-lifecycle mechanism — freeze completed/stale/log-only docs into a hard-invisible cold store (Read/grep-denied, write-only; thaw to read) and keep the warm set thin, so dead docs stop burning context and misleading. Runs a propose→confirm→execute sweep plus `thaw`; use when a work unit finishes, when claude-shared bloats context, or on a cleanup/freeze request. Never moves without confirmation.
+description: claude-shared information-lifecycle mechanism — freeze completed/stale/log-only docs into a hard-invisible cold store (`thaw` to read) and keep the warm set thin, so dead docs stop burning context and misleading. Use when a work unit finishes, when claude-shared bloats context, or on a cleanup/freeze request. Never moves without confirmation.
 ---
 
 # permafrost

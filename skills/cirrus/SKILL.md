@@ -1,6 +1,6 @@
 ---
 name: cirrus
-description: Incremental research notebook that survives context death — findings land in an Obsidian note as they are found (not at the end), with a resume header so a dead or new session continues where the last one stopped. Use when researching or investigating a nontrivial topic (調べて/調査/リサーチ), when a research conversation is getting long, or when resuming an earlier research topic.
+description: Incremental research notebook that survives context death — findings land in an Obsidian note as they are found (not at the end). Use when researching or investigating a nontrivial topic (調べて/調査/リサーチ), when a research conversation is getting long, or when resuming an earlier research topic.
 ---
 
 # cirrus

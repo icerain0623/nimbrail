@@ -1,6 +1,6 @@
 ---
 name: node-sandbox-setup
-description: Unblock pnpm + mise for a Node project under the sandbox. Use when pnpm install fails (ignored build scripts, NO_TTY abort, minimumReleaseAge, trustPolicy), when mise can't fetch/resolve tool versions, or when starting a Node/pnpm project in this environment. Symptom→fix for the recurring install "dance".
+description: Unblock pnpm + mise for a Node project under the sandbox. Use when pnpm install fails (ignored build scripts, NO_TTY abort, minimumReleaseAge, trustPolicy), when mise can't fetch/resolve tool versions, or when starting a Node/pnpm project in this environment.
 ---
 
 # node-sandbox-setup

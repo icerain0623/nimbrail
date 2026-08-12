@@ -1,6 +1,6 @@
 ---
 name: forecast
-description: Generate a pre-release manual scenario-test checklist from the project's spec (機能要件一覧 / 画面定義 / 受け入れ条件) — the human walk-through before shipping. Use when preparing a release, before a version bump goes out, when the user wants to smoke-test the app end-to-end, or asks "what should I check before shipping?". Requires a petrichor spec (SPEC.md or the shared-dir plan); reports a coverage gap for any v1 機能 ID left without a scenario.
+description: Generate a pre-release manual scenario-test checklist from the project's spec (機能要件一覧 / 画面定義 / 受け入れ条件) — the human walk-through before shipping. Use when preparing a release, before a version bump goes out, when the user wants to smoke-test the app end-to-end, or asks "what should I check before shipping?".
 ---
 
 # forecast
