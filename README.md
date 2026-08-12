@@ -2,7 +2,7 @@
 
 My portable [Claude Code](https://claude.com/claude-code) setup — config **and** authored skills in one repo, so a new machine is one `git clone` + `./install.sh` away.
 
-日本語のクイックスタート → [README.ja.md](README.ja.md)
+日本語 → [README.ja.md](README.ja.md)
 
 > **Public repo, personal setup.** It mirrors `~/.claude`, so it is a reference to copy from rather than a project to contribute to — **pull requests are not accepted** ([CONTRIBUTING.md](CONTRIBUTING.md)); issues and forks are welcome. No real secrets are committed: the PAT lives only in `~/.claude/settings.local.json` (see [Secrets](#secrets)).
 >
