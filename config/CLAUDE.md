@@ -36,13 +36,13 @@ Entry triage for a new ask; each station explains itself when invoked:
 - Subagents only for large, independent, parallelizable work — a wide multi-file investigation, an invoked `downpour` wave. Not for what you'd finish in a few tool calls, and not to check your own work, except petrichor L3's cold read. Keep counts low. Workflows and deep-research on request only.
 
 ## Reporting findings
-- **A report records what was learnt; `TODO.md` records what to do.** All actions and nothing else → no report, write the TODO lines. A report earns a file only when its evidence still reads once they are closed — a measurement, a repro. Fixed on the spot, or nothing problematic → chat only. 軽微 alone never earns one.
-- `<shared>/<project>/reports/YYYY-MM-DD_<title>.md`, never rewritten: a same-day re-run appends a run section, a later run takes a new date. **It tracks no state** — every action it proposes goes to `TODO.md` (mid-build `tasks.md`) as one line linking back.
+- **A report records findings; `TODO.md` records work.** All actions and nothing else → no report, just the TODO lines. It gets a file only when its evidence still reads after those actions close — a measurement, a repro. Fixed on the spot, nothing problematic, or 軽微 alone → chat only.
+- `<shared>/<project>/reports/YYYY-MM-DD_<title>.md`, never rewritten: a same-day re-run appends a run section, a later run takes a new date. **It holds no state** — every action it proposes goes to `TODO.md` (mid-build `tasks.md`) as one line linking back.
 - Form of a findings report: 深刻度 as H2 (重大 escalate now · 対応が必要 · テストが必要 · 軽微; an empty one gets no heading), one line per finding — `場所 — 事実 → 提案` with `file:line` or a sha. No prose, no tables, no 概要/次のステップ sections.
 - A find too small for its own report, noticed **while doing something else** → one appended line in `<shared>/<project>/findings.md` (format in its header; append-only).
 
 ## Handoff files
-- Things the user opens/copies/runs → the shared root (Obsidian-readable): write the file, give the path. **Never `pbcopy` a file's contents** — it wrecks clipboard history; copy only on request, and only a short command string. Internal scratch → `/tmp` scratchpad.
+- Things the user opens/copies/runs → the shared root (Obsidian-readable): write the file, give the path — never `pbcopy` it, which wrecks clipboard history. Copy only on request, and only a short command string. Internal scratch → `/tmp` scratchpad.
 - Shared root resolves from `~/.claude/shared-dirs.json`: an `overrides` entry for the project root, else `default`, else `~/Documents/claude-shared`. In a linked worktree the repo root is the parent of `git rev-parse --git-common-dir`, not `--show-toplevel`. Cross-project artifacts (sunbreak/almanac/research) always use the default root; an override root needs a one-time settings grant (`update-config`; restart applies).
 
 ## Information lifecycle (claude-shared)
