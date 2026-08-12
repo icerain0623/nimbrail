@@ -1,5 +1,5 @@
 #!/bin/bash
-# PostToolUse (Write|Edit): run claude-kit's own suites when an edit lands on
+# PostToolUse (Write|Edit): run nimbrail's own suites when an edit lands on
 # something they cover, instead of trusting the CLAUDE.md rule that says to.
 #
 # Why this is a *global* hook for a single repo's concern: the natural home is

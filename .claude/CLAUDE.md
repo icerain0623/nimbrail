@@ -1,4 +1,4 @@
-# claude-kit — project instructions
+# nimbrail — project instructions
 
 This repo is the source of the global Claude Code config: `install.sh` symlinks `config/*` and `skills/*` into `~/.claude/`, so files here are live config and this is where they are edited. `settings.json` is the exception — it is **copied**, so the live machine holds the real PAT and absorbs runtime `/config` toggles, and a change here travels one way: edit `config/settings.template.json` and re-run `install.sh`.
 

@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Sunbreak
 
-The clearing after the storm — look back over recent sessions and surface what is worth keeping. Mining and applying are deliberately separated: the output is **one report file**, so no rewrite dialog is forced mid-flow. The user applies it later, typically in a dedicated claude-kit review session.
+The clearing after the storm — look back over recent sessions and surface what is worth keeping. Mining and applying are deliberately separated: the output is **one report file**, so no rewrite dialog is forced mid-flow. The user applies it later, typically in a dedicated nimbrail review session.
 
 ## Where transcripts live
 

@@ -1,4 +1,4 @@
-<!-- petrichor L2 spec, promoted 2026-07-08. Working files: ~/Documents/claude-shared/claude-kit/petrichor-plan/ -->
+<!-- petrichor L2 spec, promoted 2026-07-08. Working files: ~/Documents/claude-shared/nimbrail/petrichor-plan/ -->
 
 # permafrost — 情報ライフサイクル（L2）
 

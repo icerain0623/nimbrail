@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lint-skills.sh — claude-kit 専用のスキル規約 lint。
+# lint-skills.sh — nimbrail 専用のスキル規約 lint。
 #
 # Deterministic checks for the conventions the authored skills rely on.
 # Generic skill quality (descriptions, evals) is skill-creator's job; this
@@ -31,7 +31,7 @@ if [ -f "$HOME/.claude/shared-dirs.json" ] && command -v jq >/dev/null 2>&1; the
   d="$(jq -r '.default // empty' "$HOME/.claude/shared-dirs.json" 2>/dev/null)"
   [ -n "$d" ] && SHARED_ROOT="$d"
 fi
-GUIDE="$SHARED_ROOT/claude-kit/skills-guide.md"
+GUIDE="$SHARED_ROOT/nimbrail/skills-guide.md"
 FAIL=0
 
 err() { printf '  \342\234\227 %s\n' "$1"; FAIL=1; }

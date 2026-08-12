@@ -1,4 +1,4 @@
-# claude-kit
+# nimbrail
 
 [Claude Code](https://claude.com/claude-code) の可搬な個人設定 — 設定 **＋** 自作スキルを1つの repo にまとめてあるので、新しいマシンは `git clone` と `./install.sh` の2手で復元できる。
 
@@ -11,7 +11,7 @@ English → [README.md](README.md)
 ## Layout
 
 ```
-claude-kit/
+nimbrail/
 ├── install.sh                 # 3つ質問したうえで、以下すべてを ~/.claude へ symlink する
 ├── test-hooks.sh              # config/hooks/*.sh の挙動リグレッションテスト
 ├── lint.sh                    # install/test/statusline とフックへの shellcheck (brew install shellcheck)
@@ -25,7 +25,7 @@ claude-kit/
 │   ├── npmrc                  # サプライチェーン対策      → ~/.npmrc (ignore-scripts + min-release-age)
 │   └── hooks/*.sh             # Pre/PostToolUse フック   → ~/.claude/hooks/
 ├── skills/<name>/             # 自作スキル               → ~/.claude/skills/<name>/ — 個々の説明はワークフロー節に
-└── .claude/CLAUDE.md          # claude-kit 自体を触るときのプロジェクト規約
+└── .claude/CLAUDE.md          # nimbrail 自体を触るときのプロジェクト規約
 ```
 
 ## 前提
@@ -39,8 +39,8 @@ claude-kit/
 ## 新マシンでのセットアップ
 
 ```bash
-git clone git@github.com:<you>/claude-kit.git
-cd claude-kit
+git clone git@github.com:<you>/nimbrail.git
+cd nimbrail
 ./install.sh
 ```
 

@@ -1,4 +1,4 @@
-# claude-kit
+# nimbrail
 
 My portable [Claude Code](https://claude.com/claude-code) setup — config **and** authored skills in one repo, so a new machine is one `git clone` + `./install.sh` away.
 
@@ -11,7 +11,7 @@ My portable [Claude Code](https://claude.com/claude-code) setup — config **and
 ## Layout
 
 ```
-claude-kit/
+nimbrail/
 ├── install.sh                 # asks 3 questions, then symlinks everything below into ~/.claude
 ├── test-hooks.sh              # behavioral regression suite for config/hooks/*.sh
 ├── lint.sh                    # shellcheck over install/test/statusline + the hooks (brew install shellcheck)
@@ -25,7 +25,7 @@ claude-kit/
 │   ├── npmrc                  # supply-chain hardening    → ~/.npmrc (ignore-scripts + min-release-age)
 │   └── hooks/*.sh             # Pre/PostToolUse hooks     → ~/.claude/hooks/
 ├── skills/<name>/             # authored skills           → ~/.claude/skills/<name>/ — each one is described under Workflow
-└── .claude/CLAUDE.md          # project-scoped rules for working on claude-kit itself
+└── .claude/CLAUDE.md          # project-scoped rules for working on nimbrail itself
 ```
 
 ## Prerequisites
@@ -39,8 +39,8 @@ claude-kit/
 ## Setup on a new machine
 
 ```bash
-git clone git@github.com:<you>/claude-kit.git
-cd claude-kit
+git clone git@github.com:<you>/nimbrail.git
+cd nimbrail
 ./install.sh
 ```
 

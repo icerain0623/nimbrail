@@ -1,4 +1,4 @@
-<!-- petrichor L2 spec, promoted 2026-07-03. Working files: ~/Documents/claude-shared/claude-kit/petrichor-plan/ -->
+<!-- petrichor L2 spec, promoted 2026-07-03. Working files: ~/Documents/claude-shared/nimbrail/petrichor-plan/ -->
 
 # downpour — スペック(L2)
 

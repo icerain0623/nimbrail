@@ -38,7 +38,7 @@ The weather yearbook — the week's weather in one place, with the shared-direct
 
 Candidates are `permafrost`'s freeze set narrowed to this window, and its warm list is the exception list — extended with guides and reports the user authored by hand. One wrinkle it doesn't cover: `check-<project>/` logs live at the shared **root**, not inside `<project>/`, so sweep both levels.
 
-For the claude-kit repo specifically, also suggest `barometer` when the week included a Claude Code upgrade — the kit's environment drifts without a commit, so nothing else in the digest would surface it.
+For the nimbrail repo specifically, also suggest `barometer` when the week included a Claude Code upgrade — the kit's environment drifts without a commit, so nothing else in the digest would surface it.
 
 List the candidates with reasons in the note and chat; on confirmation the freeze itself is `permafrost`'s, mechanics and all.
 

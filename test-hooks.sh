@@ -337,7 +337,7 @@ expect_shared "cd /sh/claude-shared && rm -rf proj"                       ask
 # ── branch-guard: once per session per repo, regardless of tree state ─────────
 # mktemp -d is not usable here: the sandbox denies the system TMPDIR. Try the
 # writable candidates in order instead.
-for b in "${TMPDIR:-/tmp}/claude-kit-test-$$" "/tmp/claude/claude-kit-test-$$" "$REPO/.test-tmp-$$"; do
+for b in "${TMPDIR:-/tmp}/nimbrail-test-$$" "/tmp/claude/nimbrail-test-$$" "$REPO/.test-tmp-$$"; do
   mkdir -p "$b" 2>/dev/null && { TB="$b"; break; }
 done
 if [ -z "${TB:-}" ]; then
@@ -384,7 +384,7 @@ else
 fi
 
 # ── validate-json / kit-checks (PostToolUse) ─────────────────────────────────
-for b in "${TMPDIR:-/tmp}/claude-kit-json-$$" "/tmp/claude/claude-kit-json-$$" "$REPO/.test-tmp-json-$$"; do
+for b in "${TMPDIR:-/tmp}/nimbrail-json-$$" "/tmp/claude/nimbrail-json-$$" "$REPO/.test-tmp-json-$$"; do
   mkdir -p "$b" 2>/dev/null && { JB="$b"; break; }
 done
 if [ -z "${JB:-}" ]; then
