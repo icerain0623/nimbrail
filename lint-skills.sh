@@ -201,6 +201,21 @@ else
   note "$listed listed skills, $listing / $LISTING_BUDGET chars"
 fi
 
+# The reporting contract lives as prose in config/CLAUDE.md, and prose enforces nothing.
+# These are the two halves a later skill edit breaks without noticing: a dated report
+# written somewhere other than reports/, and pbcopy creeping back into a handoff step.
+echo "[10] reporting contract (config/CLAUDE.md owns it; no skill may contradict it)"
+CONTRACT_FILES="$REPO/config/CLAUDE.md $REPO/skills/*/SKILL.md"
+# shellcheck disable=SC2086  # deliberate glob expansion of the file list
+while IFS= read -r hit; do
+  case "$hit" in *reports/*) continue ;; esac
+  err "dated report path outside reports/ — $hit"
+done < <(grep -noE '`[^`]*<?YYYY-MM-DD>?[^`]*\.md`' $CONTRACT_FILES)
+while IFS= read -r hit; do
+  case "$hit" in */session-info/SKILL.md*) continue ;; esac
+  err "pbcopy outside session-info, the one sanctioned exception — $hit"
+done < <(grep -n "pbcopy" "$REPO"/skills/*/SKILL.md)
+
 echo
 if [ "$FAIL" = 0 ]; then echo "lint-skills: PASS"; else echo "lint-skills: FAIL"; fi
 exit "$FAIL"
