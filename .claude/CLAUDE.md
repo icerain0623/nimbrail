@@ -17,6 +17,7 @@ This repo is the source of the global Claude Code config: `install.sh` symlinks 
 - **Agent-facing** — `config/CLAUDE.md`, `skills/**/*.md`. Default to zero-shot: state the rule once, in one sentence, and stop. Bold marks a signpost — a list item's label, the condition that discriminates a branch, or the one constraint in a passage that must not be skimmed past — never decoration or bare emphasis. Keep a rationale clause only where its absence would let the rule lose to a plausible local judgement. Don't state a rule in two files — pick the canonical one and link. Don't restate what a hook, permission, or sandbox rule already enforces; state the procedure instead.
 - **An example earns its place** only when the output shape is fixed (a table-row schema, a checklist line) or the rule alone can't settle the boundary. One example, never a set.
 - **Human-facing** — `README.md`, `README.ja.md`, `CONTRIBUTING.md`, `SECURITY.md`. Readability first: framing, tables and worked examples stay.
+- `README.ja.md` is a **full translation** of `README.md`, not a summary — a change to one lands in both, in the same commit. `lint-skills.sh` [5] only catches an unlisted skill name; prose parity is on you.
 - Trimming an agent-facing file: list its normative statements, trim, then check the list still holds. Losing a rule is the failure that matters.
 
 ## Layer model (where a rule belongs)

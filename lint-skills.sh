@@ -10,7 +10,7 @@
 #   4. shared-root convention: `~/Documents/claude-shared` appears in a skill
 #      body only on lines that state it is the default (the `<shared-root>`
 #      override convention — see global CLAUDE.md, Handoff files)
-#   5. README.md mentions every authored skill (tree/table drift)
+#   5. README.md and README.ja.md each mention every authored skill (table drift)
 #   6. the Obsidian guide, if present, mentions every authored skill
 #   7. backticked references that are shaped like a skill actually resolve to
 #      one — catches a phantom station (`verify`, `landing-page-nextjs`) written
@@ -79,13 +79,17 @@ while IFS=: read -r f n content; do
   esac
 done < <(grep -rn -- '[~]/Documents/claude-shared' "$REPO"/skills/ 2>/dev/null || true)
 
-echo "[5] README lists every authored skill (backticked — prose words don't count)"
+echo "[5] both READMEs list every authored skill (backticked — prose words don't count)"
+# README.ja.md is a full translation, not a summary, so it carries the same skill
+# table. Checking only the English one is how ten skills stayed unnamed in ja.
 for d in "$REPO"/skills/*/; do
   s="$(basename "${d%/}")"
   # require a structural mention: `name` or `/name` in a table row / list, not
   # the bare word in prose (skills named with dictionary words like "check"
   # would otherwise always pass)
-  grep -qE "\`/?$s\`" "$REPO/README.md" || err "README.md does not list '\`$s\`'"
+  for r in README.md README.ja.md; do
+    grep -qE "\`/?$s\`" "$REPO/$r" || err "$r does not list '\`$s\`'"
+  done
 done
 
 echo "[6] Obsidian guide lists every authored skill (backticked)"
