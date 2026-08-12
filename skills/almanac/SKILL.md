@@ -38,7 +38,7 @@ The weather yearbook — record the week's weather in one place. Sweep git histo
 
 Candidates: consumed `NN-topic.md` question files (their decisions already promoted), `check-<project>/` logs older than the window (note: these live at the shared **root**, not inside `<project>/` — sweep both levels), `forecast-checklist.md` for already-shipped releases, a `reports/` file whose proposed actions are all closed in `TODO.md` / `tasks.md`, and anything in a project's shared dir untouched for 4+ weeks — **except** durable artifacts (`00-overview.md`, `tasks.md`, `feedback.md`, `TODO.md`, `findings.md`, guides/reports the user authored). A checklist file's closed lines are never candidates; its bulky `## 対応済み` block is (completion convention, global CLAUDE.md).
 
-For the claude-kit repo specifically, also suggest `barometer` when the week included a Claude Code upgrade — the kit's environment drifts without a commit, so nothing else in the digest would surface it.
+For the nimbrail repo specifically, also suggest `barometer` when the week included a Claude Code upgrade — the kit's environment drifts without a commit, so nothing else in the digest would surface it.
 
 List the candidates with reasons in the note and chat. This is the *propose* side of the lifecycle; the *store* is `permafrost` (the hard-invisible cold store — see `skills/permafrost`). On confirmation, freeze them the permafrost way: `mv` into `<shared-root>/permafrost/<project>/<YYYY-MM-DD>_<HHMMSS>_<name>/` — **never delete, never move without confirmation** (claude-shared isn't git; deletion is unrecoverable). Prefer freezing whole consumed files over pruning parts of live ones. (Legacy `archive/` folders have been migrated into `permafrost/`.)
 

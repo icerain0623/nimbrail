@@ -37,8 +37,8 @@ Then, **inside** WSL:
 ```bash
 sudo apt install jq git         # jq is required; the hooks parse their input with it
 cd ~                            # NOT /mnt/c — see below
-git clone https://github.com/<you>/claude-kit.git
-cd claude-kit
+git clone https://github.com/<you>/nimbrail.git
+cd nimbrail
 ./install.sh
 ```
 
@@ -67,7 +67,7 @@ reach `~/.claude` and you have to re-copy after every `git pull`.
 
 ```powershell
 $claude = "$env:USERPROFILE\.claude"
-$repo   = "C:\path\to\claude-kit"
+$repo   = "C:\path\to\nimbrail"
 New-Item -ItemType Directory -Force "$claude\hooks", "$claude\skills" | Out-Null
 
 New-Item -ItemType SymbolicLink -Path "$claude\CLAUDE.md"     -Target "$repo\config\CLAUDE.md"
