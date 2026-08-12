@@ -5,12 +5,7 @@ description: Maintain a RELEASE_NOTE.md changelog. A repo opts in by having RELE
 
 # Release Note
 
-Opt-in changelog. A repo participates only if `RELEASE_NOTE.md` exists at its root — that file's presence is the toggle. Never nag about release notes in repos that don't have it.
-
-## The toggle (how/when it's set)
-- Enabled when `RELEASE_NOTE.md` exists at the repo root.
-- Enable it once, when starting a repo that needs release notes: the user creates the file, or this skill creates it after explicit confirmation on first use ("This repo has no RELEASE_NOTE.md — create one and start tracking? y/n").
-- Disable by deleting or renaming the file. There is no other state.
+Opt-in changelog: a repo participates only if `RELEASE_NOTE.md` exists at its root, and a repo without it is never nagged about release notes. Enable once, when starting a repo that needs them — the user creates the file, or this skill creates it after explicit confirmation on first use ("This repo has no RELEASE_NOTE.md — create one and start tracking? y/n"). Deleting or renaming it disables; there is no other state.
 
 ## Generating an entry (at release / version-bump time)
 1. Find the last release point: latest tag (`git describe --tags --abbrev=0`) or the top version heading already in RELEASE_NOTE.md.

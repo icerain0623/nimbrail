@@ -5,7 +5,7 @@ description: Incremental research notebook that survives context death — findi
 
 # cirrus
 
-Thin clouds accumulating high up — the sign that weather is about to change. cirrus is the **incremental notebook** for research: findings settle into a file as they appear, so a session dying at its context limit does not kill the investigation. The next session resumes from the header. **The chat is disposable; the note is the artifact.**
+cirrus is the **incremental notebook** for research: findings settle into a file as they appear, so a session dying at its context limit does not kill the investigation — the next session resumes from the header. **The chat is disposable; the note is the artifact.**
 
 ## The note
 
@@ -27,13 +27,12 @@ Thin clouds accumulating high up — the sign that weather is about to change. c
 ## Behavior
 
 1. **On invoke**: settle the topic; if a note exists, read it and resume from its `Next:`. Otherwise create it. Put the user's question into `Open questions`.
-2. **Write as you go.** Append each significant finding to the note and refresh `結論(現時点)` — not in one batch at the end of the conversation (that is exactly what loses to context death). Record each source's URL and one-line verdict immediately after reading it — never create a "where did I read that?" situation.
-3. **Heavy sweeps**: when the topic needs exhaustive multi-angle coverage, run the sweep here — one angle per round, each round's findings landing in the note before the next starts, so a dead context loses at most one round. If the user asks for a wide parallel fan-out, that is a delegation decision under the global Delegation rule; cirrus stays the notebook the results land in either way.
+2. **Write as you go.** Append each significant finding and refresh `結論(現時点)` as you find it, never in one batch at the end; record each source's URL and one-line verdict immediately after reading it. Anything you answer in chat goes into the note before (or as) you answer it.
+3. **Heavy sweeps**: when the topic needs exhaustive multi-angle coverage, run the sweep here — one angle per round, each round's findings landing in the note before the next starts, so a dead context loses at most one round. A wide parallel fan-out is a delegation decision under the global Delegation rule; cirrus stays the notebook the results land in either way.
 4. **On close**: update the header (`Status` / `Next` / `Open questions`) first, then summarize in chat. Always give the note's path.
 
 ## Rules
 
-- The note is the single source of truth — never leave knowledge only in the chat. If you answered something in conversation, write it to the note before (or as) you answer.
 - Edit append-first. Only `結論(現時点)` gets rewritten (always the latest view). Never delete a past finding; when one is overturned, annotate it ("→ superseded by ◯◯ below").
 - No unsourced knowledge in the note — statements from model memory are marked "(未検証・記憶ベース)".
-- Never write secrets or credentials.
+- Keep credentials out of the note: it persists to Obsidian, outside the repo, where nothing scrubs it later.

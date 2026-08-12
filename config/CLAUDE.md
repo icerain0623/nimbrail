@@ -1,7 +1,7 @@
 # Global Instructions
 
 ## Tone
-- Professional, calm, gently-worded (敬語ベース); a little dry wit in low-stakes moments, never in serious or critical work. Don't mirror the user's casual phrasing. No decorative emojis; keep tables to a minimum.
+- Professional, calm, gently-worded (敬語ベース); a little dry wit in low-stakes moments, never in serious or critical work. No decorative emojis; keep tables to a minimum.
 - Lead with the outcome, then detail; keep caveats short and most of the reply on the answer. Explain at a high level unless depth is asked for. Size a written document to the task — no padding, redundant summaries, or boilerplate.
 - One sentence before the first tool call on what you're about to do; while working, speak up on a real finding or a change of direction, not every step.
 
@@ -17,9 +17,8 @@ Entry triage for a new ask; each station explains itself when invoked:
 - In-sandbox build check: `next build --webpack` (Turbopack panics; Docker and prod keep the default).
 
 ## Git
-- Branch before editing.
-- Worktrees are for **agents running in parallel on one repo** — one per agent, deps per-worktree (no node_modules sharing), in a sibling `<repo>-worktrees/<branch>/`. A single agent takes an ordinary branch. `git worktree add` runs unsandboxed.
-- Commit autonomously at coherent checkpoints, before risky ops, and when a unit is done; keep commits scoped. How far that goes is set at install and enforced by the git-workflow hook — don't work around a prompt it raises.
+- Worktrees are for **agents running in parallel on one repo** — one per agent, deps per-worktree (no node_modules sharing). A single agent takes an ordinary branch. `git worktree add` runs unsandboxed.
+- Commit autonomously at coherent checkpoints, before risky ops, and when a unit is done; keep commits scoped.
 - Sandbox off for: `git config`, `git remote add/remove`, `git branch -m`, `git init` (the deny is `.git/config` only), and `git push` / `gh` (the credential helper reads `~/Library`; it fails as `could not read Username` or `token is invalid`, not as a permission error). Everything else runs inside, though `git branch -d` leaves a stale `[branch]` section behind.
 
 ## Packages & toolchains
@@ -28,7 +27,7 @@ Entry triage for a new ask; each station explains itself when invoked:
 
 ## Build discipline
 - Substantial build work: keep an in-flight `feedback.md` (Blockers + Open questions) in the shared dir, logged as you go; skip it for trivial edits.
-- Don't silently guess spec/design gaps — route each back to the spec or design (or ask), and record the resolution.
+- Route a spec/design gap back to the spec or design (or ask) rather than filling it, and record the resolution.
 - At a checkpoint (a unit compiles / runs): run `check`, then confirm real behavior from outside the code — run it, open the page, hit the endpoint. After a unit is done, `/monsoon` routes the next step.
 - `/verify` and `/code-review` are user-invoked: suggest, don't call. A launch needing more than inference (DB, env, multi-step build) → `/run-skill-generator` records the recipe.
 
@@ -42,8 +41,8 @@ Entry triage for a new ask; each station explains itself when invoked:
 - A find too small for its own report, noticed **while doing something else** → one appended line in `<shared>/<project>/findings.md` (format in its header; append-only).
 
 ## Handoff files
-- Things the user opens/copies/runs → the shared root (Obsidian-readable): write the file, give the path — never `pbcopy` it, which wrecks clipboard history. Copy only on request, and only a short command string. Internal scratch → `/tmp` scratchpad.
-- Shared root resolves from `~/.claude/shared-dirs.json`: an `overrides` entry for the project root, else `default`, else `~/Documents/claude-shared`. In a linked worktree the repo root is the parent of `git rev-parse --git-common-dir`, not `--show-toplevel`. Cross-project artifacts (sunbreak/almanac/research) always use the default root; an override root needs a one-time settings grant (`update-config`; restart applies).
+- Things the user opens/copies/runs → the shared root (Obsidian-readable): write the file, give the path. Copy only on request, and only a short command string — `pbcopy` wrecks clipboard history. Internal scratch → `/tmp` scratchpad.
+- Shared root resolves from `~/.claude/shared-dirs.json`: an `overrides` entry for the project root, else `default`, else `~/Documents/claude-shared`. In a linked worktree the repo root is the parent of `git rev-parse --git-common-dir`, not `--show-toplevel`. Cross-project artifacts (sunbreak/almanac/synoptic/research) always use the default root; an override root needs a one-time settings grant (`update-config`; restart applies).
 
 ## Information lifecycle (claude-shared)
 - claude-shared is scratch memory, not an archive — stale docs mislead. **Don't bulk-grep/read it; open the live file by name.** `<shared-root>/permafrost/` is Read-denied: `mv` in, thaw to read out.

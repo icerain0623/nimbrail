@@ -41,8 +41,7 @@ Decidable without judgement, so state them as findings:
 - **Credentials**: GitHub PATs in both shapes (`ghp_`/`gho_`/`ghu_`/`ghs_`/`ghr_`
   and `github_pat_`), AWS keys, PEM private keys, Slack tokens, connection strings
   carrying a password, `.env` files that are tracked rather than ignored. Reuse the
-  patterns in `config/hooks/warn-secrets.sh` so the two never disagree; a shape that
-  belongs in one belongs in both.
+  patterns in `config/hooks/warn-secrets.sh` so the two never disagree.
 - Home-directory absolute paths (`/Users/<name>/`, `/home/<name>/`), minus the
   allowlist below.
 - `~/Library`, `Library/Mobile Documents` (iCloud), and any vault path.
@@ -82,9 +81,8 @@ something specific.
 
 - Read-only. Never edit a file, never amend or rebase, never push. A finding that
   is already in a pushed commit needs a history rewrite, which is the user's call
-  and often not worth it — say so rather than starting one.
-- Removing a line at the tip does not remove it from the range. If the fix is a
-  rewrite, say that plainly instead of proposing an edit that publishes anyway.
+  and often not worth it — say so plainly rather than starting one, or proposing
+  a tip edit that publishes anyway.
 - A credential found here is **compromised the moment it is pushed**, and a rewrite
   does not un-leak it if the push already happened. Rotation comes first; cleaning
   the history is the second step, never the only one.

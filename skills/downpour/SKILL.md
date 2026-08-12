@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # downpour
 
-Rain the ledger's tasks down all at once. An **optional accelerator**, not a standard station: the default build stays the interactive normal loop, and this is invoked explicitly when the ledger has a stretch that can run autonomously. It is not a new execution engine either — the orchestrator is the main-loop Claude itself, and what this skill supplies is discipline: a single ledger writer, wave planning, two-stage verification with separated graders, stop conditions. Acceptance criteria live in `docs/SPEC-downpour.md` (AC-1〜9, the bar downpour's own verifiers and `weathering` judge against).
+Rain the ledger's tasks down all at once. The orchestrator is the main-loop Claude itself — no separate engine — and what this skill supplies is discipline. Acceptance criteria live in `docs/SPEC-downpour.md` (AC-1〜9), the bar downpour's own verifiers and `weathering` judge against.
 
 ## Preflight (AC-9)
 
@@ -24,7 +24,7 @@ Rain the ledger's tasks down all at once. An **optional accelerator**, not a sta
 ## Per task
 
 0. At dispatch the orchestrator sets 状態 to `in-progress` (via the write protocol below; no 進捗ログ line — the log records outcomes). This also keeps a concurrent monsoon session from counting an in-flight task as unblocked.
-1. Implementer agent (inherits the session model) receives the task row (ID / title / 完了条件 / dependencies), the relevant 機能 ID's spec excerpt including EARS, and **path references** to related design sections — never full documents, since it reads more itself when needed and repo conventions come from the auto-loaded CLAUDE.md. It does not commit and does not touch the ledger. `check` differs by mode: serial tasks run it themselves; parallel tasks do not, and the orchestrator runs it once after the batch lands — this avoids 3× whole-project runs in one tree and innocent failures caused by a sibling's half-finished edits. Attribute a post-batch failure by changed paths; if attribution fails, drop the rest of the wave to serial to isolate.
+1. Implementer agent (inherits the session model) receives the task row (ID / title / 完了条件 / dependencies), the relevant 機能 ID's spec excerpt including EARS, and **path references** to related design sections — never full documents, since it reads more itself when needed. It does not commit and does not touch the ledger. `check` differs by mode: serial tasks run it themselves; parallel tasks do not, and the orchestrator runs it once after the batch lands — this avoids 3× whole-project runs in one tree and innocent failures caused by a sibling's half-finished edits. Attribute a post-batch failure by changed paths; if attribution fails, drop the rest of the wave to serial to isolate.
 2. Verifier agent (same model, low effort, fresh context) receives ONLY the task's EARS 完了条件, the change diff, and shell access to observe real behavior — never the implementer's narrative (separation of graders). Verdict: PASS / NG plus reasons (which clause fails, how, how to confirm).
 3. NG → send back with the reasons **verbatim, unsummarized**. Send-back is once per task in total, whatever the cause: after a crash-triggered send-back a later verification NG goes straight to 保留 (AC-4). Second NG → mark the row `保留(one-line reason)`, details in 進捗ログ, count one failure, move to the next unblocked task (AC-5). A 保留 task's downstream stays blocked.
 4. Agent failures: an implementer failure (crash, can't pass check, no output) counts exactly as a verification NG. A verifier failure (error, cannot judge) is re-run once → on the second failure mark the task 保留 with one failure, noting in the 進捗ログ that the implementation is not at fault.
@@ -42,8 +42,3 @@ Rain the ledger's tasks down all at once. An **optional accelerator**, not a sta
 - Mid-wave stop: stop dispatching, let running agents finish, verify/commit/record the finished ones normally, then report — never leave a half-finished tree.
 - Spec holes are decided mechanically by the dependency graph. The holed task has no unstarted dependents (a leaf) → 保留, an Open question in `feedback.md`, continue. It blocks unstarted downstream tasks → stop and present the question (AC-8). Unresolvable without the user's judgment → stop and notify (push notification if available, else make the stop report prominent).
 - Final report: done / 保留 with reasons / untouched, remaining review findings, token consumption.
-
-## Boundaries
-
-- v1 = everything above. v2 = worktree-isolated parallelism with merge resolution, revisiting promotion to a standard station, feeding failure patterns to `sunbreak`. Deferred = remote execution.
-- monsoon suggests downpour at 3+ unblocked tasks; starting it is always a human slash — never auto-start.

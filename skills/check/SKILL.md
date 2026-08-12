@@ -5,7 +5,7 @@ description: Run a project's quality checks (lint and typecheck by default; test
 
 # Check
 
-Run the project's checks, log the output where it is easy to read, and summarize. Default to fast feedback (lint + typecheck); run the heavy steps (test, then build) only when the user asks or passes `full`.
+Run the project's checks, log the output where it is easy to read, and summarize. Default is fast feedback: lint + typecheck. On `full`, or when the user asks: also test, then build. Run fastest first so failures surface early, and stop the heavy steps once a fast one fails (unless `full`).
 
 ## Detect what to run
 Pick the commands that actually exist in the project:
@@ -14,11 +14,6 @@ Pick the commands that actually exist in the project:
 - Go: `go vet ./...`, `go test ./...`, `go build ./...`.
 - Otherwise: `Makefile` targets (`make lint` / `make test`) or `.mise.toml` tasks.
 Skip steps that don't exist, and say which were skipped.
-
-## Tiers
-- Default (fast): lint + typecheck.
-- `full`, or when the user asks: also test, then build (slowest, run last).
-Run fastest first so failures surface early; stop the heavy steps if the fast ones already failed (unless `full`).
 
 ## Run and log
 For each step, tee combined output to a log and keep the real exit code:
@@ -29,5 +24,5 @@ For each step, tee combined output to a log and keep the real exit code:
 Return a short summary: each step pass/fail, error/warning counts, and the first few failing lines. Give the log paths for full output. Do not paste whole logs into the reply.
 
 ## Rules
-- One-shot only — never start a dev server or watch mode (no `dev`, no `--watch`).
+- One-shot only — no watch mode (`--watch`, or `vitest` without `run`).
 - Don't auto-fix unless asked; report first.

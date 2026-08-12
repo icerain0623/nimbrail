@@ -5,40 +5,26 @@ description: claude-shared information-lifecycle mechanism — freeze completed/
 
 # permafrost
 
-Information-lifecycle mechanism for claude-shared: freeze completed / stale / log-only docs into a cold store and keep the warm working set thin, so Claude stops burning context on dead docs and misreading them (a shipped feature's old plan read as "todo"). Not new storage — discipline: promote what's worth keeping (issue / repo docs), freeze the rest. Spec: `docs/SPEC-permafrost.md`.
-
-## Store — location & enforcement
-
-- Location: `<shared-root>/permafrost/<project>/`, at the shared root and *outside* the per-project working dir (physical separation is part of the enforcement). `<shared-root>` defaults to `~/Documents/claude-shared`; override resolution is in the global CLAUDE.md.
-- Enforcement (light, write-only): a `Read` deny + Bash sandbox read-deny mean Claude can't Read/`cat`/`grep`/`find` under permafrost, but *can* `mv` files in (read-denied, write-allowed). Reading back needs a thaw. Humans are unsandboxed — Obsidian/Finder see it fine.
-- Known gap: Grep/Glob tools, MCP file readers (Serena), and sandbox-override Bash aren't blocked — covered advisorily by the CLAUDE.md posture (don't bulk-read claude-shared).
+Freeze completed / stale / log-only docs out of claude-shared into a cold store, so Claude stops burning context on dead docs and misreading them (a shipped feature's old plan read as "todo"). Design record — what the enforcement does and does not block, and why — is `docs/SPEC-permafrost.md`.
 
 ## warm (never freeze whole)
 
-Current petrichor plan (`00-overview.md` + active `NN-topic.md`), live `feedback.md`, `TODO.md`, `findings.md`, and any `reports/` file with an action still open. For a checklist file, the freezable unit is its trailing `## 対応済み` block once bulky — never the file, and never an open line. Closed lines stay struck through in place until then (global CLAUDE.md, completion convention).
+Current petrichor plan (`00-overview.md` + active `NN-topic.md`), live `feedback.md`, `TODO.md`, `findings.md`, and any `reports/` file with an action still open. For a checklist file, the freezable unit is its trailing `## 対応済み` block once bulky — never the file, and never an open line.
 
 ## Sweep — propose → confirm → execute
 
 Trigger: a work unit finishes, claude-shared bloats, a cleanup/freeze request, or `/permafrost`.
 
-1. Present candidates as one list, moving nothing yet — **freeze** (consumed `NN-topic.md`, a consumed `reports/` file — every action it proposed now closed in `TODO.md` / `tasks.md` — shipped forecasts, long-settled scratch, logs, non-durable files untouched 4+ weeks; `almanac` proposals land here) and **promote** (keep-worthy info → draft an issue body, or repo docs).
+1. Present candidates as one list, moving nothing yet — **freeze** (consumed `NN-topic.md`, a consumed `reports/` file — every action it proposed now closed in `TODO.md` / `tasks.md` — shipped forecasts, long-settled scratch, logs, non-durable files untouched 4+ weeks) and **promote** (keep-worthy info → repo docs, or an issue whose title/body Claude drafts and the user creates; no `gh` auto-create. Once the info lives in the issue, the source may be frozen).
 2. Over-freeze guard: freeze only what's shipped *and* whose info survives in code / committed repo docs / an issue. When unsure, leave it warm.
 3. Get confirmation. No candidates → report "none" and stop.
 
 ## Freeze
 
-- Dest (provenance, unique): `<shared-root>/permafrost/<project>/<YYYY-MM-DD>_<HHMMSS>_<name>/`. `mkdir -p` then `mv -n` (never overwrite).
+- Dest — at the shared root, *outside* the per-project working dir, and provenance-preserving: `<shared-root>/permafrost/<project>/<YYYY-MM-DD>_<HHMMSS>_<name>/`. `mkdir -p` then `mv -n` (never overwrite).
 - **Never raw-delete** — claude-shared isn't git, so deletion is unrecoverable; freeze instead. Only a human deletes, on explicit confirmation.
 - On partial failure, finish the rest and report per-item success/failure.
 
 ## Thaw
 
 `/permafrost thaw <path>` moves a file back to the warm side (`mv`). For a one-off peek, read via sandbox-override Bash (explicit only).
-
-## Promote (manual)
-
-Claude drafts the issue title/body; the user creates it (`gh` token is currently invalid, so no auto-create). Once the info lives in an issue, the source may be frozen.
-
-## Related
-
-`almanac` proposes stale candidates into the same store. The always-on posture + eviction rule live in the global CLAUDE.md ("Information lifecycle").

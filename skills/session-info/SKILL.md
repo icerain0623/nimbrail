@@ -5,23 +5,21 @@ description: Write the current session's resume info (session ID, cwd, git branc
 
 # Session Info
 
-The user should never have to ask for the session ID. Write it to a file they can open in Obsidian and copy cleanly.
+The user should never have to ask for the session ID — write it to a file they can open in Obsidian.
 
 ## Getting the session ID
 It is the UUID directory name in this session's scratchpad and transcript paths:
 - scratchpad: `/private/tmp/claude-*/<project-slug>/<SESSION_ID>/scratchpad`
 - transcript: `~/.claude/projects/<project-slug>/<SESSION_ID>.jsonl`
 
-Extract that UUID — that is the session ID.
-
 ## Steps
 1. Resolve: session ID (from the path above), `cwd`, `git branch --show-current` (if in a repo), and the current timestamp.
 2. Write `<shared-root>/session-<project-name>.md` (create the dir if missing; shared root: per the global Handoff rule) containing, in plain text:
    - the resume command: `claude --resume <SESSION_ID>`
    - project name, branch, cwd, timestamp.
-3. Load the resume command onto the clipboard: `printf '%s' 'claude --resume <SESSION_ID>' | pbcopy` — the one sanctioned exception to the handoff rule's no-`pbcopy`, since here a short command *is* the deliverable, not a file's contents.
+3. Load the resume command onto the clipboard: `printf '%s' 'claude --resume <SESSION_ID>' | pbcopy` — the short-command exception in the handoff rule, and the only sanctioned `pbcopy` in the kit.
 4. Report the file path and the resume command to the user.
 
 ## Rules
-- One file per project (overwrite each time) so it always reflects the latest session.
-- Keep it short — it is a pointer for resuming, not a session log.
+- One file per project, overwritten each time so it always reflects the latest session.
+- Keep it short — a pointer for resuming, not a session log.

@@ -5,18 +5,18 @@ description: Weekly work digest + shared-dir housekeeping — sweep the week's g
 
 # almanac
 
-The weather yearbook — record the week's weather in one place. Sweep git history, the build ledgers, and the friction logs across projects into a single digest, and do the shared-directory housekeeping (archive proposals) on the way. The goal shape: directly usable as a 週報 draft.
+The weather yearbook — the week's weather in one place. Sweep git history, the build ledgers, and the friction logs across projects into a single digest, and do the shared-directory housekeeping (archive proposals) on the way. The goal shape: directly usable as a 週報 draft.
 
 ## Inputs
 
 - **Active repos**: dirs under `~/Developers/` (and the cwd's repo) with commits in the window. Window = the last 7 days, or since the previous almanac note if one exists (no gap, no overlap).
 - Per active repo: `git log --since` (all branches), merged PRs if `gh` works, current branch state.
-- **Shared dir signals** (per project, shared root resolved via the global Handoff rule; default `~/Documents/claude-shared`): `tasks.md` status changes (done this week / now unblocked), `feedback.md` entries (friction), `TODO.md` additions.
+- **Shared dir signals** (per project, shared root per the global Handoff rule): `tasks.md` status changes (done this week / now unblocked), `feedback.md` entries (friction), `TODO.md` additions.
 - Do NOT read transcripts — that depth is sunbreak's job; almanac stays cheap enough to run weekly.
 
 ## Output
 
-`<default shared root>/almanac/<YYYY>-W<WW>.md` — always the default shared root (`~/Documents/claude-shared`): almanac is cross-project, so its notes don't belong to any one project. One note per ISO week; re-running the same week updates it in place.
+`<default shared root>/almanac/<YYYY>-W<WW>.md` — one note per ISO week; re-running the same week updates it in place.
 
 ```markdown
 # Almanac — <YYYY>-W<WW> (<M/D>〜<M/D>)
@@ -36,15 +36,15 @@ The weather yearbook — record the week's weather in one place. Sweep git histo
 
 ## Housekeeping (propose-only)
 
-Candidates: consumed `NN-topic.md` question files (their decisions already promoted), `check-<project>/` logs older than the window (note: these live at the shared **root**, not inside `<project>/` — sweep both levels), `forecast-checklist.md` for already-shipped releases, a `reports/` file whose proposed actions are all closed in `TODO.md` / `tasks.md`, and anything in a project's shared dir untouched for 4+ weeks — **except** durable artifacts (`00-overview.md`, `tasks.md`, `feedback.md`, `TODO.md`, `findings.md`, guides/reports the user authored). A checklist file's closed lines are never candidates; its bulky `## 対応済み` block is (completion convention, global CLAUDE.md).
+Candidates are `permafrost`'s freeze set narrowed to this window, and its warm list is the exception list — extended with guides and reports the user authored by hand. One wrinkle it doesn't cover: `check-<project>/` logs live at the shared **root**, not inside `<project>/`, so sweep both levels.
 
 For the claude-kit repo specifically, also suggest `barometer` when the week included a Claude Code upgrade — the kit's environment drifts without a commit, so nothing else in the digest would surface it.
 
-List the candidates with reasons in the note and chat. This is the *propose* side of the lifecycle; the *store* is `permafrost` (the hard-invisible cold store — see `skills/permafrost`). On confirmation, freeze them the permafrost way: `mv` into `<shared-root>/permafrost/<project>/<YYYY-MM-DD>_<HHMMSS>_<name>/` — **never delete, never move without confirmation** (claude-shared isn't git; deletion is unrecoverable). Prefer freezing whole consumed files over pruning parts of live ones. (Legacy `archive/` folders have been migrated into `permafrost/`.)
+List the candidates with reasons in the note and chat. almanac is the *propose* side only; on confirmation the freeze itself is `permafrost`'s, mechanics and all.
 
 ## Cadence
 
-Manual first (`/almanac` or ask for a weekly summary). Once trusted, it can run as a scheduled routine (the `schedule` skill) — in that mode, skip the housekeeping moves entirely and only list candidates, since there is no one to confirm.
+Manual first (`/almanac` or ask for a weekly summary). Once trusted, it can run as a scheduled routine (the `schedule` skill) — in that mode, only list candidates, since there is no one to confirm.
 
 ## Rules
 

@@ -39,5 +39,4 @@ python3 -m venv .venv  # then the venv flow above
 ```
 
 ## Notes
-- Never `pip install` into the system interpreter (fails under the sandbox, pollutes a shared env).
 - If a tool needs to run unsandboxed (e.g. a host DB), have the user run it via `!` rather than weakening the sandbox.

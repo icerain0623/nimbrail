@@ -6,14 +6,14 @@ description: Kit-vs-environment drift — the live ~/.claude install against thi
 # barometer
 
 The kit is only correct relative to two things it does not own: the live `~/.claude`
-install and the Claude Code surface it is written against. Both move without a single
+install and the Claude Code surface it is written against, both of which move without a
 commit here. This reads them and reports the gap. `weathering` watches spec against
 code; barometer watches the kit against its environment.
 
 ## A. Install drift (live vs repo)
 
-- `settings.json` is **copied, not symlinked**, so it diverges by design. Diff it
-  against `config/settings.template.json` key by key and sort each difference: live-only
+- Live `settings.json` is a copy, so it diverges by design: diff it against
+  `config/settings.template.json` key by key and sort each difference — live-only
   (a runtime grant worth promoting into the template, or it dies on the next machine),
   template-only (an edit never propagated), value conflict.
 - Symlinks: each `config/hooks/*.sh` and `skills/*/` has a live symlink resolving back
@@ -35,9 +35,8 @@ code; barometer watches the kit against its environment.
 
 ## Report
 
-Nothing drifted → say so in chat, no file. Drift → the global Reporting findings rule
-decides the form: a dated report when it needs analysis, one `findings.md` line when it
-does not. State which axis was checked and against what — resolved paths, doc URL.
+Nothing drifted → say so in chat. Drift → the global Reporting findings rule decides the
+form. Either way, state which axis was checked and against what — resolved paths, doc URL.
 
 ## Rules
 

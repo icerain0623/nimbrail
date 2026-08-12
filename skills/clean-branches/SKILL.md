@@ -5,7 +5,7 @@ description: Delete local branches already merged into the main branch, and opti
 
 # Clean Branches
 
-Tidy up fully merged branches. Safe by construction: only merged branches are removed, the main branch and current branch are never touched, and nothing is deleted until the user has seen the list and confirmed.
+Tidy up fully merged branches: only merged branches go, never `main`/`master` or the current branch, and nothing is deleted until the user has seen the list and confirmed.
 
 ## Steps
 
@@ -22,6 +22,4 @@ Tidy up fully merged branches. Safe by construction: only merged branches are re
    - remote: `git push origin --delete <branch>`.
 
 ## Rules
-- Never delete `main`/`master` or the current branch. (A git-workflow hook also hard-blocks deleting main/master — local and remote — as a backstop.)
-- Use `-d`, never `-D` (only if the user explicitly names an unmerged branch and insists). The safety gate is "merged into `origin/<main>`".
-- Remote deletion is shown in the same confirmation as the local deletes, limited to counterparts of the cleaned local branches, and gated again by the `git push` ask-rule.
+- Use `-d`, never `-D` — the safety gate is "merged into `origin/<main>`". `-D` only if the user explicitly names an unmerged branch and insists.
