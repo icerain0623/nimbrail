@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Interview the user until the plan is fully specified — one branch of the design tree at a time, dependencies first, always with a recommended answer. Probe the negative space too: what must **not** happen, the exception paths (failure / empty / permission-denied), what is out of scope — specs rot from missing 例外系 more than from missing happy paths. If the codebase can answer a question, explore instead of asking (Serena's `get_symbols_overview` / `find_symbol` when that MCP is already active, else Grep/Read), without triggering Serena onboarding — that belongs to the build.
 
-petrichor specs *new* things; an existing codebase with no spec belongs to `overcast`, which reverse-engineers the As-Is instead of interviewing the user about answers the code already holds.
+An existing codebase with no spec belongs to `overcast`, which reverse-engineers the As-Is instead of interviewing the user about answers the code already holds.
 
 Two phases, chosen by question type:
 - Phase 0 — chat, one at a time: few, highly-dependent questions.
@@ -26,11 +26,11 @@ For L3 the progress header becomes a section-coverage checklist — each `requir
 
 For L2 and L3 every 機能一覧 item carries 優先度 (v1 / v2 / 保留), 概算 (S/M/L, so the v1 line is a cost decision rather than a wish), and 受け入れ条件 (≥1 verifiable criterion; EARS 文型 —「〜のとき、システムは〜する」, exceptions as 「もし〜なら、…」). Those criteria are what keep the spec live downstream: `squall` derives `tasks.md` completion conditions from them, and build checkpoints check real behavior against them.
 
-**Spec language: don't ask — default `ja`.** The toggle serves the deliverable's audience, not the author, so offer `en` / `ja+en` only on an audience signal (OSS, public release, international collaborators) or when the user raises it. Dual means one canonical language plus a translation rendered at Done, never authored in parallel; the interview and `NN-topic.md` files stay in the user's language regardless. Note the language in the header only when it is not the default.
+**Spec language: don't ask — default `ja`.** The toggle serves the deliverable's audience, not the author, so offer `en` / `ja+en` only on an audience signal (OSS, public release, international collaborators) or when the user raises it. Dual means one canonical language plus a translation rendered at Done; the interview and `NN-topic.md` files stay in the user's language regardless. Note the language in the header only when it is not the default.
 
 ## Files (`<shared-root>/<project>/`)
 
-Planning lives **outside the repo**, in the Obsidian-readable shared dir, so it never enters git and the user can edit it. Shared root resolves per the global Handoff rule. `<project>` = basename of the git toplevel (`git rev-parse --show-toplevel`) if inside a repo, else of the working directory — never a parent that holds several projects; if the cwd is such a parent, establish the project directory first.
+Planning lives **outside the repo**, in the Obsidian-readable shared dir, so it never enters git and the user can edit it. Shared root resolves per the global Handoff rule. `<project>` = basename of the git toplevel (`git rev-parse --show-toplevel`) if inside a repo, else of the working directory — if that is a parent holding several projects, establish the project directory first.
 
 - `TODO.md` — idea inbox the user dumps into anytime.
 - `petrichor-plan/refs/` — materials the user already has (requirements notes, reference docs, screenshots, prior specs), read as input.
@@ -39,13 +39,13 @@ Planning lives **outside the repo**, in the Obsidian-readable shared dir, so it 
 
 Cross-references between IDs and artifacts are `[[file#heading]]` wikilinks — links only, no per-ID note files and no generated trace tables.
 
-`TODO.md` and `refs/` are **read, never silently decided from**. Each round, surface items touching the current topics as proposed `## <decision point>` blocks in the current `NN-topic.md`, with a Recommendation. Promotion to `00-overview.md` happens only after the user fills `Answer:`; then check the item off in `TODO.md` with a `(→ spec)` tag — never delete it. Items the user hasn't acted on stay untouched.
+`TODO.md` and `refs/` are **read, never silently decided from**. Each round, surface items touching the current topics as proposed `## <decision point>` blocks in the current `NN-topic.md`, with a Recommendation. Promotion to `00-overview.md` happens only after the user fills `Answer:`; then check the item off in `TODO.md` with a `(→ spec)` tag. Items the user hasn't acted on stay untouched.
 
 ## On launch
 
 Resolve the shared root, create `<shared-root>/<project>/` and its `TODO.md` if missing, and read `TODO.md`. Ask once whether the user has materials to feed in; if yes, have them drop the files in `petrichor-plan/refs/` (or point at paths to copy in), then read those alongside it.
 
-If `00-overview.md` exists, resume from its header (level, phase, open topics) — do not restart. If absent, settle the deliverable level first (for L3 also read `requirements-jp.md`), then start Phase 0.
+If `00-overview.md` exists, resume from its header (level, phase, open topics). If absent, settle the deliverable level first (for L3 also read `requirements-jp.md`), then start Phase 0.
 
 ## Phase 0
 
@@ -64,7 +64,7 @@ If `00-overview.md` exists, resume from its header (level, phase, open topics) �
    ```
 3. Ask the user to fill the `Answer:` fields and send `ok`. Partial is fine — unanswered items roll to the next round.
 4. Read the whole file including `## Notes`; no markers needed. An `Answer:` that is actually a counter-question → answer it and don't decide yet. A plain answer → decided.
-5. Promote agreed decisions into `00-overview.md` in ONE write, after diffing each answer against what that file already records: an answer contradicting a settled decision becomes a conflict block in the next round (both versions, one recommended), never a silent overwrite. Never toggle per-question state inside topic files, and never make the user re-summarize what they already wrote. Refresh the header:
+5. Promote agreed decisions into `00-overview.md` in ONE write, after diffing each answer against what that file already records: an answer contradicting a settled decision becomes a conflict block in the next round (both versions, one recommended). Never toggle per-question state inside topic files, and never make the user re-summarize what they already wrote. Refresh the header:
    ```markdown
    # Petrichor Progress
    - Phase / Next / Open topics / Decided
@@ -75,8 +75,8 @@ If `00-overview.md` exists, resume from its header (level, phase, open topics) �
 Three gates, in order:
 
 1. No open questions remain anywhere (L3: every applicable `requirements-jp.md` section meets its 終了条件).
-2. **The v1 line is drawn** (L2/L3): every 機能 carries a 優先度, and v1 read as a set still achieves the project's core purpose. Over-scoping is a spec bug, not an implementation problem — if v1 doesn't stand on its own, or contains everything, run one more scope round.
-3. Fresh-eyes review — **L3 only**: a fresh-context subagent reads *only* the plan files — no interview history — and hunts contradictions, ambiguities, missing exception paths, unverifiable 受け入れ条件 and non-quantified 非機能. It reads the spec cold, the way `squall` and the build will. Triage its findings; anything real becomes one final round. L1 and L2 skip this gate.
+2. **The v1 line is drawn** (L2/L3): every 機能 carries a 優先度, and v1 read as a set still achieves the project's core purpose. Over-scoping is a spec bug — if v1 doesn't stand on its own, or contains everything, run one more scope round.
+3. Fresh-eyes review — **L3 only**: a fresh-context subagent reads *only* the plan files and hunts contradictions, ambiguities, missing exception paths, unverifiable 受け入れ条件 and non-quantified 非機能. It reads the spec cold, the way `squall` and the build will. Triage its findings; anything real becomes one final round.
 
 When all three hold, set header `Next: DONE`. The spec is `petrichor-plan/00-overview.md`.
 

@@ -5,7 +5,7 @@ description: Unblock pnpm + mise for a Node project under the sandbox. Use when 
 
 # node-sandbox-setup
 
-The pnpm/mise install "dance" in the sandbox is a predictable multi-failure sequence. Apply the fix per symptom; don't theorize about the mechanism — network behaviour here is inconsistent, and even allowlisted hosts can be unreachable. Verified on pnpm 11 + mise.
+The install "dance" is a predictable multi-failure sequence; apply the fix per symptom — network behaviour here is inconsistent, and even allowlisted hosts can be unreachable, so the mechanism is not worth theorizing about. Verified on pnpm 11 + mise.
 
 ## error → fix
 
@@ -14,7 +14,7 @@ The pnpm/mise install "dance" in the sandbox is a predictable multi-failure sequ
 - `minimumReleaseAge` rejects existing lockfile entries → `rm pnpm-lock.yaml && pnpm install`, but **only** when the lockfile predates the policy; it re-resolves to older compliant versions, so review the diff.
 - `ERR_PNPM_TRUST_DOWNGRADE` → turn off `trustPolicy: no-downgrade` for that project (with a comment).
 - `pnpm-workspace.yaml: packages field missing or empty` → pnpm <11 chokes on a workspace file holding only settings keys (e.g. `minimumReleaseAge`). Pin pnpm 11.
-- a pnpm op fails writing under `~/Library` → its `cache-dir`/`state-dir` default there and the path is sandbox-denied; point them at a writable path (e.g. `~/.cache/pnpm`) via a gitignored project `.npmrc`. The **store** needs nothing — pnpm auto-locates it on the project's drive (e.g. `~/Developers/.pnpm-store`), so do not redirect `store-dir`.
+- a pnpm op fails writing under `~/Library` → its `cache-dir`/`state-dir` default there and the path is sandbox-denied; point them at a writable path (e.g. `~/.cache/pnpm`) via a gitignored project `.npmrc`. The **store** needs nothing — pnpm auto-locates it on the project's drive (e.g. `~/Developers/.pnpm-store`).
 - `corepack enable` → EPERM symlinking into the mise node bin → skip corepack; rely on the `packageManager` field + the installed pnpm.
 - mise "Remote versions cannot be fetched" / cache write `Operation not permitted` → mise's CDN and `api.github.com` are unreachable in-sandbox and `~/Library/Caches/mise` is write-denied. Pin `.mise.toml` to **already-installed** versions (a lookup for an absent version fails), and run version-changing ops (`mise install`, `mise use -g`) via the user's `!` shell.
 - `gh` → `tls: failed to verify certificate` → cert verification failing *inside* the sandbox, not an unreachable host (`api.github.com` is allowlisted). Run `gh` unsandboxed; mise's remote lookups still fail here, for the CDN reason above.

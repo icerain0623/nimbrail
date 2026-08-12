@@ -5,7 +5,7 @@ description: Incremental research notebook that survives context death — findi
 
 # cirrus
 
-cirrus is the **incremental notebook** for research: findings settle into a file as they appear, so a session dying at its context limit does not kill the investigation — the next session resumes from the header. **The chat is disposable; the note is the artifact.**
+**The chat is disposable; the note is the artifact.**
 
 ## The note
 
@@ -27,12 +27,12 @@ cirrus is the **incremental notebook** for research: findings settle into a file
 ## Behavior
 
 1. **On invoke**: settle the topic; if a note exists, read it and resume from its `Next:`. Otherwise create it. Put the user's question into `Open questions`.
-2. **Write as you go.** Append each significant finding and refresh `結論(現時点)` as you find it, never in one batch at the end; record each source's URL and one-line verdict immediately after reading it. Anything you answer in chat goes into the note before (or as) you answer it.
+2. **Write as you go.** Append each significant finding and refresh `結論(現時点)` as you find it; record each source's URL and one-line verdict immediately after reading it. Anything you answer in chat goes into the note before (or as) you answer it.
 3. **Heavy sweeps**: when the topic needs exhaustive multi-angle coverage, run the sweep here — one angle per round, each round's findings landing in the note before the next starts, so a dead context loses at most one round. A wide parallel fan-out is a delegation decision under the global Delegation rule; cirrus stays the notebook the results land in either way.
 4. **On close**: update the header (`Status` / `Next` / `Open questions`) first, then summarize in chat. Always give the note's path.
 
 ## Rules
 
-- Edit append-first. Only `結論(現時点)` gets rewritten (always the latest view). Never delete a past finding; when one is overturned, annotate it ("→ superseded by ◯◯ below").
+- Edit append-first: only `結論(現時点)` gets rewritten (always the latest view). A past finding stays even when overturned, annotated "→ superseded by ◯◯ below".
 - No unsourced knowledge in the note — statements from model memory are marked "(未検証・記憶ベース)".
 - Keep credentials out of the note: it persists to Obsidian, outside the repo, where nothing scrubs it later.

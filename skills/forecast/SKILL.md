@@ -5,7 +5,7 @@ description: Generate a pre-release manual scenario-test checklist from the proj
 
 # forecast
 
-The pre-release weather report — generate a scenario-test checklist from the spec and walk, by hand, whether it will hold once shipped. Not a substitute for automated tests (`check` and the behavior confirmation during the build own those). This is the **end-to-end walk from the user's seat**: follow the 業務フロー, step on the exceptions, knock on the permission boundaries.
+The pre-release weather report — walk, by hand, whether the spec will hold once shipped. Not a substitute for automated tests (`check` and the behavior confirmation during the build own those). This is the **end-to-end walk from the user's seat**: follow the 業務フロー, step on the exceptions, knock on the permission boundaries.
 
 ## Input
 
@@ -15,7 +15,7 @@ The pre-release weather report — generate a scenario-test checklist from the s
 
 ## Output
 
-`<shared-root>/<project>/forecast-checklist.md` — Obsidian-readable, checkbox-driven, **never committed** (a run document, not a design record). Re-running regenerates it from the current spec (overwrite); past runs' results live in the release's git history, not here.
+`<shared-root>/<project>/forecast-checklist.md` — Obsidian-readable, checkbox-driven, **never committed** (a run document, not a design record). Re-running regenerates it from the current spec (overwrite).
 
 ```markdown
 # Forecast — <project> <version/date>
@@ -32,7 +32,7 @@ The pre-release weather report — generate a scenario-test checklist from the s
 
 ## Rules
 
-- **Every line traces to an ID**, and expected results are quoted or derived from the acceptance criteria (EARS sentences) — never invent a new bar. An expectation you cannot write is a **spec hole**: report it as a candidate to route back to `petrichor`, don't silently fill it in.
-- **Coverage is the point.** Every v1 機能 ID appears in at least one scenario; gaps are listed explicitly in the カバレッジ section — never dropped in silence. v2 / 保留 items stay out.
-- Always weave in the exception paths (failure / empty / permission-denied) and the screenless 機能 (notifications, batch jobs, permission control) — a happy-path-only forecast is not a forecast.
+- **Every line traces to an ID**, and expected results are quoted or derived from the acceptance criteria (EARS sentences). An expectation you cannot write is a **spec hole**: report it as a candidate to route back to `petrichor`, don't silently fill it in.
+- **Coverage is the point.** Every v1 機能 ID appears in at least one scenario; gaps are listed explicitly in the カバレッジ section. v2 / 保留 items stay out.
+- Always weave in the exception paths (failure / empty / permission-denied) and the screenless 機能 (notifications, batch jobs, permission control).
 - Bundle steps into scenarios by 業務フロー / user journey, not as a flat per-機能 list — the value is in walking end to end.

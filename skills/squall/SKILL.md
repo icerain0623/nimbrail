@@ -6,9 +6,7 @@ disable-model-invocation: true
 
 # squall
 
-Two jobs, back to back: turn the finished requirements into an implementable design **against the real stack**, as artifacts that live in the repo with the code; then record `.claude/CLAUDE.md` + `.claude/project.md`, so monsoon and the other skills act on the conventions in force while you build.
-
-**Explore-first, not an interview** — the opposite of petrichor. Read the spec and the existing code/stack before asking anything (Serena's `get_symbols_overview` / `find_symbol` when that MCP is active, else Grep/Read), and ask the user only what neither can answer.
+**Explore-first, not an interview.** Read the spec and the existing code/stack before asking anything (Serena's `get_symbols_overview` / `find_symbol` when that MCP is active, else Grep/Read), and ask the user only what neither can answer.
 
 ## Place in the flow
 
@@ -20,10 +18,10 @@ petrichor (要件定義) → squall (詳細設計 ＋ `.claude/` 設定) → 実
 
 ## Operating principles
 
-- Boundary: "how to build" plus Claude Code repo config. Requirements are petrichor's — don't redo them.
+- Boundary: "how to build" plus Claude Code repo config. Requirements are petrichor's.
 - Design sections come from `detail-design-jp.md` (sibling file), taken in dependency order; a section is done when it meets its 終了条件 and passes its レビュー観点. Skip one that doesn't apply, with a noted reason.
 - Don't compromise the core (DB relations and the like — failure there is expensive); everything else needs only ready-to-implement granularity.
-- Anything a tool can enforce (naming, format) lands as config (Lint/formatter), not just prose.
+- Anything a tool can enforce (naming, format) lands as config (Lint/formatter).
 - Design prose follows the project's **docs language**: take `docs_lang` from the petrichor spec header if present, else default `ja` without asking; propose `en` / `ja+en` only when the repo is public-facing (an OSS README is where dual pays off), and record the result in `project.md`. Code artifacts (Lint config, OpenAPI, IaC) follow the repo's own conventions.
 
 ## On launch
@@ -35,13 +33,13 @@ petrichor (要件定義) → squall (詳細設計 ＋ `.claude/` 設定) → 実
 
 Once the design and toolchain are established — `.claude/` only, not the application's own code. Idempotent: re-running reconciles, and never clobbers user edits without confirmation.
 
-1. Determine the stack. If code exists, detect it the way the `check` skill does: language(s), package manager (from the lockfile), and which check commands exist (lint, typecheck, test, build). If still greenfield, take the intended stack from the petrichor spec, else ask — don't fail just because there is nothing to detect. Also settle the default branch and branch model (trunk-only, feature-branch, whether a develop branch exists).
-2. Ask which opt-ins to enable, all default off — release-note (creates `RELEASE_NOTE.md`) and anything else relevant. Confirm before creating files.
+1. Determine the stack. If code exists, detect it the way the `check` skill does: language(s), package manager (from the lockfile), and which check commands exist (lint, typecheck, test, build). If still greenfield, take the intended stack from the petrichor spec, else ask. Also settle the default branch and branch model (trunk-only, feature-branch, whether a develop branch exists).
+2. Ask which opt-ins to enable, all default off — release-note (creates `RELEASE_NOTE.md`) and anything else relevant.
 3. Write `.claude/CLAUDE.md`: conventions, package manager, how to run checks, branch model. Terse. Merge with any existing file.
 4. Write `.claude/project.md`, the static machine-readable config monsoon parses (schema below).
 
 ### .claude/project.md schema
-Static config only, no mutable state. Keep it small and stable:
+Keep it small and stable:
 
     # project (monsoon config)
     language: <e.g. ts, go>
@@ -64,11 +62,11 @@ Both files are committed, so they carry no secrets and no mutable progress.
 Three gates before handing off to the build:
 
 1. **Cross-artifact consistency — once, before 着工.** Each section already met its own 終了条件; this is the one pass checking that the artifacts agree *with each other*. A reading pass, scaled to level (skip for L1 / trivial, light for L2, full for L3):
-   - every v1 機能 ID in the spec lands in the design and (substantial builds) in `tasks.md`, while v2 / 保留 items are consciously absent — deferred scope stays deferred;
+   - every v1 機能 ID in the spec lands in the design and (substantial builds) in `tasks.md`, while v2 / 保留 items are consciously absent;
    - the design introduces nothing the spec didn't ask for;
    - `tasks.md` dependencies match the real design (DB before the modules that need it) and the graph has no cycle;
    - each task's completion condition traces to its 機能 ID's 受け入れ条件.
-   Surface drift back to petrichor (a spec gap) or fix it here (a design gap) — don't bury it in code.
+   Surface drift back to petrichor (a spec gap) or fix it here (a design gap).
 2. Every applicable `detail-design-jp.md` section meets its 終了条件, and the `.claude/` config is recorded.
 3. 着工承認 (GO), skipped for L1 / trivial: present a one-screen summary — key design decisions (DB core, module boundaries, API shape), sections skipped and why, task count with the critical path, open risks — and wait for the user's GO. The design is about to become expensive to change, so the last cheap moment to object is now.
 

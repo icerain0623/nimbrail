@@ -6,15 +6,15 @@ disable-model-invocation: true
 
 # overcast
 
-The sky is already clouded when you arrive — read the weather in a codebase you didn't write. overcast reconstructs an As-Is spec from a repo that has none, in the format and location petrichor produces, so `squall` / `forecast` / `weathering` work on inherited code exactly as they do on greenfield.
+The sky is already clouded when you arrive — read the weather in a codebase you didn't write. The reconstructed spec takes the format and location petrichor produces, so `squall` / `forecast` / `weathering` work on inherited code exactly as they do on greenfield.
 
-**As-Is only.** overcast records what the code does *now*; new-feature desires that surface during exploration go to `TODO.md` for monsoon's triage, never into this spec — mixing record and wish erases the line between them and breaks weathering's baseline.
+**As-Is only.** overcast records what the code does *now*; new-feature desires that surface during exploration go to `TODO.md` for monsoon's triage — mixing record and wish erases the line between them and breaks weathering's baseline.
 
 ## Level (pick once, at the very start — same system as petrichor)
 
 - L1 — map: overview + entry-point map only. Direction right after inheriting.
 - L2 — spec: 機能一覧, 画面 (or command/API) 一覧, data model, permissions.
-- L3 — full As-Is 要件定義: the full section set of petrichor's `requirements-jp.md`. Sections needing knowledge that lives only in stakeholders' heads (the business Why, SLA agreements) are marked 不明, never silently skipped.
+- L3 — full As-Is 要件定義: the full section set of petrichor's `requirements-jp.md`. Sections needing knowledge that lives only in stakeholders' heads (the business Why, SLA agreements) are marked 不明.
 
 ## Method — explore-first; the interview comes last and stays small
 
@@ -22,7 +22,7 @@ The sky is already clouded when you arrive — read the weather in a codebase yo
 2. Sweep in layer order, each layer correcting the previous one's claims: README/docs (claims) → entry points, routes/commands (surface) → schema/migrations (data truth) → auth/authorization code (the real 権限マトリクス) → tests (executable acceptance criteria) → CI/deploy config (non-functional reality) → recent git history (what is actually alive).
 3. Build the 機能一覧 by assigning IDs from the surface (routes/commands/screens), then trace each 機能 to its data and permissions. A route or table that traces to no 機能, or the reverse, is a finding to record.
 4. **Mark confidence on every statement**: 事実 (the code says so — cite `file:line`) / 推定 (inferred intent — say from what) / 不明 (only a human can answer). Tests are the strongest 事実 for behavior, so derive 受け入れ条件 from them where they exist; where they don't, the column reads 不明, and that gap stays visible to `forecast` and to the behavior checks later.
-5. Suspected-dead features (unreferenced, long untouched, feature-flagged off) → mark 要確認, neither silently dropped nor silently treated as live.
+5. Suspected-dead features (unreferenced, long untouched, feature-flagged off) → mark 要確認.
 
 ## The one question round
 

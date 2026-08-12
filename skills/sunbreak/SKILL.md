@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Sunbreak
 
-The clearing after the storm — look back over recent sessions and surface what is worth keeping. Mining and applying are deliberately separated: the output is **one report file**, never an in-place edit to memory, CLAUDE.md or a skill, so no rewrite dialog is forced mid-flow. The user applies later, typically in a dedicated claude-kit review session.
+The clearing after the storm — look back over recent sessions and surface what is worth keeping. Mining and applying are deliberately separated: the output is **one report file**, so no rewrite dialog is forced mid-flow. The user applies it later, typically in a dedicated claude-kit review session.
 
 ## Where transcripts live
 
@@ -22,7 +22,7 @@ The clearing after the storm — look back over recent sessions and surface what
 3. Cluster the signals into a few concrete, generalizable lessons. Discard one-offs and session-specific trivia.
 4. **Classify each kept lesson by scope** — the key judgement. Only a lesson that recurs across more than one project, or is obviously stack-agnostic, is worth proposing for the global CLAUDE.md, a global memory, or a skill. Anything seen in one project only, or tied to that repo's stack, is said explicitly to stay project-scoped — promoting it to global config is pointless noise, and persisting it even to a project memory needs the user's confirmation.
 5. Write the report to `<default shared root>/reports/<YYYY-MM-DD>_sunbreak.md` (create the dir if missing).
-6. Report back the path, counts per bucket, and how many transcripts across how many projects were reviewed. Then stop — applying is the user's call, later, so do not open an apply-now dialog.
+6. Report back the path, counts per bucket, and how many transcripts across how many projects were reviewed, then stop.
 
 ## Report format
 
@@ -50,4 +50,4 @@ Reviewed: <N> transcripts across <M> projects (window: <e.g. last 2 weeks>)
 ## Rules
 
 - Never copy secrets, tokens, or raw file contents from transcripts into the report.
-- Cross-reference, don't duplicate: a lesson already covered by CLAUDE.md or memory is noted as "already covered" rather than re-proposed.
+- A lesson already covered by CLAUDE.md or memory is noted as "already covered" rather than re-proposed.

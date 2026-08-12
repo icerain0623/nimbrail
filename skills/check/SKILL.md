@@ -5,7 +5,7 @@ description: Run a project's quality checks (lint and typecheck by default; test
 
 # Check
 
-Run the project's checks, log the output where it is easy to read, and summarize. Default is fast feedback: lint + typecheck. On `full`, or when the user asks: also test, then build. Run fastest first so failures surface early, and stop the heavy steps once a fast one fails (unless `full`).
+Default is lint + typecheck; on `full`, or when the user asks, also test, then build. Run fastest first so failures surface early, and stop the heavy steps once a fast one fails (unless `full`).
 
 ## Detect what to run
 Pick the commands that actually exist in the project:
@@ -21,7 +21,7 @@ For each step, tee combined output to a log and keep the real exit code:
 (Create the `check-<project>/` dir first. Shared root: per the global Handoff rule.)
 
 ## Report
-Return a short summary: each step pass/fail, error/warning counts, and the first few failing lines. Give the log paths for full output. Do not paste whole logs into the reply.
+Return a short summary: each step pass/fail, error/warning counts, and the first few failing lines. Give the log paths for the full output.
 
 ## Rules
 - One-shot only — no watch mode (`--watch`, or `vitest` without `run`).

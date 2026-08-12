@@ -5,8 +5,6 @@ description: Write the current session's resume info (session ID, cwd, git branc
 
 # Session Info
 
-The user should never have to ask for the session ID — write it to a file they can open in Obsidian.
-
 ## Getting the session ID
 It is the UUID directory name in this session's scratchpad and transcript paths:
 - scratchpad: `/private/tmp/claude-*/<project-slug>/<SESSION_ID>/scratchpad`

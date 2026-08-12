@@ -5,7 +5,7 @@ description: Weekly work digest + shared-dir housekeeping — sweep the week's g
 
 # almanac
 
-The weather yearbook — the week's weather in one place. Sweep git history, the build ledgers, and the friction logs across projects into a single digest, and do the shared-directory housekeeping (archive proposals) on the way. The goal shape: directly usable as a 週報 draft.
+The weather yearbook — the week's weather in one place, with the shared-directory housekeeping done on the way. The goal shape: directly usable as a 週報 draft.
 
 ## Inputs
 
@@ -40,14 +40,14 @@ Candidates are `permafrost`'s freeze set narrowed to this window, and its warm l
 
 For the claude-kit repo specifically, also suggest `barometer` when the week included a Claude Code upgrade — the kit's environment drifts without a commit, so nothing else in the digest would surface it.
 
-List the candidates with reasons in the note and chat. almanac is the *propose* side only; on confirmation the freeze itself is `permafrost`'s, mechanics and all.
+List the candidates with reasons in the note and chat; on confirmation the freeze itself is `permafrost`'s, mechanics and all.
 
 ## Cadence
 
-Manual first (`/almanac` or ask for a weekly summary). Once trusted, it can run as a scheduled routine (the `schedule` skill) — in that mode, only list candidates, since there is no one to confirm.
+Manual first. Once trusted, it can run as a scheduled routine (the `schedule` skill) — in that mode, only list candidates, since there is no one to confirm.
 
 ## Rules
 
-- Digest, don't editorialize: every line traces to a commit, a ledger state, or a feedback entry.
-- sunbreak 判定 is a recommendation with one line of evidence — almanac never mines transcripts itself.
+- Every line of the digest traces to a commit, a ledger state, or a feedback entry.
+- sunbreak 判定 is a recommendation with one line of evidence.
 - No secrets in the note (it may be pasted into a 週報).

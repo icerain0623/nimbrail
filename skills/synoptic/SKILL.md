@@ -5,7 +5,7 @@ description: Cross-project status view — read each ledger's head plus live git
 
 # synoptic
 
-The synoptic chart — the whole region at one moment, on one sheet. `monsoon` routes one project's next step; synoptic answers "across everything, where am I and what is stuck on me".
+The synoptic chart — the whole region at one moment, on one sheet. `monsoon` routes one project's next step; synoptic covers them all at once.
 
 ## Scope
 
@@ -16,7 +16,7 @@ Default is every project. An argument narrows it: one or more project names (`/s
 Shared root per the global Handoff rule.
 
 - **Projects** = dirs directly under the shared root that have a matching repo — a dir of the same name holding a `.git` under the sandbox write-roots (`~/Developers`, `~/Documents/GitHub` and their immediate subdirs). **The repo check is what separates a project from a skill's output dir** (`permafrost/`, `almanac/`, `sunbreak/`, `check-<project>/`).
-- Per project, **the ledger head only**: the first 15 lines of `tasks.md` (the `> **Resume**` block), and `TODO.md`'s unchecked lines above its `## 対応済み`. Not the rest of a ledger, not `feedback.md`, not reports — that depth is `almanac`'s job, and synoptic has to stay cheap enough to run on a whim.
+- Per project, **the ledger head only**: the first 15 lines of `tasks.md` (the `> **Resume**` block), and `TODO.md`'s unchecked lines above its `## 対応済み`. Anything deeper — the rest of a ledger, `feedback.md`, reports — is `almanac`'s job, and synoptic has to stay cheap enough to run on a whim.
 - Per project, live git: current branch, uncommitted count, unpushed commits.
 
 ## Counts
@@ -28,7 +28,7 @@ tot=$(grep -cE '^\| T-[0-9]+ \|' tasks.md)
 done_n=$(grep -E '^\| T-[0-9]+ \|' tasks.md | grep -cE '\*\*done\*\*|\| done')
 ```
 
-**Unpushed and unmerged are two different counts — never conflate them.** Unpushed is `@{u}..HEAD`, and no upstream at all means never pushed, a signal on its own. Unmerged is the distance from the integration base — what still needs a PR or a merge; a branch can be 0 unpushed and 5 unmerged with a PR already open.
+**Unpushed and unmerged are two different counts.** Unpushed is `@{u}..HEAD`, and no upstream at all means never pushed, a signal on its own. Unmerged is the distance from the integration base — what still needs a PR or a merge; a branch can be 0 unpushed and 5 unmerged with a PR already open.
 
 The integration base is **the candidate branch with the smallest ahead count**, not `origin/HEAD`: a branch forked from `develop` while `origin/HEAD` is `main` counts every commit since `main`, an order of magnitude off, and a view that prints a wrong number stops being read.
 
@@ -78,7 +78,7 @@ An empty result means the current branch **is** the integration base, so unmerge
 In chat, give **one** recommendation with its reason; leave the rest to the file.
 
 ## Rules
-- Read-only apart from `status.md`. Push, PR, branch deletion and freezing belong to `monsoon` and `permafrost` — name the next step, don't take it.
+- Read-only apart from `status.md`. Push, PR, branch deletion and freezing belong to `monsoon` and `permafrost` — name the next step.
 - Report any project whose `tasks.md` lacks a `> **Resume**` block in its first 15 lines instead of silently showing nothing for it: the head-only read is the whole reason synoptic is cheap, so a missing Resume is a defect to fix, not a project to skip.
-- Every line traces to a ledger head, a task-row count, or a git observation. No editorializing — that is `sunbreak`'s territory.
+- Every line traces to a ledger head, a task-row count, or a git observation; editorializing is `sunbreak`'s territory.
 - A project with no ledger still appears (under 台帳なし); `state.json`-style side files do not exist and must not be reintroduced.

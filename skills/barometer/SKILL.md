@@ -7,8 +7,7 @@ description: Kit-vs-environment drift — the live ~/.claude install against thi
 
 The kit is only correct relative to two things it does not own: the live `~/.claude`
 install and the Claude Code surface it is written against, both of which move without a
-commit here. This reads them and reports the gap. `weathering` watches spec against
-code; barometer watches the kit against its environment.
+commit here.
 
 ## A. Install drift (live vs repo)
 
@@ -20,8 +19,7 @@ code; barometer watches the kit against its environment.
   into this repo, and no live symlink dangles.
 - Orphans: files under `~/.claude/hooks` and `~/.claude/skills` this repo does not own —
   installed by hand or by another tool, and invisible to `lint-skills.sh`.
-- `settings.local.json`: confirm it exists and is gitignored. Its contents are secrets;
-  do not read them.
+- `settings.local.json`: confirm it exists and is gitignored.
 
 ## B. Harness drift (does what the kit assumes still exist?)
 
@@ -40,7 +38,7 @@ form. Either way, state which axis was checked and against what — resolved pat
 
 ## Rules
 
-- Read-only. Promoting a live grant into the template edits the repo; applying the
-  template to the live install overwrites runtime grants. Both are proposals.
+- Promoting a live grant into the template edits the repo; applying the template to the
+  live install overwrites runtime grants. Both are proposals.
 - Never run `install.sh --yes` from here: it replaces the live `settings.json`, which is
   where the runtime grants being reported live.
