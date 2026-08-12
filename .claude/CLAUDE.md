@@ -20,8 +20,5 @@ This repo is the source of the global Claude Code config: `install.sh` symlinks 
 - `README.ja.md` is a **full translation** of `README.md`, not a summary — a change to one lands in both, in the same commit. `lint-skills.sh` [5] only catches an unlisted skill name; prose parity is on you.
 - Trimming an agent-facing file: list its normative statements, trim, then check the list still holds. Losing a rule is the failure that matters.
 
-## Layer model (where a rule belongs)
-- Standard Claude Code layering (sandbox → permissions → hooks → CLAUDE.md → skills) applies as documented; don't restate it here. The part worth holding on to: **hooks gate tool calls and cannot compel an output behavior**, so a rule about how something is *written* is advisory no matter which file it sits in — anything that must always hold has to be expressible as a command to block.
-
 ## Secrets
-- **This repo is public**, so private identifiers stay out of it: a measured example needs the behaviour, not the repo it came from. `~/Developers` and `~/Documents/GitHub` are the documented exceptions. Enforcement is elsewhere and stays there — `warn-secrets.sh` and `.gitignore` stop a credential mid-edit, `private-scan` reads the outgoing range before a push and owns the criteria for what counts.
+- **This repo is public**, so private identifiers stay out of it: a measured example needs the behaviour, not the repo it came from. `~/Developers` and `~/Documents/GitHub` are the documented exceptions. `private-scan` owns what counts and reads the outgoing range before a push.
