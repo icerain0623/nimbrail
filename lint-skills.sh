@@ -187,11 +187,18 @@ fi
 # Claude Code truncates the listing near ~1% of the context window; past that,
 # skill routing degrades before raw token cost ever becomes the problem.
 echo "[9] listed-skill description budget (model-invocable skills only)"
-LISTING_BUDGET="${LISTING_BUDGET:-4700}"   # env override is a test seam
+# Raised from 4700 on adding `private-scan`: a pre-push exposure check has to be
+# model-invocable to be worth having — you want it to fire on "check before I
+# push", not only when remembered — so its ~200 chars are spent on purpose.
+LISTING_BUDGET="${LISTING_BUDGET:-4800}"   # env override is a test seam
 listing=0 listed=0
 for d in "$REPO"/skills/*/; do
   s="$(basename "${d%/}")"
-  case " $RAIL " in *" $s "*) continue ;; esac
+  # Exclude on the flag that actually decides listing, not on the rail roster.
+  # Keying on RAIL measured the wrong set: a slash-only skill added outside the
+  # rail counted against a budget it does not spend, and a rail skill that lost
+  # the flag would have gone on being excluded while appearing in the listing.
+  grep -qE '^disable-model-invocation:[[:space:]]*true' "$d/SKILL.md" && continue
   desc="$(sed -n 's/^description:[[:space:]]*//p' "$d/SKILL.md" | head -1)"
   listing=$(( listing + ${#s} + ${#desc} ))
   listed=$(( listed + 1 ))
