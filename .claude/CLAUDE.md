@@ -1,9 +1,8 @@
 # claude-kit — project instructions
 
-This repo is the source of the global Claude Code config: `install.sh` symlinks `config/*` into `~/.claude/`, so files here are live config. The exception is `settings.json`, which is **copied** — the live machine holds the real PAT and absorbs runtime `/config` toggles.
+This repo is the source of the global Claude Code config: `install.sh` symlinks `config/*` and `skills/*` into `~/.claude/`, so files here are live config and this is where they are edited. `settings.json` is the exception — it is **copied**, so the live machine holds the real PAT and absorbs runtime `/config` toggles, and a change here travels one way: edit `config/settings.template.json` and re-run `install.sh`.
 
 ## Editing rules
-- `config/` and `skills/` are symlinked into `~/.claude/`, so this repo is where they are edited. `settings.json` is the exception — it is **copied**, so it travels one way: edit `config/settings.template.json` and re-run `install.sh`.
 - Hooks in `config/hooks/*.sh` are bash and need `jq` and `shellcheck`. **Add a case to `test-hooks.sh` for every new check.**
 - A `skills/<name>/` becomes a skill when `install.sh` symlinks it into `~/.claude/skills/`. `lint-skills.sh` reads the repo, so its checks pass before that link exists — link it before calling it done.
 - **Restart needed?** `settings.json` edits only. Skill bodies, sibling files, a changed `name`/`description`, and a newly linked skill all apply on next invocation.
@@ -13,7 +12,7 @@ This repo is the source of the global Claude Code config: `install.sh` symlinks 
 ## Writing rules
 - Shortest form that still works, and **say a thing once** — the same fact in two places is the failure mode here, not a missing rule. State only what nothing else enforces. Bold marks a signpost — a label, a branch condition, the one thing not to skim past — never decoration.
 - **Agent-facing** (`config/CLAUDE.md`, `skills/**/*.md`) is always loaded and budgeted: one sentence per rule, and a rationale clause only where its absence would let the rule lose to a plausible local judgement. **Human-facing** (`README.md`, `README.ja.md`, `CONTRIBUTING.md`, `SECURITY.md`) can spend length on framing, tables and worked examples.
-- **An example earns its place** only when the output shape is fixed (a table-row schema, a checklist line) or the rule alone can't settle the boundary. In `config/CLAUDE.md`: one example, never a set — it is always loaded and check [8] caps it. A skill body is unbudgeted and loads on demand, so where one pins a fixed output shape, [official guidance](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) applies instead: 3–5 varied examples beat one.
+- **An example earns its place** only when the output shape is fixed (a table-row schema, a checklist line) or the rule alone can't settle the boundary. In `config/CLAUDE.md`: one example, never a set — check [8] caps it. A skill body is unbudgeted and loads on demand, so where one pins a fixed output shape, [official guidance](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) applies instead: 3–5 varied examples beat one.
 - `README.ja.md` is a **full translation** of `README.md`, not a summary.
 - Trimming an agent-facing file: list its normative statements, trim, then check the list still holds. Losing a rule is the failure that matters.
 
