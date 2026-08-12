@@ -42,7 +42,7 @@ Claude がオンデマンドで読んでよい小集合のみ：
 - 現行 petrichor プラン（`00-overview.md` + アクティブな `NN-topic.md`）
 - 稼働中 `feedback.md`
 - `TODO.md`（薄く保たれた open 項目中心）
-- 未解決レポート（アクション/ウォッチ中のもの）
+- `reports/` のうち未消化のもの（提案したアクションが `TODO.md` / `tasks.md` に open で残っているレポート）
 
 それ以外の claude-shared 配下は **cold 適格**。
 

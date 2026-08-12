@@ -166,8 +166,11 @@ done
 # arrives justified by a trap someone just hit — nothing in the writing pushes back.
 # 2026-07-26 measured a single session growing this file 11.5%. The budget is not a
 # prohibition: raise the number when the content earns it, but raise it on purpose.
+# Raised 6000 → 6200 for the reporting contract (when a report is written at all, its
+# path, its form): the rules it replaces were producing whole files where a chat line
+# would do, so the always-loaded cost buys back far more output than it spends.
 echo "[8] config/CLAUDE.md size budget (always loaded)"
-ALWAYS_LOADED_BUDGET="${ALWAYS_LOADED_BUDGET:-6000}"   # env override is a test seam
+ALWAYS_LOADED_BUDGET="${ALWAYS_LOADED_BUDGET:-6200}"   # env override is a test seam
 size=$(wc -c < "$REPO/config/CLAUDE.md" | tr -d ' ')
 if [ "$size" -gt "$ALWAYS_LOADED_BUDGET" ]; then
   err "config/CLAUDE.md is $size chars, over the $ALWAYS_LOADED_BUDGET budget — trim it, or raise ALWAYS_LOADED_BUDGET in this script deliberately"
@@ -197,6 +200,21 @@ if [ "$listing" -gt "$LISTING_BUDGET" ]; then
 else
   note "$listed listed skills, $listing / $LISTING_BUDGET chars"
 fi
+
+# The reporting contract lives as prose in config/CLAUDE.md, and prose enforces nothing.
+# These are the two halves a later skill edit breaks without noticing: a dated report
+# written somewhere other than reports/, and pbcopy creeping back into a handoff step.
+echo "[10] reporting contract (config/CLAUDE.md owns it; no skill may contradict it)"
+CONTRACT_FILES="$REPO/config/CLAUDE.md $REPO/skills/*/SKILL.md"
+# shellcheck disable=SC2086  # deliberate glob expansion of the file list
+while IFS= read -r hit; do
+  case "$hit" in *reports/*) continue ;; esac
+  err "dated report path outside reports/ — $hit"
+done < <(grep -noE '`[^`]*<?YYYY-MM-DD>?[^`]*\.md`' $CONTRACT_FILES)
+while IFS= read -r hit; do
+  case "$hit" in */session-info/SKILL.md*) continue ;; esac
+  err "pbcopy outside session-info, the one sanctioned exception — $hit"
+done < <(grep -n "pbcopy" "$REPO"/skills/*/SKILL.md)
 
 echo
 if [ "$FAIL" = 0 ]; then echo "lint-skills: PASS"; else echo "lint-skills: FAIL"; fi
