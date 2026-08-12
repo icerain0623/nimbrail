@@ -171,6 +171,9 @@ done
 # 2026-07-26 measured a single session growing this file 11.5%. The budget is not a
 # prohibition: raise the number when the content earns it, but raise it on purpose.
 echo "[8] config/CLAUDE.md size budget (always loaded)"
+# 6000 is this repo's own ceiling, not a platform one: the guidance targets 200
+# lines per CLAUDE.md and sets no character cap. Raising it is a legitimate move,
+# but it is a decision about always-loaded context, so make it on purpose.
 ALWAYS_LOADED_BUDGET="${ALWAYS_LOADED_BUDGET:-6000}"   # env override is a test seam
 size=$(wc -c < "$REPO/config/CLAUDE.md" | tr -d ' ')
 if [ "$size" -gt "$ALWAYS_LOADED_BUDGET" ]; then

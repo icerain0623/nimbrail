@@ -52,6 +52,18 @@ if [ -n "$command" ]; then
     files=$(git -C "$repo" diff --name-only "$range" 2>/dev/null) || exit 0
   fi
 
+  # A rename or a delete reaches the repo through a Bash command, not an edit, so
+  # the PostToolUse half never sees it. Running the whole suite here catches those
+  # and anything else that got in, for 0.6s, at the point it would leave.
+  if [ -z "${CLAUDE_HOOK_SKIP_LINT:-}" ] && [ -f "$repo/lint-skills.sh" ]; then
+    if ! lint_out=$(cd "$repo" && bash lint-skills.sh 2>&1); then
+      violations=$(printf '%s\n' "$lint_out" | grep '✗' | head -5)
+      [ -n "$violations" ] || violations="$lint_out"
+      jq -n --arg v "$violations" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"ask",permissionDecisionReason:("lint-skills.sh が失敗しています。この push には未修正の違反が含まれます:\n" + $v)}}'
+      exit 0
+    fi
+  fi
+
   en=0; ja=0
   printf '%s\n' "$files" | grep -qx 'README\.md' && en=1
   printf '%s\n' "$files" | grep -qx 'README\.ja\.md' && ja=1

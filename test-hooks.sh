@@ -79,10 +79,13 @@ expect_rc() { # <hook> <file_path> <want_rc> [env_assignments...]
 
 # README parity at push time. CLAUDE_HOOK_RANGE_FILES stands in for the outgoing
 # range, so no second checkout is needed (git init is blocked in the sandbox).
+# CLAUDE_HOOK_SKIP_LINT isolates the parity branch: the fixture repo's lint stub
+# fails on purpose, and the lint gate runs first, so without this every parity
+# case would report the lint failure instead of what it means to test.
 expect_parity() { # <command> <newline-separated files> <top> <ask|none>
   local cmd=$1 files=$2 top=$3 want=$4 out dec
   out=$(printf '{"tool_input":{"command":%s},"cwd":%s}' "$(jq -Rn --arg c "$cmd" '$c')" "$(jq -Rn --arg c "$top" '$c')" \
-    | CLAUDE_HOOK_REPO_TOP="$top" CLAUDE_HOOK_RANGE_FILES="$files" bash "$H/kit-checks.sh" 2>/dev/null)
+    | CLAUDE_HOOK_REPO_TOP="$top" CLAUDE_HOOK_RANGE_FILES="$files" CLAUDE_HOOK_SKIP_LINT=1 bash "$H/kit-checks.sh" 2>/dev/null)
   dec=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "none"' 2>/dev/null)
   [ -z "$dec" ] && dec="none"
   if [ "$dec" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL kit-checks[parity]: want=$want got=$dec :: $cmd :: $files"; fi
@@ -398,6 +401,21 @@ else
   expect_parity "git status"    "README.md"                    "$K" none
   # A substring that only looks like the target must not match a real filename.
   expect_parity "git push"      "docs/README.md"               "$K" none
+
+  # The lint gate: a rename or delete never reaches a Write/Edit hook, so the whole
+  # suite runs at push. $K's stub fails, so a push from it asks even when the two
+  # READMEs are in step — and `git status` is still none, being no push at all.
+  lint_gate() { # <command> <ask|none>
+    local out dec
+    out=$(printf '{"tool_input":{"command":%s},"cwd":%s}' "$(jq -Rn --arg c "$1" '$c')" "$(jq -Rn --arg c "$K" '$c')" \
+      | CLAUDE_HOOK_REPO_TOP="$K" CLAUDE_HOOK_RANGE_FILES="README.md"$'\n'"README.ja.md" bash "$H/kit-checks.sh" 2>/dev/null)
+    dec=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecision // "none"' 2>/dev/null)
+    [ -z "$dec" ] && dec="none"
+    if [ "$dec" = "$2" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL kit-checks[lint gate]: want=$2 got=$dec :: $1"; fi
+  }
+  lint_gate "git push"   ask
+  lint_gate "gh pr create" ask
+  lint_gate "git status" none
   rm -rf "$JB"
 fi
 
