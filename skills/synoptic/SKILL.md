@@ -15,8 +15,8 @@ Default is every project. An argument narrows it: one or more project names (`/s
 
 Shared root per the global Handoff rule.
 
-- **Projects** = dirs directly under the shared root that have a matching repo — a dir of the same name holding a `.git` under the sandbox write-roots (`~/Developers`, `~/Documents/GitHub` and their immediate subdirs). **The repo check is what separates a project from a skill's output dir** (`permafrost/`, `almanac/`, `sunbreak/`, `check-<project>/`).
-- Per project, **the ledger head only**: the first 15 lines of `tasks.md` (the `> **Resume**` block), and `TODO.md`'s unchecked lines above its `## 対応済み`. Anything deeper — the rest of a ledger, `feedback.md`, reports — is `almanac`'s job, and synoptic has to stay cheap enough to run on a whim.
+- **Projects** = dirs directly under the shared root that have a matching repo — a dir of the same name holding a `.git` under the sandbox write-roots (`~/Developers`, `~/Documents/GitHub` and their immediate subdirs). The repo check is what separates a project from a skill's output dir (`permafrost/`, `almanac/`, `sunbreak/`, `check-<project>/`).
+- Per project, the ledger head only: the first 15 lines of `tasks.md` (the `> **Resume**` block), and `TODO.md`'s unchecked lines above its `## 対応済み`. Anything deeper — the rest of a ledger, `feedback.md`, reports — is `almanac`'s job, and synoptic has to stay cheap enough to run on a whim.
 - Per project, live git: current branch, uncommitted count, unpushed commits.
 
 ## Counts
@@ -30,7 +30,7 @@ done_n=$(grep -E '^\| T-[0-9]+ \|' tasks.md | grep -cE '\*\*done\*\*|\| done')
 
 **Unpushed and unmerged are two different counts.** Unpushed is `@{u}..HEAD`, and no upstream at all means never pushed, a signal on its own. Unmerged is the distance from the integration base — what still needs a PR or a merge; a branch can be 0 unpushed and 5 unmerged with a PR already open.
 
-The integration base is **the candidate branch with the smallest ahead count**, not `origin/HEAD`: a branch forked from `develop` while `origin/HEAD` is `main` counts every commit since `main`, an order of magnitude off, and a view that prints a wrong number stops being read.
+The integration base is the candidate branch with the smallest ahead count, not `origin/HEAD`: a branch forked from `develop` while `origin/HEAD` is `main` counts every commit since `main`, an order of magnitude off, and a view that prints a wrong number stops being read.
 
 ```bash
 for c in develop main master; do   # skip $c when it is the current branch
@@ -39,7 +39,7 @@ for c in develop main master; do   # skip $c when it is the current branch
 done | sort -n | head -1           # → "<unmerged> <base>"
 ```
 
-An empty result means the current branch **is** the integration base, so unmerged is 0 — not a missing value to carry through as a sentinel.
+An empty result means the current branch is the integration base, so unmerged is 0 — not a missing value to carry through as a sentinel.
 
 ## Priority (strongest first)
 
@@ -75,7 +75,7 @@ An empty result means the current branch **is** the integration base, so unmerge
 - <project> — TODO.md の未対応 N 件（`tasks.md` なし）
 ```
 
-In chat, give **one** recommendation with its reason; leave the rest to the file.
+In chat, give one recommendation with its reason; leave the rest to the file.
 
 ## Rules
 - Read-only apart from `status.md`. Push, PR, branch deletion and freezing belong to `monsoon` and `permafrost` — name the next step.

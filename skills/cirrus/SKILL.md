@@ -5,7 +5,7 @@ description: Incremental research notebook that survives context death — findi
 
 # cirrus
 
-**The chat is disposable; the note is the artifact.**
+The chat is disposable; the note is the artifact.
 
 ## The note
 

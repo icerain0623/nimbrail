@@ -41,7 +41,7 @@ Entry triage for a new ask; each station explains itself when invoked:
 - A find too small for its own report, noticed **while doing something else** → one appended line in `<shared>/<project>/findings.md` (format in its header; append-only).
 
 ## Handoff files
-- Things the user opens/copies/runs → the shared root (Obsidian-readable): write the file, give the path. Copy only on request, and only a short command string — `pbcopy` wrecks clipboard history. Internal scratch → `/tmp` scratchpad.
+- Things the user opens/copies/runs → the shared root (Obsidian-readable): write the file, give the path. Internal scratch → `/tmp` scratchpad.
 - Shared root resolves from `~/.claude/shared-dirs.json`: an `overrides` entry for the project root, else `default`, else `~/Documents/claude-shared`. In a linked worktree the repo root is the parent of `git rev-parse --git-common-dir`, not `--show-toplevel`. Cross-project artifacts (sunbreak/almanac/synoptic/research) always use the default root; an override root needs a one-time settings grant (`update-config`; restart applies).
 
 ## Information lifecycle (claude-shared)

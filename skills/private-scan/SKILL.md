@@ -23,7 +23,7 @@ The **outgoing range** — every commit the push would carry:
 - Upstream exists → `git log @{u}..HEAD`.
 - First push of a branch → `<default-branch>..HEAD`.
 
-Scan **added lines only** (`git diff <range> | grep '^+'`), across the whole range.
+Scan added lines only (`git diff <range> | grep '^+'`), across the whole range.
 A path removed at the tip but present in an earlier commit still gets published;
 that is the case a working-tree grep misses.
 
@@ -58,7 +58,7 @@ Present them as one batched question with the file:line for each.
 
 ## Allowlist
 
-Values that are public **on purpose** live in the repo, one per line, in
+Values that are public on purpose live in the repo, one per line, in
 `.claude/public-values.txt` (create on confirmation). Everything
 matched by it is dropped before reporting, so a second run is quiet.
 

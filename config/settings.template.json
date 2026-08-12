@@ -98,7 +98,6 @@
       "Bash(stat:*)",
       "Bash(du:*)",
       "Bash(df:*)",
-      "Bash(pbcopy*)",
       "Bash(pbpaste*)",
       "Bash(find:*)",
       "Bash(grep:*)",
@@ -392,7 +391,6 @@
       "cargo",
       "rustup",
       "gh",
-      "pbcopy",
       "pbpaste",
       "colima",
       "go"

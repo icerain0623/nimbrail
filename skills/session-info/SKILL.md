@@ -15,8 +15,7 @@ It is the UUID directory name in this session's scratchpad and transcript paths:
 2. Write `<shared-root>/session-<project-name>.md` (create the dir if missing; shared root: per the global Handoff rule) containing, in plain text:
    - the resume command: `claude --resume <SESSION_ID>`
    - project name, branch, cwd, timestamp.
-3. Load the resume command onto the clipboard: `printf '%s' 'claude --resume <SESSION_ID>' | pbcopy` — the short-command exception in the handoff rule, and the only sanctioned `pbcopy` in the kit.
-4. Report the file path and the resume command to the user.
+3. Report the file path and the resume command to the user.
 
 ## Rules
 - One file per project, overwritten each time so it always reflects the latest session.

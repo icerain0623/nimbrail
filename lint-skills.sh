@@ -218,6 +218,8 @@ fi
 # The reporting contract lives as prose in config/CLAUDE.md, and prose enforces nothing.
 # These are the two halves a later skill edit breaks without noticing: a dated report
 # written somewhere other than reports/, and pbcopy creeping back into a handoff step.
+# The pbcopy half has no exception: the kit stopped copying to the clipboard when it
+# turned out nothing was ever pasted, so any reappearance is a regression.
 echo "[10] reporting contract (config/CLAUDE.md owns it; no skill may contradict it)"
 CONTRACT_FILES="$REPO/config/CLAUDE.md $REPO/skills/*/SKILL.md"
 # shellcheck disable=SC2086  # deliberate glob expansion of the file list
@@ -226,8 +228,7 @@ while IFS= read -r hit; do
   err "dated report path outside reports/ — $hit"
 done < <(grep -noE '`[^`]*<?YYYY-MM-DD>?[^`]*\.md`' $CONTRACT_FILES)
 while IFS= read -r hit; do
-  case "$hit" in */session-info/SKILL.md*) continue ;; esac
-  err "pbcopy outside session-info, the one sanctioned exception — $hit"
+  err "pbcopy in a skill — the kit does not copy to the clipboard — $hit"
 done < <(grep -n "pbcopy" "$REPO"/skills/*/SKILL.md)
 
 echo "[11] authored skills are linked into the live install"
