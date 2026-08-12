@@ -251,6 +251,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "bash ~/.claude/hooks/kit-checks.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": "bash ~/.claude/hooks/check-package-safety.sh",
             "timeout": 30,
             "statusMessage": "Checking package safety via Socket.dev..."
@@ -288,6 +293,16 @@
             "type": "command",
             "command": "bash ~/.claude/hooks/branch-guard.sh",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/validate-json.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/kit-checks.sh",
+            "timeout": 60
           }
         ]
       }

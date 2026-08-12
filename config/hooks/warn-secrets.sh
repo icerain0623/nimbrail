@@ -61,6 +61,14 @@ if echo "$content" | grep -qE 'gh[pousr]_[A-Za-z0-9_]{36,}'; then
   warn "機密情報の可能性: GitHubトークンを検出しました"
 fi
 
+# Fine-grained PATs. A separate pattern because the prefix is `github_pat_`, and
+# `gh[pousr]_` cannot reach it — the character after `gh` is `i`. This is the
+# format the README hands you for settings.local.json, so the one token shape the
+# kit documents was the one shape this hook did not see.
+if echo "$content" | grep -qE 'github_pat_[A-Za-z0-9_]{20,}'; then
+  warn "機密情報の可能性: GitHub fine-grained PAT を検出しました"
+fi
+
 # Slack tokens
 if echo "$content" | grep -qE 'xox[baprs]-[A-Za-z0-9-]{10,}'; then
   warn "機密情報の可能性: Slackトークンを検出しました"

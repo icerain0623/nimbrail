@@ -1,10 +1,40 @@
-# claude-kit（日本語クイックスタート）
+# claude-kit
 
-[Claude Code](https://claude.com/claude-code) の個人設定 **＋** 自作スキルを1つの repo にまとめたもの。新しいマシンでは `git clone` → `./install.sh` だけで復元できる。
+[Claude Code](https://claude.com/claude-code) の可搬な個人設定 — 設定 **＋** 自作スキルを1つの repo にまとめてあるので、新しいマシンは `git clone` と `./install.sh` の2手で復元できる。
 
-> これは英語版 [README.md](README.md) の要約です。**詳細・最新は README.md を正**とします（この日本語版は意図的に短く保ち、全訳はしません）。
-> 前提: **public repo**（`~/.claude` のミラー。実シークレットは非コミット）／**macOS と Linux（WSL 含む）**。個人設定のため **PR は受け付けていません**（[CONTRIBUTING.md](CONTRIBUTING.md)）。Issue と fork は歓迎。
-> Windows では **WSL** を使う。clone は **WSL 側のファイルシステム（`~/…`）** に置くこと（`/mnt/c` 配下は権限の都合で symlink が壊れる）。Git Bash / MSYS / Cygwin から実行した場合は `install.sh` が案内を出して止まる。native Windows に手作業で入れる手順は [docs/windows.md](docs/windows.md)（**未検証**。不明な箇所はそう明記してある）。
+English → [README.md](README.md)
+
+> **public repo だが個人設定。** `~/.claude` のミラーなので、貢献するプロジェクトではなく写して使うリファレンスとして置いてある。したがって **PR は受け付けていない**（[CONTRIBUTING.md](CONTRIBUTING.md)）。Issue と fork は歓迎。実シークレットはコミットしていない。PAT が置かれるのは `~/.claude/settings.local.json` だけ（[シークレット](#シークレット)を参照）。
+>
+> 動作環境は **macOS と Linux（WSL 含む）**。また一部の値がまだ作者固有のままになっている。どちらも[前提](#前提)にまとめてある。
+
+## Layout
+
+```
+claude-kit/
+├── install.sh                 # 3つ質問したうえで、以下すべてを ~/.claude へ symlink する
+├── test-hooks.sh              # config/hooks/*.sh の挙動リグレッションテスト
+├── lint.sh                    # install/test/statusline とフックへの shellcheck (brew install shellcheck)
+├── lint-skills.sh             # スキルの規約検査: frontmatter, slash 専用の rail, shared-root, 相互参照
+├── docs/                      # petrichor から昇格した仕様書 (downpour, permafrost)
+├── config/
+│   ├── CLAUDE.md              # グローバル指示           → ~/.claude/CLAUDE.md
+│   ├── settings.template.json # 権限/サンドボックス/フック → ~/.claude/settings.json (symlink ではなくコピー。PAT はプレースホルダ)
+│   ├── statusline.sh          #                         → ~/.claude/statusline.sh
+│   ├── gitignore_global       # core.excludesfile 経由で配線
+│   ├── npmrc                  # サプライチェーン対策      → ~/.npmrc (ignore-scripts + min-release-age)
+│   └── hooks/*.sh             # Pre/PostToolUse フック   → ~/.claude/hooks/
+├── skills/<name>/             # 自作スキル               → ~/.claude/skills/<name>/ — 個々の説明はワークフロー節に
+└── .claude/CLAUDE.md          # claude-kit 自体を触るときのプロジェクト規約
+```
+
+## 前提
+
+- **`jq` が必須。** PreToolUse フックが入力のパースに使う（`brew install jq`）。
+- **ツールチェーンは自分で入れる**（Homebrew など）。サンドボックス側の配線は済んでいる: `go`/`cargo`/`colima` はサンドボックス外で走り（`excludedCommands`）、`~/.gradle`・`~/.m2`・`~/.cargo`・`~/.pyenv` は書き込み可。Python は `python-setup` スキルを呼ぶこと（macOS に `python` は無く、システムの pip はサンドボックス外に書く）。
+- **プラグイン**（figma, serena, context7, chrome-devtools, …）は `install.sh` では入らず、この repo のファイルでもない。初回起動時に `settings.json` の `enabledPlugins` と `extraKnownMarketplaces` から復元されるので、Claude Code を再起動して取得させればよい。`skills/` 配下はもう一方の種類で、ここで書き、symlink され、git で同期される。
+- **macOS と Linux（WSL 含む）。** `install.sh` は bash で symlink のツリーを作るため、Windows では WSL を経路にする。clone は **WSL 側のファイルシステム（`~/…`）** に置くこと。`/mnt/c` 配下は権限の都合で symlink が壊れる。Git Bash / MSYS / Cygwin から実行した場合はその案内を出して止まる。native Windows へ手作業で入れる手順は [docs/windows.md](docs/windows.md) にあるが、**未検証**で、どこが不明かは正直に書いてある。
+- **一部の値はまだ作者固有**なので、そのまま採用する前に確認すること: サンドボックスの書き込みルートは `~/Documents/GitHub` と `~/Developers`、`EDITOR` は WebStorm（macOS ではそのまま。macOS 以外では WebStorm が無ければ `code --wait` か `vi` にフォールバック）。`SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` 用の CA bundle は install 時に探索するので、Debian/Ubuntu では macOS のパスではなく `/etc/ssl/certs/ca-certificates.crt` になる。
 
 ## 新マシンでのセットアップ
 
@@ -14,43 +44,101 @@ cd claude-kit
 ./install.sh
 ```
 
-続けてシークレット（コミット禁止）を作成し、Claude Code を再起動:
+まず**どの言語で進めるか**を聞く（English / 日本語）。以降のプロンプトも最後の案内も、その答えに従う。`$LANG` は既定値を決めるだけで、`--lang en|ja` を付ければ質問自体を省略できる。
+
+続けて3つ聞かれる。1つ目は**ハンドオフ ドキュメントの置き場所**。仕様書・報告書・タスク台帳は repo の外に書くので、プロジェクトが `.md` で埋まることがない。書き込めるディレクトリを選ぶ（Obsidian vault のサブフォルダが具合がよい）。答えは `~/.claude/shared-dirs.json` に保存され、`settings.json` のコピーにも差し込まれる。**これがサンドボックスにそこへの書き込みを許させている仕掛け**。
+
+| | |
+|---|---|
+| 既定 | `~/Documents/claude-shared`（Enter を押すだけ） |
+| 非対話 | `./install.sh --shared-dir ~/vault/claude-docs` |
+| あとから変える | `--shared-dir <新しいパス>` 付きで再実行し、旧い中身は自分で移す。スクリプトは参照先を張り替えるだけで、ファイルは移動しない |
+| 特定プロジェクトだけ別の場所 | `shared-dirs.json` に `"overrides"` エントリ（プロジェクトルート → 専用ディレクトリ）を足す。再実行しても保持される |
+
+2つ目と3つ目は、**git をどこまで自分でやってよいか**。どちらの答えも `git-workflow` フックが強制する。善意に頼る作りにはなっていない。
+
+| フラグ | 値 | |
+|---|---|---|
+| `--commit` | `auto` *(既定)* | チェックポイントで確認なしにコミットする |
+| | `ask` | 毎回のコミットを確認する |
+| `--push` | `ask` *(既定)* | `git push` / `gh pr create` を毎回確認する |
+| | `never` | 一切拒否する。push は自分の手でやる |
+| | `auto` | 確認せず push する — **ただし linter か CI がある repo に限る**（`.github/workflows`、eslint、biome、golangci、ruff、rubocop、`lint` スクリプト、`lint.sh` のいずれか）。何も検査していない場所に、レビューを経ないものを落とさないため。force push・ref 削除・`main` への push は auto でも確認する |
+
+再実行すると前回の選択を引き継ぐ。プロジェクト単位で変えることもできる。そのリポジトリの `.claude/settings.json`（コミットされるのでチーム全体に効く）か `.claude/settings.local.json`（gitignore されるので自分だけ）に `CLAUDE_KIT_COMMIT` / `CLAUDE_KIT_PUSH` を書けばよい。優先順位は Claude Code が user < project < project-local の順で処理する。
+
+続けてシークレットを作る:
 
 ```bash
-# ~/.claude/settings.local.json
+# ~/.claude/settings.local.json （秘密。絶対にコミットしない）
 { "env": { "GH_TOKEN": "github_pat_..." } }
 ```
 
-- **`./install.sh` は最初に言語を聞く**（English / 日本語）。以降のプロンプトも最後の案内も選んだ言語で出る。既定は `$LANG` から推測。`--lang ja` を付ければ質問ごと省略できる。
-- 続けて 3 つ聞かれる。まず **ハンドオフ ドキュメントの置き場所**。仕様書・報告書・タスク台帳は repo の外に書くので、プロジェクトが `.md` で埋まらない（Obsidian vault のサブフォルダなどが便利）。Enter で既定の `~/Documents/claude-shared`、非対話なら `./install.sh --shared-dir ~/vault/claude-docs`。回答は `~/.claude/shared-dirs.json` に入り、`settings.json` のコピーにも差し込まれる（**これがないとサンドボックスがそこへ書けない**）。あとから変えるには `--shared-dir` 付きで再実行（**中身の移動は自分でやる**。スクリプトは参照先を張り替えるだけ）。特定プロジェクトだけ別の場所にしたい場合は `shared-dirs.json` の `overrides` に足す（再実行でも保持される）。
-- 続けて **git をどこまで自動でやらせるか** も聞かれる（`--commit auto|ask` / `--push ask|never|auto`）。既定は「コミットは自動、push は毎回確認」。`--push auto` は **linter か CI がある repo でだけ**自動 push する（`.github/workflows`・eslint・biome・golangci・ruff・rubocop・`package.json` の lint スクリプト・`lint.sh` のいずれか）。force push・ref 削除・main への push は auto でも確認する。再実行すると前回の選択を引き継ぐ。プロジェクト単位で変えたい場合は、その repo の `.claude/settings.json`（コミットされる＝チーム共有）か `.claude/settings.local.json`（gitignore＝自分だけ）に `CLAUDE_KIT_COMMIT` / `CLAUDE_KIT_PUSH` を書く（優先順位はハーネスが user < project < project.local で処理する）。判定は CLAUDE.md ではなく **hook が強制**する。
-- **`jq` 必須**（PreToolUse フックが使う。`brew install jq`）。
-- **プラグイン**（serena / context7 など）は install.sh では入らない。初回起動時に `settings.json` の `enabledPlugins` から復元される。`false` のものは復元されないので、無効化はテンプレート側にも反映しておく（さもないと `--yes` で復活する）。
-- `./install.sh` は**再実行安全**。diverge したライブファイルは既定で**温存**（`--yes` で一括反映、旧版は `.bak` へ退避）。`settings.json` はコピー運用なので、マシン固有調整と `settings.local.json` の実 PAT は保持される。
-- **スキルを新規追加したら再実行が必要**。`skills/<name>/` は `~/.claude/skills/` へ symlink されて初めてスキルになる（既存スキルの編集は再実行不要）。
+そして Claude Code を再起動する。
 
-## ワークフロー（レール）
+### 更新 / 再実行
 
-天候名のライフサイクル。カッコ内は各駅の役割:
+`./install.sh` は再実行して安全。
+
+- **スキルを新規に書いたら再実行が必要。** `skills/<name>/` は `install.sh` が `~/.claude/skills/` へ symlink して初めて生きたスキルになる。既存スキルの編集には何も要らない。symlink はすでにここを指している。
+- 正しい symlink は読み飛ばすので、再実行は静かに終わる。
+- repo と**乖離した**ライブファイルは diff として提示され、**既定では温存**される。repo 側の版が黙って押し付けられることはない。置き換えるならファイルごとに承認するか、`./install.sh --yes` で repo の変更を一括で取り込む。置き換えたファイルは `<file>.bak.<epoch>` へ退避され（削除はしない）、実行の最後に「退避したもの / 温存したもの / 未解決のもの」の要約が出る。
+- `settings.json` も同じ流れだが*コピー*なので、マシン固有の調整と `settings.local.json` の実 PAT は残る。
+
+## ワークフロー
+
+天候名を付けたライフサイクル。カッコ内は各駅が何のためにあるか:
 
 ```
 petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
+   何を作るか      どう作るか + 設定      構築    定常運転
 ```
 
-**一直線ではなくループ**で、作業規模に応じて入口を選ぶ:
+これは**一直線ではなくループ**で、作業規模に合わせて入口を選ぶ:
 
-- **小さい/明確 → express lane**: 企画駅を飛ばして 実装 → `check` → 実挙動の確認 → commit。
-- **大きい/未確定 → petrichor から**: レールを一周。出荷後、次の substantial な作業がまた petrichor に戻る＝ループが閉じる。
-- **既存コードで spec が無い → overcast**（As-Is を spec 化）。
-- 迷ったら **monsoon** が現状を見て次手を提示。**プロジェクトを横断して**「全体で今どこか・何が自分の検証待ちで止まっているか」は `synoptic`。
+- **小さい / 明確な変更 → express lane。** 企画駅を飛ばして、実装 → `check` → 実挙動の確認 → コミット（git 周りは `monsoon` が担う）。1ファイルの修正にレールを一周させないこと。
+- **大きい / 未確定 → `petrichor` から始めて**レールを歩く。その機能が出荷されたら、次の大きな作業がまた `petrichor` から入る。これがループの閉じ方。新しい作業がどの経路を通るかの振り分けは `monsoon` がハブとして担う。
 
-各スキルの詳細・一覧は README.md の Workflow 節とスキル表を参照。rail 系（petrichor / overcast / squall / downpour / monsoon / sunbreak）は **slash 専用**、utility 系は文脈からも自動起動する。
+各ステップは終わりに次を指し示すので、連鎖を覚えるのではなく提示に従えばよい。
+
+0. **新規 / 空のプロジェクト — `petrichor`。** インタビューで仕様書まで持っていく。置き場所は **repo の外**の `<shared-root>/<project>/petrichor-plan/00-overview.md`。完了時に、その仕様書だけを `SPEC.md` として repo へ写すかを petrichor が聞く。
+
+0′. **既存コードベースで仕様書が無い — `overcast`。** As-Is を同じ仕様書アーティファクトへリバースエンジニアリングする。機能 ID はルートやコマンドから、受け入れ条件はテストから、実際の権限は認可コードから引く。すべての記述に確度（事実 / 推定 / 不明）を付け、不明点は1回のラウンドにまとめて聞く。引き継いだコードはそのあと同じレール（squall / forecast / weathering）に乗る。Serena の onboarding を判断して提案するのもこの駅で、インデックスを張る前に確認を取る。
+
+1. **設計 + 設定 — `squall`。** 詳細設計。仕様書と既存コードを読み、repo 側の設計アーティファクトを作る — 開発環境/README、コーディング規約（Lint）、DB 物理スキーマ、モジュール/処理設計、API（OpenAPI）/シーケンス設計、インフラ詳細。そのうえで `.claude/` の設定（`monsoon` が読む `project.md` と `CLAUDE.md` の規約）を記録し、リリースノートなどのオプトインを確認のうえ有効化する。インタビューではなく調査を先に置く方式。当てはまらない部分は飛ばす。
+
+2. **実装。** コーディングは専用スキルが駆動することはない。着手前にブランチを切る（並行して走らせるならエージェントごとに worktree）、進行中の `feedback.md`（ブロッカーと未解決の問い）を共有ディレクトリに置く、仕様や設計の穴は推測せず差し戻す、作業の途中で気づいたことは `findings.md` に記録する。チェックポイントでは `/monsoon` を走らせて次の一手を振り分ける（`check` → コミット → push / PR / …）。台帳のうち自律実行できる区間があれば `/downpour` が波ごとに消化する。サブエージェントが実装し、コンテキストが新しい検証者が EARS の完了条件を判定し、コミットと台帳の書き込みはオーケストレータだけが行う（仕様: `docs/SPEC-downpour.md`）。
+
+3. **以降は毎回 — `monsoon`。** `.claude/project.md` とライブな git 状態を読み、次に取るべき手へ振り分ける: 新しい作業を規模で振り分ける、未コミットがあれば `check` してコミットする、リリース前なら `release-note` / `forecast`、`--push` 方針が許す範囲で push か PR、マージ済みブランチが溜まったら `clean-branches`、仕様のドリフトには `weathering`、共有ディレクトリに古い資料が残っていれば `permafrost`、このプロジェクトに保留が無ければ `synoptic`（このルーターは現在の repo しか見ないため）。どの条件に合致し、その手前のどれを除外したかを報告するので、判定が結論だけ降ってくるのではなく筋が見える形になる。読み取りのみの手順は自動で走り、削除は必ず先に提案する。コミットと push がこの線のどちら側に立つかは上の install 時の方針で決まり、この段落ではなくフックが強制する。
+
+自作スキルの起動方法は2種類ある。**レール + `sunbreak`**（`petrichor`、`overcast`、`squall`、`downpour`、`monsoon`、`sunbreak`）は **slash 専用**（`disable-model-invocation`）で、明示的に呼ぶ必要がある。重いインタビューが言葉の弾みで自動発火しないようにするため。下の表の **utility** 系は文脈からも起動する（意図に合ったときだけ発火し、それ以外では黙るように description を調整してある）。単発で使いたいときは直接呼んでもよい。
+
+| スキル | 何をするか |
+| --- | --- |
+| `check` | lint/typecheck を走らせる（`full` でテストとビルドも）。ログは shared root（既定 `~/Documents/claude-shared/`）へ |
+| `release-note` | 直近のタグ以降のコミットから `RELEASE_NOTE.md` を更新する（repo ごとのオプトイン） |
+| `clean-branches` | マージ済みのローカルブランチを削除する（リモートは要求時）。main/master はフックで保護されている |
+| `private-scan` | push や PR が公開する前に、送出されるコミット範囲を（先頭だけでなく全体を）走査して private な識別子を洗い出す — ホームディレクトリや vault のパス、`~/Library`、メールアドレス、内部ホスト名。読み取りのみで提案する |
+| `session-info` | 再開コマンド（`claude --resume <id>`）を shared root（既定 `~/Documents/claude-shared/`）へ書き出す |
+| `forecast` | 仕様書からリリース前のシナリオテスト チェックリストを生成する（機能 ID へのカバレッジ追跡付き） |
+| `weathering` | 仕様ドリフト報告書。コードと `SPEC.md` の食い違いを洗い出す（ja+en の訳ズレも拾う）。修正は確認のうえで実施 |
+| `synoptic` | プロジェクト横断の現在位置。各台帳の先頭とライブな git を読み、何が自分を止めているかで順位付けし（自分の検証待ちを最優先）、`status.md` を再生成して次の一手を1つ提案する。`monsoon` が1プロジェクトを担当し、こちらは全部を見る |
+| `barometer` | キットと環境のドリフト。ライブな `~/.claude` をこの repo と突き合わせる（コピーされた `settings.json`、symlink の健全性、孤立ファイル）ほか、キットが前提にしているハーネス側の面がまだ存在するかを見る。読み取りのみで提案する。Claude Code を上げたあとに走らせる |
+| `almanac` | 稼働中の repo を横断した週次ダイジェスト（週報のドラフト）と、共有ディレクトリのライフサイクルのうち*提案*側。凍結候補の古いファイルを挙げる（保管庫は `permafrost`） |
+| `permafrost` | claude-shared の情報ライフサイクル機構。完了・陳腐化した資料を完全不可視のコールドストアへ凍結し（Read/grep 拒否の書き込み専用。読むには `thaw`）、warm 側を薄く保つ（追い出し）。強制は `settings.json` と `config/CLAUDE.md` にあり、スキーム自体の掃き出しと解凍を担うのがこのスキル。候補を挙げるのは `almanac` |
+| `cirrus` | 逐次的なリサーチノート。見つけた時点で Obsidian に残るので、コンテキストが死んでも再開できる |
+| `sunbreak` | **slash 専用**（レールではなくここに載せている）。過去のトランスクリプトを読み返し、Obsidian に報告書を書く（グローバルな学びとプロジェクト固有の学びを分けて）。適用は後から |
+| `python-setup` | サンドボックスで動く Python venv を用意する |
+| `node-sandbox-setup` | サンドボックス下の pnpm と mise を通す（インストール時の手順を症状→対処で） |
 
 ## シークレット
 
-- 実 GitHub PAT は `~/.claude/settings.local.json`（gitignore 済み）**のみ**。テンプレートはプレースホルダ。
-- 万一コミットに実トークンが混入したら **即ローテーション**。
+- 実 GitHub PAT が置かれるのは `~/.claude/settings.local.json`（gitignore 済み）**だけ**。`settings.local.json` が実行時に `env.GH_TOKEN` を上書きし、テンプレートはプレースホルダを持つ。
+- `.gitignore` は保険として、リテラルな `settings.json` もすべてブロックする。
+- 実トークンがコミットに入ってしまったら、GitHub 上で**即座にローテーションする**。
+- この repo では secret scanning と push protection を有効にしてあるので、既知の形のトークンは push 時点で GitHub が弾く。ただしこれは最後の砦で、上の2つのルールの代わりにはならない。
 
-## ライセンス
+## Contributing とライセンス
 
-[Apache-2.0](LICENSE)。改変・流用は自由（ライセンス表示の保持など、ライセンス本文の条件に従うこと）。
+- **PR は受け付けていない。** これは稼働中の個人設定だから。Issue は歓迎で、詳細は [CONTRIBUTING.md](CONTRIBUTING.md)。フックの迂回については [SECURITY.md](SECURITY.md)。
+- [Apache-2.0](LICENSE)。写して手を入れるのは自由（ライセンスが求める表示は保つこと）。

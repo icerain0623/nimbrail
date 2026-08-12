@@ -10,7 +10,7 @@
 #   4. shared-root convention: `~/Documents/claude-shared` appears in a skill
 #      body only on lines that state it is the default (the `<shared-root>`
 #      override convention — see global CLAUDE.md, Handoff files)
-#   5. README.md mentions every authored skill (tree/table drift)
+#   5. README.md and README.ja.md each mention every authored skill (table drift)
 #   6. the Obsidian guide, if present, mentions every authored skill
 #   7. backticked references that are shaped like a skill actually resolve to
 #      one — catches a phantom station (`verify`, `landing-page-nextjs`) written
@@ -79,13 +79,17 @@ while IFS=: read -r f n content; do
   esac
 done < <(grep -rn -- '[~]/Documents/claude-shared' "$REPO"/skills/ 2>/dev/null || true)
 
-echo "[5] README lists every authored skill (backticked — prose words don't count)"
+echo "[5] both READMEs list every authored skill (backticked — prose words don't count)"
+# README.ja.md is a full translation, not a summary, so it carries the same skill
+# table. Checking only the English one is how ten skills stayed unnamed in ja.
 for d in "$REPO"/skills/*/; do
   s="$(basename "${d%/}")"
   # require a structural mention: `name` or `/name` in a table row / list, not
   # the bare word in prose (skills named with dictionary words like "check"
   # would otherwise always pass)
-  grep -qE "\`/?$s\`" "$REPO/README.md" || err "README.md does not list '\`$s\`'"
+  for r in README.md README.ja.md; do
+    grep -qE "\`/?$s\`" "$REPO/$r" || err "$r does not list '\`$s\`'"
+  done
 done
 
 echo "[6] Obsidian guide lists every authored skill (backticked)"
@@ -166,6 +170,8 @@ done
 # arrives justified by a trap someone just hit — nothing in the writing pushes back.
 # 2026-07-26 measured a single session growing this file 11.5%. The budget is not a
 # prohibition: raise the number when the content earns it, but raise it on purpose.
+# It is this repo's own ceiling, not a platform one — the guidance targets 200 lines
+# per CLAUDE.md and sets no character cap.
 # Raised 6000 → 6200 for the reporting contract (when a report is written at all, its
 # path, its form): the rules it replaces were producing whole files where a chat line
 # would do, so the always-loaded cost buys back far more output than it spends.
@@ -186,11 +192,19 @@ fi
 # Claude Code truncates the listing near ~1% of the context window; past that,
 # skill routing degrades before raw token cost ever becomes the problem.
 echo "[9] listed-skill description budget (model-invocable skills only)"
+# Held at 4700 across adding `private-scan`: every listed description is always in
+# context, and a budget that rises whenever something wants in is not a budget.
+# The new skill was paid for out of weathering's description, which restated a
+# rule its own body already carries.
 LISTING_BUDGET="${LISTING_BUDGET:-4700}"   # env override is a test seam
 listing=0 listed=0
 for d in "$REPO"/skills/*/; do
   s="$(basename "${d%/}")"
-  case " $RAIL " in *" $s "*) continue ;; esac
+  # Exclude on the flag that actually decides listing, not on the rail roster.
+  # Keying on RAIL measured the wrong set: a slash-only skill added outside the
+  # rail counted against a budget it does not spend, and a rail skill that lost
+  # the flag would have gone on being excluded while appearing in the listing.
+  grep -qE '^disable-model-invocation:[[:space:]]*true' "$d/SKILL.md" && continue
   desc="$(sed -n 's/^description:[[:space:]]*//p' "$d/SKILL.md" | head -1)"
   listing=$(( listing + ${#s} + ${#desc} ))
   listed=$(( listed + 1 ))
@@ -215,6 +229,29 @@ while IFS= read -r hit; do
   case "$hit" in */session-info/SKILL.md*) continue ;; esac
   err "pbcopy outside session-info, the one sanctioned exception — $hit"
 done < <(grep -n "pbcopy" "$REPO"/skills/*/SKILL.md)
+
+echo "[11] authored skills are linked into the live install"
+# Every check above reads the repo, so all of them pass on a skill that is
+# invocable nowhere — a green run used to be the reason someone called an
+# unlinked skill done. Reporting it here is the fix; a note rather than a
+# failure, because a fresh clone legitimately has none of them linked yet.
+# Existence only: whether a link points at the right checkout is barometer's
+# job, and in a worktree it correctly points somewhere else.
+LIVE_SKILLS="${CLAUDE_LIVE_SKILLS:-$HOME/.claude/skills}"
+if [ -d "$LIVE_SKILLS" ]; then
+  unlinked=""
+  for d in "$REPO"/skills/*/; do
+    s="$(basename "${d%/}")"
+    [ -e "$LIVE_SKILLS/$s" ] || unlinked="$unlinked $s"
+  done
+  if [ -n "$unlinked" ]; then
+    note "not invocable until \`./install.sh\` links them:$unlinked"
+  else
+    note "all linked"
+  fi
+else
+  note "($LIVE_SKILLS not found — skipped)"
+fi
 
 echo
 if [ "$FAIL" = 0 ]; then echo "lint-skills: PASS"; else echo "lint-skills: FAIL"; fi
