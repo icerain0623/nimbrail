@@ -78,7 +78,7 @@ fi
 # going silent is the bug this hook was rewritten to fix.
 
 if [ -n "$nudge_live" ]; then
-  reason="この編集先は稼働中の設定そのものです（~/.claude/* がこのチェックアウトの config/ と skills/ を指しています）。編集は即座に live に反映され、あとでブランチを切り替えると config/ 配下だけ half-revert して戻らなくなります。兄弟ディレクトリの worktree で作業してください（git worktree add ../<repo>-worktrees/<branch> -b <branch>）。live を直接触る意図なら承認して続行できます（承認後はこのセッションで聞きません）。"
+  reason="この編集先は稼働中の設定そのものです（~/.claude/* がこのチェックアウトの config/ と skills/ を指しています）。編集は即座に live に反映され、あとでブランチを切り替えると config/ 配下だけ half-revert して戻らなくなります。兄弟ディレクトリの worktree で作業してください（git worktree add ../<repo>-worktrees/<branch> -b <branch>）。テストと lint はリポジトリのファイルを読むので worktree で完結し、live に効かせる確認だけが main へのマージ後になります。live を直接触る意図なら承認して続行できます（承認後はこのセッションで聞きません）。"
 else
   reason="現在 '$branch' ブランチに直接編集しようとしています。作業前に feature ブランチを切ってください（git switch -c <name>）。main で作業する意図なら承認して続行できます（承認後はこのセッションで聞きません）。"
 fi

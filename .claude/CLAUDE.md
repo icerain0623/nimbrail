@@ -4,7 +4,6 @@ This repo is the source of the global Claude Code config: `install.sh` symlinks 
 
 ## Editing rules
 - Edit `config/` and `skills/` here, never `~/.claude/*` (symlinks back to this repo). `~/.claude/settings.json` is the copy, so edits there do **not** flow back: change `config/settings.template.json` and re-run `install.sh`.
-- **`config/` and `skills/` changes are authored in a worktree**, not in this checkout on a branch: `~/.claude/*` resolves here, so an edit is live at once and a later `switch` half-reverts it (sandbox carve-out below). `test-hooks.sh`, `lint.sh` and `lint-skills.sh` all read the repo, so they run in the worktree; only live firing waits for the merge to main.
 - After editing `config/settings.template.json`, validate it:
   `python3 -c "import json; json.load(open('config/settings.template.json'))"`. `install.sh` copies it over, keeping a diverging live copy unless you confirm or pass `--yes`, and shelves the old one to `.bak`.
 - Hooks in `config/hooks/*.sh` are bash and need `jq`. After changing one, run `bash test-hooks.sh` and `bash lint.sh` (shellcheck; `brew install shellcheck`). Add a case to `test-hooks.sh` for every new check.
