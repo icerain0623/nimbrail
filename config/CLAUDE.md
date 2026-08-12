@@ -36,8 +36,8 @@ Entry triage for a new ask; each station explains itself when invoked:
 - Subagents only for large, independent, parallelizable work — a wide multi-file investigation, an invoked `downpour` wave. Not for what you'd finish in a few tool calls, and not to check your own work, except petrichor L3's cold read. Keep counts low. Workflows and deep-research on request only.
 
 ## Reporting findings
-- **A report is only for what outlives the session** — the user has to judge it, work is left undone, or the record will be re-read. Fixed on the spot → chat and the commit message; nothing problematic → say so in chat. 軽微 alone never earns one.
-- `<shared>/<project>/reports/YYYY-MM-DD_<title>.md`, never rewritten: a same-day re-run appends a run section, a later run takes a new date. **A report tracks no state** — every action it proposes goes to `TODO.md` (mid-build `tasks.md`) as one line linking back.
+- **A report records what was learnt; `TODO.md` records what to do.** All actions and nothing else → no report, write the TODO lines. A report earns a file only when its evidence still reads once they are closed — a measurement, a repro. Fixed on the spot, or nothing problematic → chat only. 軽微 alone never earns one.
+- `<shared>/<project>/reports/YYYY-MM-DD_<title>.md`, never rewritten: a same-day re-run appends a run section, a later run takes a new date. **It tracks no state** — every action it proposes goes to `TODO.md` (mid-build `tasks.md`) as one line linking back.
 - Form of a findings report: 深刻度 as H2 (重大 escalate now · 対応が必要 · テストが必要 · 軽微; an empty one gets no heading), one line per finding — `場所 — 事実 → 提案` with `file:line` or a sha. No prose, no tables, no 概要/次のステップ sections.
 - A find too small for its own report, noticed **while doing something else** → one appended line in `<shared>/<project>/findings.md` (format in its header; append-only).
 
