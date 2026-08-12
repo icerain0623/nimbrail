@@ -1,6 +1,6 @@
 ---
 name: python-setup
-description: Set up a sandbox-safe Python environment for a project — reuse an existing interpreter/venv if present, else create a project-local venv. Use when `python` is missing, pip installs fail under the sandbox, or a project needs an isolated interpreter.
+description: Set up a sandbox-safe Python environment for a project. Use when `python` is missing, pip installs fail under the sandbox, or a project needs an isolated interpreter.
 ---
 
 # Python Setup
@@ -13,9 +13,7 @@ If the project already has an interpreter, use it instead of reinstalling:
 - An IDE-configured interpreter (JetBrains/WebStorm/PyCharm: look in `.idea/`, or a `.venv` the IDE made) → use that path.
 - A `.python-version` (pyenv) or `.tool-versions`/`.mise.toml` pin → honor it.
 
-Only run the setup below when none of these exist.
-
-## Create a project venv
+## Create a project venv (none of the above exists)
 From the repo root:
 
 ```bash
@@ -24,7 +22,7 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt   # if present
 ```
 
-Then always invoke `.venv/bin/python` / `.venv/bin/pip`, never bare `python`/`pip`.
+Then always invoke `.venv/bin/python` / `.venv/bin/pip`.
 
 - Add `.venv/` to `.gitignore` if not already covered.
 - If pip still writes `~/Library/Caches/pip`, set `PIP_CACHE_DIR="$PWD/.venv/.pip-cache"` or pass `--no-cache-dir`.
@@ -39,5 +37,4 @@ python3 -m venv .venv  # then the venv flow above
 ```
 
 ## Notes
-- Never `pip install` into the system interpreter (fails under the sandbox, pollutes a shared env).
 - If a tool needs to run unsandboxed (e.g. a host DB), have the user run it via `!` rather than weakening the sandbox.

@@ -192,11 +192,12 @@ fi
 # Claude Code truncates the listing near ~1% of the context window; past that,
 # skill routing degrades before raw token cost ever becomes the problem.
 echo "[9] listed-skill description budget (model-invocable skills only)"
-# Held at 4700 across adding `private-scan`: every listed description is always in
-# context, and a budget that rises whenever something wants in is not a budget.
-# The new skill was paid for out of weathering's description, which restated a
-# rule its own body already carries.
-LISTING_BUDGET="${LISTING_BUDGET:-4700}"   # env override is a test seam
+# Every listed description is always in context, so this ratchets down as the
+# surface shrinks — a ceiling left where the old numbers were is just room for the
+# fat to grow back. 4700 -> 4200 after the descriptions gave up their
+# non-triggering half (preconditions, mechanism, output paths); the actual total is
+# 3922, and the slack left is about one new skill's worth.
+LISTING_BUDGET="${LISTING_BUDGET:-4200}"   # env override is a test seam
 listing=0 listed=0
 for d in "$REPO"/skills/*/; do
   s="$(basename "${d%/}")"
@@ -218,6 +219,8 @@ fi
 # The reporting contract lives as prose in config/CLAUDE.md, and prose enforces nothing.
 # These are the two halves a later skill edit breaks without noticing: a dated report
 # written somewhere other than reports/, and pbcopy creeping back into a handoff step.
+# The pbcopy half has no exception: the kit stopped copying to the clipboard when it
+# turned out nothing was ever pasted, so any reappearance is a regression.
 echo "[10] reporting contract (config/CLAUDE.md owns it; no skill may contradict it)"
 CONTRACT_FILES="$REPO/config/CLAUDE.md $REPO/skills/*/SKILL.md"
 # shellcheck disable=SC2086  # deliberate glob expansion of the file list
@@ -226,8 +229,7 @@ while IFS= read -r hit; do
   err "dated report path outside reports/ — $hit"
 done < <(grep -noE '`[^`]*<?YYYY-MM-DD>?[^`]*\.md`' $CONTRACT_FILES)
 while IFS= read -r hit; do
-  case "$hit" in */session-info/SKILL.md*) continue ;; esac
-  err "pbcopy outside session-info, the one sanctioned exception — $hit"
+  err "pbcopy in a skill — the kit does not copy to the clipboard — $hit"
 done < <(grep -n "pbcopy" "$REPO"/skills/*/SKILL.md)
 
 echo "[11] authored skills are linked into the live install"

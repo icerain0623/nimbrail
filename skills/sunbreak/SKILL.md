@@ -6,23 +6,23 @@ disable-model-invocation: true
 
 # Sunbreak
 
-The clearing after the storm — look back over recent sessions and surface what is worth keeping. The output is **one report file, never in-place edits**. Mining and applying are deliberately separated: sunbreak mines, and the user applies later (typically in a dedicated nimbrail review session), so no skill-rewrite or CLAUDE.md dialog is forced mid-flow.
+The clearing after the storm — look back over recent sessions and surface what is worth keeping. Mining and applying are deliberately separated: the output is **one report file**, so no rewrite dialog is forced mid-flow. The user applies it later, typically in a dedicated nimbrail review session.
 
 ## Where transcripts live
 
-`~/.claude/projects/<slug>/*.jsonl`, one file per session, where `<slug>` is a project's absolute path with `/` replaced by `-`. sunbreak is cross-project by nature — sweep slugs across projects, not just the current one. Sort by mtime, newest first, and review as many as the context budget allows, capping to the most recent only when the volume would overflow. State how many transcripts across how many projects were reviewed.
+`~/.claude/projects/<slug>/*.jsonl`, one file per session, where `<slug>` is a project's absolute path with `/` replaced by `-`. sunbreak is cross-project by nature — sweep slugs across projects, newest mtime first, capping to the most recent only when the volume would overflow the context budget.
 
 ## Steps
 
 1. List recent transcripts across projects (newest first) and choose the review window.
-2. Scan with `grep` / `jq` rather than reading whole files — they are large. Three kinds of signal:
+2. Scan with `grep` / `jq`; the files are too large to read whole. Three kinds of signal:
    - repeated asks or corrections ("again, use…", "I told you…", repeated reverts) — the strongest candidates for a standing rule;
    - recurring errors — the same or a similar failure hit more than once; capture the error signature with the fix that worked;
    - general friction — many-attempt tasks, recurring permission or sandbox denials.
-3. Cluster the signals into a few concrete, generalizable lessons. Discard one-offs.
-4. **Classify each kept lesson by scope** — the key judgement. A global candidate recurs across more than one project or is obviously stack-agnostic, and only those are worth proposing for the global CLAUDE.md, a global memory, or a skill. Anything seen in one project only, or tied to that repo's stack, stays project-scoped; promoting it to global config is pointless noise.
-5. Write one report — never edit memory or CLAUDE.md. Path: `<default shared root>/reports/<YYYY-MM-DD>_sunbreak.md` (default `~/Documents/claude-shared`), always the default shared root rather than a per-project override, since a cross-project report belongs to no single project (create the dir if missing). Same-day re-runs append, per the global rule.
-6. Report back where the file was written, counts per bucket, and how many transcripts and projects were reviewed. Then stop — applying is the user's call, later. Do not open an apply-now dialog.
+3. Cluster the signals into a few concrete, generalizable lessons. Discard one-offs and session-specific trivia.
+4. **Classify each kept lesson by scope** — the key judgement. Only a lesson that recurs across more than one project, or is obviously stack-agnostic, is worth proposing for the global CLAUDE.md, a global memory, or a skill. Anything seen in one project only, or tied to that repo's stack, is said explicitly to stay project-scoped — promoting it to global config is pointless noise, and persisting it even to a project memory needs the user's confirmation.
+5. Write the report to `<default shared root>/reports/<YYYY-MM-DD>_sunbreak.md` (create the dir if missing).
+6. Report back the path, counts per bucket, and how many transcripts across how many projects were reviewed, then stop.
 
 ## Report format
 
@@ -49,8 +49,5 @@ Reviewed: <N> transcripts across <M> projects (window: <e.g. last 2 weeks>)
 
 ## Rules
 
-- Report only. Never edit the global CLAUDE.md, memory files, or any skill in this run.
-- Keep scopes separate: a project-specific lesson must not be proposed as a global rule or skill — say explicitly that it stays project-scoped, and that persisting it even to a project memory needs the user's confirmation.
-- Save general, reusable lessons, not session-specific trivia.
 - Never copy secrets, tokens, or raw file contents from transcripts into the report.
-- Cross-reference, don't duplicate: a lesson already covered by CLAUDE.md or memory is noted as "already covered" rather than re-proposed.
+- A lesson already covered by CLAUDE.md or memory is noted as "already covered" rather than re-proposed.

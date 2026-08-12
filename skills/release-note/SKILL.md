@@ -1,16 +1,11 @@
 ---
 name: release-note
-description: Maintain a RELEASE_NOTE.md changelog. A repo opts in by having RELEASE_NOTE.md at its root (that file's presence is the toggle); this skill creates it on first use after confirmation, then prepends entries generated from commits since the last release. Use when preparing a release or version bump — not on every commit.
+description: Maintain a RELEASE_NOTE.md changelog. A repo opts in by having RELEASE_NOTE.md at its root (that file's presence is the toggle); entries are generated from commits since the last release. Use when preparing a release or version bump — not on every commit.
 ---
 
 # Release Note
 
-Opt-in changelog. A repo participates only if `RELEASE_NOTE.md` exists at its root — that file's presence is the toggle. Never nag about release notes in repos that don't have it.
-
-## The toggle (how/when it's set)
-- Enabled when `RELEASE_NOTE.md` exists at the repo root.
-- Enable it once, when starting a repo that needs release notes: the user creates the file, or this skill creates it after explicit confirmation on first use ("This repo has no RELEASE_NOTE.md — create one and start tracking? y/n").
-- Disable by deleting or renaming the file. There is no other state.
+A repo with no `RELEASE_NOTE.md` at its root has not opted in — ask once before creating it: "This repo has no RELEASE_NOTE.md — create one and start tracking? y/n".
 
 ## Generating an entry (at release / version-bump time)
 1. Find the last release point: latest tag (`git describe --tags --abbrev=0`) or the top version heading already in RELEASE_NOTE.md.
@@ -22,6 +17,6 @@ Opt-in changelog. A repo participates only if `RELEASE_NOTE.md` exists at its ro
 6. Show the diff and confirm before writing, unless the user pre-approved.
 
 ## Rules
-- Append-only history: never rewrite past release sections.
+- Append-only history: past release sections stay as written.
 - Terse and user-facing — this is a changelog, not the commit log.
 - Don't tag or push; that is a separate, explicitly confirmed step.

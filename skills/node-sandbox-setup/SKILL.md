@@ -1,33 +1,25 @@
 ---
 name: node-sandbox-setup
-description: Unblock pnpm + mise for a Node project under the sandbox. Use when pnpm install fails (ignored build scripts, NO_TTY abort, minimumReleaseAge, trustPolicy), when mise can't fetch/resolve tool versions, or when starting a Node/pnpm project in this environment. Symptom→fix for the recurring install "dance".
+description: Unblock pnpm + mise for a Node project under the sandbox. Use when pnpm install fails (ignored build scripts, NO_TTY abort, minimumReleaseAge, trustPolicy), when mise can't fetch/resolve tool versions, or when starting a Node/pnpm project in this environment.
 ---
 
 # node-sandbox-setup
 
-The pnpm/mise install "dance" in the sandbox is a predictable multi-failure sequence. Apply the fix per symptom; don't theorize about the mechanism (network behaviour here is inconsistent — even allowlisted hosts can be unreachable). Verified on pnpm 11 + mise.
-
-## pnpm
-- **Store**: pnpm auto-locates its store on the project's drive (e.g. `~/Developers/.pnpm-store`) — already writable. Do **not** redirect `store-dir`.
-- **cache / state**: default under `~/Library` (sandbox-denied). If a pnpm op fails writing there, point `cache-dir`/`state-dir` at a writable path (e.g. `~/.cache/pnpm`) via a gitignored project `.npmrc`.
-- **Build scripts**: `ignore-scripts` is on globally, so declare needed ones in `pnpm-workspace.yaml` `allowBuilds:`. Common allowlist for these stacks: `@prisma/engines`, `@prisma/client`, `prisma`, `esbuild`, `sharp`, `argon2`, `unrs-resolver`, `@biomejs/biome`. Run project tools via `node_modules/.bin/<tool>` — `pnpm exec` re-runs the pre-install check and fails the same way.
-- **pnpm 11 required**: a `pnpm-workspace.yaml` holding only settings keys (e.g. `minimumReleaseAge`) errors `packages field missing or empty` on pnpm <11. Pin pnpm 11.
-- One-off generators: use `npx` — `pnpm dlx` / `pnpm create` hit the same store/cache path.
-
-## mise
-Remote version lookups fail in-sandbox (mise's CDN and `api.github.com` are unreachable here, and the `~/Library/Caches/mise` write is denied). So:
-- Pin `.mise.toml` to **already-installed** versions — a lookup for an absent version fails.
-- Run version-changing ops (`mise install`, `mise use -g`) via the user's `!` shell (real terminal).
-- Don't `corepack enable` — it EPERMs symlinking into the mise node bin. Rely on the `packageManager` field + the installed pnpm.
+The install "dance" is a predictable multi-failure sequence; apply the fix per symptom — network behaviour here is inconsistent, and even allowlisted hosts can be unreachable, so the mechanism is not worth theorizing about. Verified on pnpm 11 + mise.
 
 ## error → fix
-- `ERR_PNPM_IGNORED_BUILDS` → add the named package(s) to `allowBuilds:` (or `pnpm approve-builds`).
+
+- `ERR_PNPM_IGNORED_BUILDS` → `ignore-scripts` is on globally, so declare the named package(s) in `pnpm-workspace.yaml` `allowBuilds:` (or `pnpm approve-builds`). Common allowlist for these stacks: `@prisma/engines`, `@prisma/client`, `prisma`, `esbuild`, `sharp`, `argon2`, `unrs-resolver`, `@biomejs/biome`.
 - `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` → `CI=true pnpm install`.
 - `minimumReleaseAge` rejects existing lockfile entries → `rm pnpm-lock.yaml && pnpm install`, but **only** when the lockfile predates the policy; it re-resolves to older compliant versions, so review the diff.
 - `ERR_PNPM_TRUST_DOWNGRADE` → turn off `trustPolicy: no-downgrade` for that project (with a comment).
-- `pnpm-workspace.yaml: packages field missing or empty` → upgrade to pnpm 11.
-- `corepack enable` → EPERM → skip corepack; use `packageManager` + the installed pnpm.
-- mise "Remote versions cannot be fetched" / cache write `Operation not permitted` → pin to installed versions; run version changes via the `!` shell.
+- `pnpm-workspace.yaml: packages field missing or empty` → pnpm <11 chokes on a workspace file holding only settings keys (e.g. `minimumReleaseAge`). Pin pnpm 11.
+- a pnpm op fails writing under `~/Library` → its `cache-dir`/`state-dir` default there and the path is sandbox-denied; point them at a writable path (e.g. `~/.cache/pnpm`) via a gitignored project `.npmrc`. The **store** needs nothing — pnpm auto-locates it on the project's drive (e.g. `~/Developers/.pnpm-store`).
+- `corepack enable` → EPERM symlinking into the mise node bin → skip corepack; rely on the `packageManager` field + the installed pnpm.
+- mise "Remote versions cannot be fetched" / cache write `Operation not permitted` → mise's CDN and `api.github.com` are unreachable in-sandbox and `~/Library/Caches/mise` is write-denied. Pin `.mise.toml` to **already-installed** versions (a lookup for an absent version fails), and run version-changing ops (`mise install`, `mise use -g`) via the user's `!` shell.
+- `gh` → `tls: failed to verify certificate` → cert verification failing *inside* the sandbox, not an unreachable host (`api.github.com` is allowlisted). Run `gh` unsandboxed; mise's remote lookups still fail here, for the CDN reason above.
 
-## Note (related, not pnpm/mise)
-- `gh` fails **in-sandbox** with `tls: failed to verify certificate` — a cert-verification failure inside the sandbox, not an unreachable host (`api.github.com` is allowlisted, and `gh` works with the sandbox disabled). Run `gh` unsandboxed. mise's own remote lookups still fail here, for the CDN reason above.
+## Running tools
+
+- Project tools: `node_modules/.bin/<tool>` — `pnpm exec` re-runs the pre-install check and fails the same way.
+- One-off generators: `npx` — `pnpm dlx` / `pnpm create` hit the same store/cache path.
