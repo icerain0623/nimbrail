@@ -15,17 +15,13 @@ This repo is the source of the global Claude Code config: `install.sh` symlinks 
 
 ## Who reads it (agent-facing vs human-facing)
 - **Agent-facing** — `config/CLAUDE.md`, `skills/**/*.md`. Default to zero-shot: state the rule once, in one sentence, and stop. Bold marks a signpost — a list item's label, the condition that discriminates a branch, or the one constraint in a passage that must not be skimmed past — never decoration or bare emphasis. Keep a rationale clause only where its absence would let the rule lose to a plausible local judgement. Don't state a rule in two files — pick the canonical one and link. Don't restate what a hook, permission, or sandbox rule already enforces; state the procedure instead.
-- **An example earns its place** only when the output shape is fixed (a table-row schema, a checklist line) or the rule alone can't settle the boundary. One example, never a set.
-- **Human-facing** — `README.md`, `README.ja.md`, `CONTRIBUTING.md`, `SECURITY.md`. Readability first: framing, tables and worked examples stay.
+- **An example earns its place** only when the output shape is fixed (a table-row schema, a checklist line) or the rule alone can't settle the boundary. In `config/CLAUDE.md`: one example, never a set — it is always loaded and check [8] caps it. A skill body is unbudgeted and loads on demand, so where one pins a fixed output shape, [official guidance](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) applies instead: 3–5 varied examples beat one.
+- **Human-facing** — `README.md`, `README.ja.md`, `CONTRIBUTING.md`, `SECURITY.md`. Readability first, in the shortest form that stays readable: framing, tables and worked examples earn their place, length and decoration don't. **Say a thing once** — the same fact in two sections is the failure mode here, not a missing rule.
 - `README.ja.md` is a **full translation** of `README.md`, not a summary — a change to one lands in both, in the same commit. `lint-skills.sh` [5] only catches an unlisted skill name; prose parity is on you.
 - Trimming an agent-facing file: list its normative statements, trim, then check the list still holds. Losing a rule is the failure that matters.
 
 ## Layer model (where a rule belongs)
-- **sandbox** → whether a command can run at all (network / writable paths).
-- **permissions** (allow/ask/deny) → auto-run / prompt / hard-block a tool call.
-- **hooks** → deterministic interception of tool *calls* (block/ask/inject). Use for rules that must always hold. Hooks cannot compel an output *behavior*, only gate commands.
-- **CLAUDE.md** → advisory; may not always be followed. Preferences and non-critical procedures.
-- **skills** → on-demand procedures (e.g. `python-setup`).
+- Standard Claude Code layering (sandbox → permissions → hooks → CLAUDE.md → skills) applies as documented; don't restate it here. The part worth holding on to: **hooks gate tool calls and cannot compel an output behavior**, so a rule about how something is *written* is advisory no matter which file it sits in — anything that must always hold has to be expressible as a command to block.
 
 ## Secrets
 - Never commit a real PAT. It lives only in `~/.claude/settings.local.json`; the template carries a placeholder and `.gitignore` blocks any literal `settings.json`.
