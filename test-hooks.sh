@@ -66,6 +66,17 @@ guard_post() { # <file_path> <branch> <state_dir>
       bash "$H/branch-guard.sh" >/dev/null 2>&1
 }
 
+# validate-json / kit-checks are PostToolUse: they cannot decide, so the signal
+# is the exit code — 2 means "reported to Claude", 0 means "nothing to say".
+expect_rc() { # <hook> <file_path> <want_rc> [env_assignments...]
+  local hook=$1 fp=$2 want=$3; shift 3
+  local rc
+  printf '{"tool_input":{"file_path":%s}}' "$(jq -Rn --arg c "$fp" '$c')" \
+    | env "$@" bash "$H/$hook" >/dev/null 2>&1
+  rc=$?
+  if [ "$rc" = "$want" ]; then pass=$((pass+1)); else fail=$((fail+1)); echo "FAIL $hook: want=$want got=$rc :: $fp"; fi
+}
+
 # git worktree placement — CLAUDE_HOOK_REPO_TOP is the seam for the repo toplevel.
 expect_wt() { # <cmd> <top> <deny|none>
   local cmd=$1 top=$2 want=$3 out dec
@@ -311,6 +322,54 @@ else
   guard_post   "/r/f.txt" main   "$TB/6"
   expect_guard "/r/f.txt" main   "$TB/6" none
   rm -rf "$TB"
+fi
+
+# ── validate-json / kit-checks (PostToolUse) ─────────────────────────────────
+for b in "${TMPDIR:-/tmp}/claude-kit-json-$$" "/tmp/claude/claude-kit-json-$$" "$REPO/.test-tmp-json-$$"; do
+  mkdir -p "$b" 2>/dev/null && { JB="$b"; break; }
+done
+if [ -z "${JB:-}" ]; then
+  echo "SKIP validate-json/kit-checks: no writable temp dir"; fail=$((fail+1))
+else
+  mkdir -p "$JB/.vscode"
+  printf '{"a":1}'             > "$JB/ok.json"
+  printf '{"a":1,,}'           > "$JB/bad.json"
+  printf '{\n // c\n "a":1\n}' > "$JB/tsconfig.json"
+  printf '{\n // c\n "a":1\n}' > "$JB/.vscode/settings.json"
+  printf 'x'                   > "$JB/plain.txt"
+
+  expect_rc validate-json.sh "$JB/ok.json"               0
+  expect_rc validate-json.sh "$JB/bad.json"              2
+  # JSONC by convention: jq rejects the comments, so parsing these would report a
+  # defect on a correct file. A check that cries wolf stops being read.
+  expect_rc validate-json.sh "$JB/tsconfig.json"         0
+  expect_rc validate-json.sh "$JB/.vscode/settings.json" 0
+  expect_rc validate-json.sh "$JB/plain.txt"             0
+  expect_rc validate-json.sh "$JB/gone.json"             0   # never existed
+
+  # kit-checks fingerprints the repo by its three scripts, never by path.
+  mkdir -p "$JB/foreign"; : > "$JB/foreign/README.md"
+  expect_rc kit-checks.sh "$JB/foreign/README.md" 0 CLAUDE_HOOK_REPO_TOP="$JB/foreign"
+
+  # A lookalike that carries the fingerprint, with suites rigged to fail. Using a
+  # stub — NOT the real repo — is load-bearing: kit-checks runs test-hooks.sh on a
+  # config/hooks/*.sh edit, and pointing that at this checkout would recurse.
+  K="$JB/kit"; mkdir -p "$K/config/hooks"
+  printf '#!/bin/bash\necho "stub test-hooks failed"\nexit 1\n' > "$K/test-hooks.sh"
+  printf '#!/bin/bash\necho "stub lint-skills failed"\nexit 1\n' > "$K/lint-skills.sh"
+  : > "$K/config/settings.template.json"
+  : > "$K/README.md"; : > "$K/README.ja.md"; : > "$K/install.sh"
+  : > "$K/config/CLAUDE.md"; : > "$K/config/hooks/x.sh"
+  mkdir -p "$K/skills/demo"; : > "$K/skills/demo/SKILL.md"
+
+  expect_rc kit-checks.sh "$K/README.md"            2 CLAUDE_HOOK_REPO_TOP="$K"
+  expect_rc kit-checks.sh "$K/README.ja.md"         2 CLAUDE_HOOK_REPO_TOP="$K"
+  expect_rc kit-checks.sh "$K/config/CLAUDE.md"     2 CLAUDE_HOOK_REPO_TOP="$K"
+  expect_rc kit-checks.sh "$K/skills/demo/SKILL.md" 2 CLAUDE_HOOK_REPO_TOP="$K"
+  expect_rc kit-checks.sh "$K/config/hooks/x.sh"    2 CLAUDE_HOOK_REPO_TOP="$K"
+  # Out of scope for either suite → silent, however broken the repo is.
+  expect_rc kit-checks.sh "$K/install.sh"           0 CLAUDE_HOOK_REPO_TOP="$K"
+  rm -rf "$JB"
 fi
 
 echo "────────────────────────"

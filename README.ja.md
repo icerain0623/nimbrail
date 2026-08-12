@@ -23,7 +23,7 @@ claude-kit/
 │   ├── statusline.sh          #                         → ~/.claude/statusline.sh
 │   ├── gitignore_global       # core.excludesfile 経由で配線
 │   ├── npmrc                  # サプライチェーン対策      → ~/.npmrc (ignore-scripts + min-release-age)
-│   └── hooks/*.sh             # PreToolUse フック        → ~/.claude/hooks/
+│   └── hooks/*.sh             # Pre/PostToolUse フック   → ~/.claude/hooks/
 ├── skills/<name>/             # 自作スキル               → ~/.claude/skills/<name>/ — 個々の説明はワークフロー節に
 └── .claude/CLAUDE.md          # claude-kit 自体を触るときのプロジェクト規約
 ```
