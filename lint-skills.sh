@@ -230,6 +230,29 @@ while IFS= read -r hit; do
   err "pbcopy outside session-info, the one sanctioned exception — $hit"
 done < <(grep -n "pbcopy" "$REPO"/skills/*/SKILL.md)
 
+echo "[11] authored skills are linked into the live install"
+# Every check above reads the repo, so all of them pass on a skill that is
+# invocable nowhere — a green run used to be the reason someone called an
+# unlinked skill done. Reporting it here is the fix; a note rather than a
+# failure, because a fresh clone legitimately has none of them linked yet.
+# Existence only: whether a link points at the right checkout is barometer's
+# job, and in a worktree it correctly points somewhere else.
+LIVE_SKILLS="${CLAUDE_LIVE_SKILLS:-$HOME/.claude/skills}"
+if [ -d "$LIVE_SKILLS" ]; then
+  unlinked=""
+  for d in "$REPO"/skills/*/; do
+    s="$(basename "${d%/}")"
+    [ -e "$LIVE_SKILLS/$s" ] || unlinked="$unlinked $s"
+  done
+  if [ -n "$unlinked" ]; then
+    note "not invocable until \`./install.sh\` links them:$unlinked"
+  else
+    note "all linked"
+  fi
+else
+  note "($LIVE_SKILLS not found — skipped)"
+fi
+
 echo
 if [ "$FAIL" = 0 ]; then echo "lint-skills: PASS"; else echo "lint-skills: FAIL"; fi
 exit "$FAIL"

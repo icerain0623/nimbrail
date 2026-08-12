@@ -454,6 +454,16 @@ else
   lint_gate "git push"   ask
   lint_gate "gh pr create" ask
   lint_gate "git status" none
+
+  # A changed hook without a changed test-hooks.sh. Both READMEs are in the range
+  # throughout, so an ask here can only come from the hook/test pairing.
+  both="README.md"$'\n'"README.ja.md"
+  expect_parity "git push" "$both"$'\n'"config/hooks/warn-secrets.sh"                       "$K" ask
+  expect_parity "git push" "$both"$'\n'"config/hooks/warn-secrets.sh"$'\n'"test-hooks.sh"   "$K" none
+  # Only the suite changed, no hook → nothing to pair.
+  expect_parity "git push" "$both"$'\n'"test-hooks.sh"                                      "$K" none
+  # A .sh elsewhere in the tree is not a hook.
+  expect_parity "git push" "$both"$'\n'"lint.sh"                                            "$K" none
   rm -rf "$JB"
 fi
 

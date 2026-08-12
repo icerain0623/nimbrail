@@ -3,8 +3,6 @@
 This repo is the source of the global Claude Code config: `install.sh` symlinks `config/*` and `skills/*` into `~/.claude/`, so files here are live config and this is where they are edited. `settings.json` is the exception — it is **copied**, so the live machine holds the real PAT and absorbs runtime `/config` toggles, and a change here travels one way: edit `config/settings.template.json` and re-run `install.sh`.
 
 ## Editing rules
-- Hooks in `config/hooks/*.sh` are bash and need `jq` and `shellcheck`. **Add a case to `test-hooks.sh` for every new check.**
-- A `skills/<name>/` becomes a skill when `install.sh` symlinks it into `~/.claude/skills/`. `lint-skills.sh` reads the repo, so its checks pass before that link exists — link it before calling it done.
 - **Restart needed?** `settings.json` edits only. Skill bodies, sibling files, a changed `name`/`description`, and a newly linked skill all apply on next invocation.
 - Bash writes under this repo's root `config/` fail with `Operation not permitted`, while `./x`, `docs/x`, `skills/*/config/x`, `$TMPDIR/*/config/x` and `.git/x` all succeed — the harness's `.git/config` protection is landing on `<repo>/config`. It is harness behaviour, so **use Edit/Write, which are unaffected**, and disable the sandbox when a command must do the writing. `~/.claude/projects/` behaves the same way.
 - Git ops that rewrite the working tree (`checkout` / `switch` / `merge` / `reset` / `stash`) therefore run with the sandbox disabled, and so does the `git status` after them: in-sandbox they fail per-file under `config/` **while still exiting 0**, leaving a partly-moved tree. Recover a half-applied `stash` by re-applying with Edit and dropping the entry.

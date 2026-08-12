@@ -64,6 +64,15 @@ if [ -n "$command" ]; then
     fi
   fi
 
+  # A changed hook with no changed test is the one thing the suites cannot judge:
+  # they run what exists, and a check nobody wrote a case for passes by absence.
+  if printf '%s\n' "$files" | grep -q '^config/hooks/.*\.sh$' \
+     && ! printf '%s\n' "$files" | grep -qx 'test-hooks\.sh'; then
+    changed=$(printf '%s\n' "$files" | grep '^config/hooks/.*\.sh$' | tr '\n' ' ')
+    jq -n --arg h "$changed" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"ask",permissionDecisionReason:("この push はフックを変更していますが test-hooks.sh は変更していません: " + $h + "\n新しい検査ごとにケースを足してください。既存の挙動を変えただけなら承認して続行できます。")}}'
+    exit 0
+  fi
+
   en=0; ja=0
   printf '%s\n' "$files" | grep -qx 'README\.md' && en=1
   printf '%s\n' "$files" | grep -qx 'README\.ja\.md' && ja=1
