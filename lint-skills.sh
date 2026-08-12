@@ -166,8 +166,11 @@ done
 # arrives justified by a trap someone just hit — nothing in the writing pushes back.
 # 2026-07-26 measured a single session growing this file 11.5%. The budget is not a
 # prohibition: raise the number when the content earns it, but raise it on purpose.
+# Raised 6000 → 6200 for the reporting contract (when a report is written at all, its
+# path, its form): the rules it replaces were producing whole files where a chat line
+# would do, so the always-loaded cost buys back far more output than it spends.
 echo "[8] config/CLAUDE.md size budget (always loaded)"
-ALWAYS_LOADED_BUDGET="${ALWAYS_LOADED_BUDGET:-6000}"   # env override is a test seam
+ALWAYS_LOADED_BUDGET="${ALWAYS_LOADED_BUDGET:-6200}"   # env override is a test seam
 size=$(wc -c < "$REPO/config/CLAUDE.md" | tr -d ' ')
 if [ "$size" -gt "$ALWAYS_LOADED_BUDGET" ]; then
   err "config/CLAUDE.md is $size chars, over the $ALWAYS_LOADED_BUDGET budget — trim it, or raise ALWAYS_LOADED_BUDGET in this script deliberately"

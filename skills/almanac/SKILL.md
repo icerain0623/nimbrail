@@ -36,7 +36,7 @@ The weather yearbook — record the week's weather in one place. Sweep git histo
 
 ## Housekeeping (propose-only)
 
-Candidates: consumed `NN-topic.md` question files (their decisions already promoted), `check-<project>/` logs older than the window (note: these live at the shared **root**, not inside `<project>/` — sweep both levels), `forecast-checklist.md` for already-shipped releases, and anything in a project's shared dir untouched for 4+ weeks — **except** durable artifacts (`00-overview.md`, `tasks.md`, `feedback.md`, `TODO.md`, `findings.md`, guides/reports the user authored). A checklist file's closed lines are never candidates; its bulky `## 対応済み` block is (completion convention, global CLAUDE.md).
+Candidates: consumed `NN-topic.md` question files (their decisions already promoted), `check-<project>/` logs older than the window (note: these live at the shared **root**, not inside `<project>/` — sweep both levels), `forecast-checklist.md` for already-shipped releases, a `reports/` file whose proposed actions are all closed in `TODO.md` / `tasks.md`, and anything in a project's shared dir untouched for 4+ weeks — **except** durable artifacts (`00-overview.md`, `tasks.md`, `feedback.md`, `TODO.md`, `findings.md`, guides/reports the user authored). A checklist file's closed lines are never candidates; its bulky `## 対応済み` block is (completion convention, global CLAUDE.md).
 
 For the claude-kit repo specifically, also suggest `barometer` when the week included a Claude Code upgrade — the kit's environment drifts without a commit, so nothing else in the digest would surface it.
 

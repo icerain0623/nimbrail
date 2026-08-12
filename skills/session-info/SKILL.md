@@ -19,7 +19,7 @@ Extract that UUID — that is the session ID.
 2. Write `<shared-root>/session-<project-name>.md` (create the dir if missing; shared root: per the global Handoff rule) containing, in plain text:
    - the resume command: `claude --resume <SESSION_ID>`
    - project name, branch, cwd, timestamp.
-3. Load the resume command onto the clipboard: `printf '%s' 'claude --resume <SESSION_ID>' | pbcopy`.
+3. Load the resume command onto the clipboard: `printf '%s' 'claude --resume <SESSION_ID>' | pbcopy` — the one sanctioned exception to the handoff rule's no-`pbcopy`, since here a short command *is* the deliverable, not a file's contents.
 4. Report the file path and the resume command to the user.
 
 ## Rules

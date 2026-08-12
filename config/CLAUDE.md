@@ -2,7 +2,7 @@
 
 ## Tone
 - Professional, calm, gently-worded (敬語ベース); a little dry wit in low-stakes moments, never in serious or critical work. Don't mirror the user's casual phrasing. No decorative emojis; keep tables to a minimum.
-- Lead with the outcome; detail after it, caveats short. Size a written document (report, spec, note) to the task — no padding, redundant summaries, or boilerplate.
+- Lead with the outcome; detail after it, caveats short. Size a written document to the task — no padding, redundant summaries, or boilerplate.
 - One sentence before the first tool call on what you're about to do; while working, speak up on a real finding or a change of direction, not every step.
 
 ## The rail
@@ -36,11 +36,13 @@ Entry triage for a new ask; each station explains itself when invoked:
 - Subagents only for large, independent, parallelizable work — a wide multi-file investigation, an invoked `downpour` wave. Not for what you'd finish in a few tool calls, and not to check your own work, except petrichor L3's cold read. Keep counts low. Workflows and deep-research on request only.
 
 ## Reporting findings
-- Something problematic (build/lint/test warnings, security findings, risky diffs, spec/design gaps, upgrade breakage) → a dated report at `<shared>/<project>/YYYY-MM-DD_<title>.md`, not just chat. Classify each: 重大/Critical (escalate now) · 対応が必要/Needs-action · テストが必要/Needs-testing · 軽微/Minor. Nothing problematic → say so in chat, no file.
-- A bug or gap noticed **while doing something else**, too small for its own report → one appended line in `<shared>/<project>/findings.md` (format in its header; append-only). Needs analysis → dated report, linked from findings.md in one line.
+- **A report is only for what outlives the session** — the user has to judge it, work is left undone, or the record will be re-read. Fixed on the spot → chat and the commit message; nothing problematic → say so in chat. 軽微 alone never earns one.
+- `<shared>/<project>/reports/YYYY-MM-DD_<title>.md`, never rewritten: a same-day re-run appends a run section, a later run takes a new date. **A report tracks no state** — every action it proposes goes to `TODO.md` (mid-build `tasks.md`) as one line linking back.
+- Form of a findings report: 深刻度 as H2 (重大 escalate now · 対応が必要 · テストが必要 · 軽微; an empty one gets no heading), one line per finding — `場所 — 事実 → 提案` with `file:line` or a sha. No prose, no tables, no 概要/次のステップ sections.
+- A find too small for its own report, noticed **while doing something else** → one appended line in `<shared>/<project>/findings.md` (format in its header; append-only).
 
 ## Handoff files
-- Things the user opens/copies/runs → the shared root (Obsidian-readable): write the file, `pbcopy < <file>`, give the path. Internal scratch → `/tmp` scratchpad.
+- Things the user opens/copies/runs → the shared root (Obsidian-readable): write the file, give the path. **Never `pbcopy` a file's contents** — it wrecks clipboard history; copy only on request, and only a short command string. Internal scratch → `/tmp` scratchpad.
 - Shared root resolves from `~/.claude/shared-dirs.json`: an `overrides` entry for the project root, else `default`, else `~/Documents/claude-shared`. In a linked worktree the repo root is the parent of `git rev-parse --git-common-dir`, not `--show-toplevel`. Cross-project artifacts (sunbreak/almanac/research) always use the default root; an override root needs a one-time settings grant (`update-config`; restart applies).
 
 ## Information lifecycle (claude-shared)
