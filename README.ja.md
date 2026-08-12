@@ -21,13 +21,26 @@ cd claude-kit
 { "env": { "GH_TOKEN": "github_pat_..." } }
 ```
 
-- **`./install.sh` は最初に言語を聞く**（English / 日本語）。以降のプロンプトも最後の案内も選んだ言語で出る。既定は `$LANG` から推測。`--lang ja` を付ければ質問ごと省略できる。
-- 続けて 3 つ聞かれる。まず **ハンドオフ ドキュメントの置き場所**。仕様書・報告書・タスク台帳は repo の外に書くので、プロジェクトが `.md` で埋まらない（Obsidian vault のサブフォルダなどが便利）。Enter で既定の `~/Documents/claude-shared`、非対話なら `./install.sh --shared-dir ~/vault/claude-docs`。回答は `~/.claude/shared-dirs.json` に入り、`settings.json` のコピーにも差し込まれる（**これがないとサンドボックスがそこへ書けない**）。あとから変えるには `--shared-dir` 付きで再実行（**中身の移動は自分でやる**。スクリプトは参照先を張り替えるだけ）。特定プロジェクトだけ別の場所にしたい場合は `shared-dirs.json` の `overrides` に足す（再実行でも保持される）。
-- 続けて **git をどこまで自動でやらせるか** も聞かれる（`--commit auto|ask` / `--push ask|never|auto`）。既定は「コミットは自動、push は毎回確認」。`--push auto` は **linter か CI がある repo でだけ**自動 push する（`.github/workflows`・eslint・biome・golangci・ruff・rubocop・`package.json` の lint スクリプト・`lint.sh` のいずれか）。force push・ref 削除・main への push は auto でも確認する。再実行すると前回の選択を引き継ぐ。プロジェクト単位で変えたい場合は、その repo の `.claude/settings.json`（コミットされる＝チーム共有）か `.claude/settings.local.json`（gitignore＝自分だけ）に `CLAUDE_KIT_COMMIT` / `CLAUDE_KIT_PUSH` を書く（優先順位はハーネスが user < project < project.local で処理する）。判定は CLAUDE.md ではなく **hook が強制**する。
-- **`jq` 必須**（PreToolUse フックが使う。`brew install jq`）。
+### install.sh が聞くこと
+
+**最初に言語を聞く**（English / 日本語）。以降のプロンプトも最後の案内も選んだ言語で出る。既定は `$LANG` から推測、`--lang ja` を付ければ質問ごと省略できる。続けて 3 つ聞かれる。
+
+| 質問 | 既定 | 中身 |
+|---|---|---|
+| ハンドオフ ドキュメントの置き場所 | `~/Documents/claude-shared` | 仕様書・報告書・タスク台帳を repo の外に書くので、プロジェクトが `.md` で埋まらない（Obsidian vault のサブフォルダなどが便利）。非対話なら `--shared-dir ~/vault/claude-docs` |
+| コミットの自動化 `--commit` | `auto` | チェックポイントで確認なしにコミット。`ask` なら毎回確認 |
+| push の自動化 `--push` | `ask` | `never` は拒否（自分で push）。`auto` は **linter か CI がある repo でだけ**自動 push（`.github/workflows`・eslint・biome・golangci・ruff・rubocop・`package.json` の lint スクリプト・`lint.sh` のいずれか）。force push・ref 削除・main への push は auto でも確認する |
+
+- 置き場所の回答は `~/.claude/shared-dirs.json` に入り、`settings.json` のコピーにも差し込まれる（**これがないとサンドボックスがそこへ書けない**）。あとから変えるには `--shared-dir` 付きで再実行（**中身の移動は自分でやる**。スクリプトは参照先を張り替えるだけ）。特定プロジェクトだけ別の場所にしたい場合は `shared-dirs.json` の `overrides` に足す（再実行でも保持される）。
+- git の方針は再実行すると前回の選択を引き継ぐ。プロジェクト単位で変えたい場合は、その repo の `.claude/settings.json`（コミットされる＝チーム共有）か `.claude/settings.local.json`（gitignore＝自分だけ）に `CLAUDE_KIT_COMMIT` / `CLAUDE_KIT_PUSH` を書く（優先順位はハーネスが user < project < project.local で処理する）。判定は CLAUDE.md ではなく **hook が強制**する。
+
+### 前提と再実行
+
+- **`jq` 必須**（PreToolUse フックが使う。`brew install jq`）。**ツールチェーンは自前**で入れる（sandbox 側の配線は済んでいる）。Python は `python-setup` スキルを使う。
 - **プラグイン**（serena / context7 など）は install.sh では入らない。初回起動時に `settings.json` の `enabledPlugins` から復元される。`false` のものは復元されないので、無効化はテンプレート側にも反映しておく（さもないと `--yes` で復活する）。
 - `./install.sh` は**再実行安全**。diverge したライブファイルは既定で**温存**（`--yes` で一括反映、旧版は `.bak` へ退避）。`settings.json` はコピー運用なので、マシン固有調整と `settings.local.json` の実 PAT は保持される。
 - **スキルを新規追加したら再実行が必要**。`skills/<name>/` は `~/.claude/skills/` へ symlink されて初めてスキルになる（既存スキルの編集は再実行不要）。
+- **一部の値は作者固有**なので、そのまま使う前に確認すること: sandbox の書き込みルートは `~/Documents/GitHub` と `~/Developers`、`EDITOR` は WebStorm（macOS 以外では `code --wait` か `vi` にフォールバック）。CA bundle は install 時に環境を見て決まる。
 
 ## ワークフロー（レール）
 
