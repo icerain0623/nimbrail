@@ -18,6 +18,10 @@
 #   8. config/CLAUDE.md stays inside a size budget — it is always loaded
 #   9. the model-invocable skills' name+description total stays inside a budget —
 #      that listing is always loaded too (rail skills are slash-only and excluded)
+#  10. the reporting contract config/CLAUDE.md owns is not contradicted by a skill
+#  11. every authored skill is linked into the live install (reported, not failed)
+#  12. skill bodies stay under a prose-bold density and a loose size cap — the one
+#      check on the on-demand surface, and a tripwire rather than a quality gate
 #
 # Exit 0 = all green; exit 1 = at least one violation.
 
@@ -254,6 +258,48 @@ if [ -d "$LIVE_SKILLS" ]; then
 else
   note "($LIVE_SKILLS not found — skipped)"
 fi
+
+# [8] and [9] budget the always-loaded surface. A skill body is unbudgeted and loads
+# on demand, so nothing enforced the writing rules there and an advisory rule rots
+# unseen. This is a tripwire for the trimming discipline in .claude/CLAUDE.md, not a
+# quality gate: quality is not measurable here — deleting bold silences the density,
+# and a character count is just as happy if the wrong sentence goes.
+#
+# Prose bold only. Fenced code is excluded, because a grep pattern reads as bold
+# (`'\*\*done\*\*'` in synoptic's task-count snippet), and so is the label bold that
+# opens a list item, which the rule calls correct usage. Without both exclusions
+# synoptic measures 2.39 instead of 1.43 and correct usage looks like a violation.
+# Measured 2026-08-13 after the trim: synoptic 1.43 is the real ceiling, then
+# permafrost 1.13 and private-scan 1.06, with nine skills at 0. The cap sits just
+# above that on purpose — it should fire when prose bold grows back.
+echo "[12] skill body: prose-bold density, and a loose size cap"
+BOLD_BUDGET="${BOLD_BUDGET:-1.5}"    # per 1000 chars; env override is a test seam
+BODY_BUDGET="${BODY_BUDGET:-9000}"   # chars; petrichor is the tallest real body at 7862
+top_skill="" top_density="0.00"
+for d in "$REPO"/skills/*/; do
+  s="$(basename "${d%/}")"
+  # Frontmatter belongs to [9]'s budget, and fenced code is not prose.
+  body="$(awk 'NR==1 && /^---$/ {fm=1; next} fm && /^---$/ {fm=0; next} fm {next}
+               /^```/ {inb=!inb; next} inb {next} {print}' "$d/SKILL.md")"
+  # wc -m, not awk length(), so multibyte prose counts as characters.
+  chars="$(printf '%s' "$body" | wc -m | tr -d ' ')"
+  [ "$chars" -gt 0 ] || continue
+  bolds="$(printf '%s\n' "$body" | awk '{
+      islabel = ($0 ~ /^[[:space:]]*([-*+]|[0-9]+\.)[[:space:]]+\*\*/)
+      n = 0; rest = $0
+      while (match(rest, /\*\*[^*]+\*\*/)) { n++; rest = substr(rest, RSTART + RLENGTH) }
+      if (n > 0) prose += (islabel ? n - 1 : n)
+    } END { print prose + 0 }')"
+  density="$(awk -v b="$bolds" -v c="$chars" 'BEGIN { printf "%.2f", b * 1000 / c }')"
+  if [ "$(awk -v x="$density" -v cap="$BOLD_BUDGET" 'BEGIN { print (x > cap) }')" = 1 ]; then
+    err "$s: prose bold $density per 1000 chars, over $BOLD_BUDGET — demote the ones that are not a label, a branch condition, or the one thing not to skim past"
+  fi
+  [ "$(awk -v x="$density" -v y="$top_density" 'BEGIN { print (x > y) }')" = 1 ] &&
+    { top_density="$density"; top_skill="$s"; }
+  [ "$chars" -le "$BODY_BUDGET" ] ||
+    err "$s: body $chars chars, over the $BODY_BUDGET cap — split it or cut, deliberately"
+done
+note "densest body: $top_skill at $top_density / $BOLD_BUDGET per 1000 chars"
 
 echo
 if [ "$FAIL" = 0 ]; then echo "lint-skills: PASS"; else echo "lint-skills: FAIL"; fi
