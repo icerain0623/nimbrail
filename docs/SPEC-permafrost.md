@@ -1,4 +1,4 @@
-<!-- petrichor L2 spec, promoted 2026-07-08. Working files: ~/Documents/claude-shared/nimbrail/petrichor-plan/ -->
+<!-- petrichor L2 spec, promoted 2026-07-08. Working files no longer exist; this file is the record. -->
 
 # permafrost — 情報ライフサイクル（L2）
 
@@ -21,7 +21,7 @@ claude-shared は「本編（コード／会話コンテキスト）を軽くす
 - **D2. write-only cold**: Claude は permafrost へ `mv` で *入れられる* が、read / grep / list は *できない*。防ぎたい害（H1〜H4）は全て「読む」ことで起きるので書き込みは無害。読み返しは明示 **thaw**（F-2b）のみ。
 - **D3. enforcement = 軽め**: 物理分離（D7 の位置）+ `Read` ツール permission deny + **Bash サンドボックス read-deny かつ write-allow**（`mv` を通すための非対称。D11）。**v1 では PreToolUse フックを作らない**。→ **残余リスク（D12）**：Claude の Grep/Glob ツール、MCP ファイル系（Serena `read_file`/`search_for_pattern`/`list_dir` 等）、および sandbox override 付き Bash は塞げない。これらは物理分離＋デフォルト姿勢で*実務上*抑える。完全封鎖は F-9（v2）。
 - **D4. eviction（本丸）**: warm を薄く保つ。ライブ・ファイルは完了分をインラインに溜めず追い出す。
-- **D5. issue 昇格（上流レッグ）**: v1 は **手動**（Claude が issue 本文を下書き → ユーザーが作成）。`gh` トークンが現在 invalid のため自動作成（F-8）は v2。
+- **D5. issue 昇格（上流レッグ）**: Claude が issue 本文を下書き → **ユーザーが承認** → Claude が `gh issue create` で作成（F-8、v1）。ゲートは承認であって手作業のコピペではない —— 外向きの操作なので承認は外せないが、コピペを人にやらせても安全性は1ミリも上がらない。
 - **D6. トリガー**: v1 の sweep は **フック非依存**。起動経路は (a) 手動 `/permafrost`、(b) Claude が作業単位の完了時に *advisory に自発提案*（`config/CLAUDE.md` / monsoon の“次の一手”）。「チェックポイントで」は**推奨タイミングであって自動発火ではない**。
 - **D7. 名前と位置**: 置き場＝ `permafrost`。sweep 手続きも同名（`/permafrost`）。位置は **`<shared-root>` 規約に従う**（グローバル CLAUDE.md の解決規則。per-project override root があればそれに従い、warm と cold を同じ resolved root 下に置く）：`<shared-root>/permafrost/<project>/…`。デフォルト root なら `~/Documents/claude-shared/permafrost/<project>/…`（default）。**per-project 作業ディレクトリの外**に置くのが物理分離の要（Serena の project onboarding や project-scoped grep の動線から外れる）。
 - **D8. 衝突回避**: 素性保存パス `permafrost/<project>/<YYYY-MM-DD>_<HHMMSS>_<元ファイル名>/…`（**日付＋時刻で一意化**）。凍結は `mv -n`（既存があれば上書きせず）＋事前の衝突チェックで、silent overwrite を構造的に防ぐ。
@@ -40,11 +40,12 @@ claude-shared は「本編（コード／会話コンテキスト）を軽くす
 Claude がオンデマンドで読んでよい小集合のみ：
 
 - 現行 petrichor プラン（`00-overview.md` + アクティブな `NN-topic.md`）
-- 稼働中 `feedback.md`
+- 稼働中の台帳 — `tasks.md`（ビルド進行）、`findings.md`、`feedback.md`
 - `TODO.md`（薄く保たれた open 項目中心）
 - `reports/` のうち未消化のもの（提案したアクションが `TODO.md` / `tasks.md` に open で残っているレポート）
+- `refs/` の参照資料のうち、open な項目が読めと指示しているもの（指示が閉じたら cold 適格）
 
-それ以外の claude-shared 配下は **cold 適格**。
+それ以外の claude-shared 配下は **cold 適格**。ただし cold 適格は「凍結*候補*になり得る」であって凍結してよいではなく、実際に動かせるのは F-6 のガードを満たす物だけ。
 
 ## デフォルト姿勢（`config/CLAUDE.md` 追記・「Information lifecycle」節）
 
@@ -78,20 +79,26 @@ Claude がオンデマンドで読んでよい小集合のみ：
   - AC: Claude が中身だけ確認したい場合の読み出し経路は「sandbox override 付き Bash 読み」＝明示操作に限る（casual には読めない）
 - **F-3 eviction ＋ デフォルト姿勢（`config/CLAUDE.md`）** — v1 / S
   - AC（2026-07-26 改定）: sweep 後、`TODO.md` の完了行は取り消し線付きで `## 対応済み` にまとまっており、未対応セクションには open 項目のみが残る。旧 AC（完了行が 1 行も残っていない）は completion convention により失効。
-  - AC: `config/CLAUDE.md` に「claude-shared を丸ごと探索せず名指しで開く／`permafrost/` は触らない」の一節が存在する（grep で確認可）
-- **F-4 issue 昇格 手動フロー** — v1 / S
-  - AC: 昇格候補について Claude が issue 本文を下書きし、ユーザーが作成する（gh 自動化はしない）
+  - AC: `config/CLAUDE.md` の「Information lifecycle」節に、名指しで開く指示と `permafrost/` が Read-deny である旨が存在する（`grep -n "Open the live file by name" config/CLAUDE.md`）
+- **F-4 issue 昇格フロー** — v1 / S
+  - AC: 昇格候補について Claude が issue 本文を下書きし、ユーザーの承認を得てから作成する（承認前に作成しない）
 - **F-5 既存 `archive/` の移行** — v1 / S
   - AC: 既存 `archive/` 配下が permafrost 方式（D7/D8 のパス）へ移される
 - **F-6 過剰凍結ガード** — v1 / S
-  - AC: 凍結候補は「実装済み & 情報がコード or 既コミットの repo docs に存在」を満たす物に限る（issue 存在確認は gh 不在のため v1 では確認ゲートで人間が目視）
-- **F-8 `gh` 自動 issue 作成** — v2（gh トークン修復が前提）
+  - AC: 凍結候補は「実装済み & 情報がコード or 既コミットの repo docs or issue に存在」を満たす物に限る（issue の存在は `gh issue list` で確認する）
+- **F-7 `almanac` からの候補提示連携** — v1 / S
+  - AC: `almanac` の週次スイープが、その週の窓に絞った凍結候補を理由つきで提示する
+  - AC: 提示までが `almanac`、確認後の凍結そのものは F-2 の手続きに渡る（凍結の実装を二重に持たない）
+  - AC: 除外リストは本節の warm セットを共有し、`almanac` 側はそれを拡張するだけ（人手で書いたガイド／レポート、共有ルート直下の `check-<project>/`）
+- **F-8 `gh` による issue 作成** — v1 / S
+  - AC: 承認済みの下書きを `gh issue create` で作成し、作成された issue の URL を報告する
+  - AC: 承認を得ていない下書きは作成しない（F-4 のゲートと同一）
 - **F-9 Grep/Glob・MCP ファイル系も完全封鎖する PreToolUse フック** — v2（軽め運用で不足が出れば。Read/Grep/Glob＋MCP read/search/list をパスで deny）
 
 ## v1 の線
 
-v1 = **F-1〜F-6**。core purpose（＝コンテキスト加速の停止）は **F-1（不可視の受け皿）＋ F-3（eviction／デフォルト姿勢）** で達成し、**F-2/F-2b** が運用の要（凍結・解凍を安全に回す）。F-4/F-5/F-6 は補助。
-v2 = F-8（gh 自動）、F-9（フック完全封鎖）。
+v1 = **F-1〜F-8**。core purpose（＝コンテキスト加速の停止）は **F-1（不可視の受け皿）＋ F-3（eviction／デフォルト姿勢）** で達成し、**F-2/F-2b** が運用の要（凍結・解凍を安全に回す）。F-4〜F-8 は補助。
+v2 = F-9（フック完全封鎖）のみ。
 
 ## 例外系 / 何が起きてはいけないか
 
