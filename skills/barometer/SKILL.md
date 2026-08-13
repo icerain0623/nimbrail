@@ -14,7 +14,9 @@ commit here.
 - Live `settings.json` is a copy, so it diverges by design: diff it against
   `config/settings.template.json` key by key and sort each difference — live-only
   (a runtime grant worth promoting into the template, or it dies on the next machine),
-  template-only (an edit never propagated), value conflict.
+  template-only (an edit never propagated), value conflict. A machine-specific or
+  private path is the one live-only class that must stay live — this repo is public,
+  so promoting it would publish the path.
 - Symlinks: each `config/hooks/*.sh` and `skills/*/` has a live symlink resolving back
   into this repo, and no live symlink dangles.
 - Orphans: files under `~/.claude/hooks` and `~/.claude/skills` this repo does not own —
