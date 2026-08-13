@@ -7,6 +7,8 @@ description: Unblock pnpm + mise for a Node project under the sandbox. Use when 
 
 The install "dance" is a predictable multi-failure sequence; apply the fix per symptom — network behaviour here is inconsistent, and even allowlisted hosts can be unreachable, so the mechanism is not worth theorizing about. Verified on pnpm 11 + mise.
 
+Per project, `pnpm-workspace.yaml` carries `minimumReleaseAge` + `trustPolicy: no-downgrade` (`~/.npmrc` covers npm) — the policy the first three errors below are the fallout of.
+
 ## error → fix
 
 - `ERR_PNPM_IGNORED_BUILDS` → `ignore-scripts` is on globally, so declare the named package(s) in `pnpm-workspace.yaml` `allowBuilds:` (or `pnpm approve-builds`). Common allowlist for these stacks: `@prisma/engines`, `@prisma/client`, `prisma`, `esbuild`, `sharp`, `argon2`, `unrs-resolver`, `@biomejs/biome`.
