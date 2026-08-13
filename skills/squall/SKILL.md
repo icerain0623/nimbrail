@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # squall
 
-**Explore-first, not an interview.** Read the spec and the existing code/stack before asking anything (Serena's `get_symbols_overview` / `find_symbol` when that MCP is active, else Grep/Read), and ask the user only what neither can answer.
+**Explore-first, not an interview.** Read the spec and the existing code/stack before asking anything (Serena's `get_symbols_overview` / `find_symbol` when that MCP is active, else Grep/Read), and ask the user only what neither can answer. What a library or framework itself does — API shape, config keys, migration paths — comes from `context7`, not from memory, because the design is being pinned to the version this repo actually holds.
 
 ## Place in the flow
 
@@ -19,6 +19,7 @@ petrichor (要件定義) → squall (詳細設計 ＋ `.claude/` 設定) → 実
 ## Operating principles
 
 - Boundary: "how to build" plus Claude Code repo config. Requirements are petrichor's.
+- Second pass over an existing artifact rewrites it into one current document; appending is what leaves a design doc carrying two of every section.
 - Design sections come from `detail-design-jp.md` (sibling file), taken in dependency order; a section is done when it meets its 終了条件 and passes its レビュー観点. Skip one that doesn't apply, with a noted reason.
 - Don't compromise the core (DB relations and the like — failure there is expensive); everything else needs only ready-to-implement granularity.
 - Anything a tool can enforce (naming, format) lands as config (Lint/formatter).

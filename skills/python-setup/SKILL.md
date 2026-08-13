@@ -26,6 +26,7 @@ Then always invoke `.venv/bin/python` / `.venv/bin/pip`.
 
 - Add `.venv/` to `.gitignore` if not already covered.
 - If pip still writes `~/Library/Caches/pip`, set `PIP_CACHE_DIR="$PWD/.venv/.pip-cache"` or pass `--no-cache-dir`.
+- pip failing with `SSLCertVerificationError` is the sandbox verifying certs, not a broken index or a missing CA — re-run unsandboxed rather than passing `--trusted-host`.
 
 ## Pinned version (pyenv)
 `~/.pyenv` is sandbox-writable:

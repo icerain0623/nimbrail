@@ -46,6 +46,11 @@ Decidable without judgement:
   the git history's own author fields.
 - Internal hostnames, private IP ranges, `.local` / VPN addresses.
 
+One vocabulary, applied to file content and to metadata alike, in every spelling the
+term has. Searching commit messages for one set of terms and file content for another
+is what let 41 commits through, and the English spelling of a Japanese term slipped
+past a search that only used the Japanese.
+
 ## B. Judgement — list, never decide
 
 A project name cannot be recognised as private by pattern; claiming otherwise

@@ -33,6 +33,7 @@ nimbrail/
 - **`jq`** — required; the PreToolUse hooks parse their input with it (`brew install jq`).
 - **Toolchains** are yours to install (Homebrew, etc.). The sandbox is pre-wired for them: `go`/`cargo`/`colima` run unsandboxed (`excludedCommands`); `~/.gradle`, `~/.m2`, `~/.cargo`, `~/.pyenv` are writable. For Python, invoke the `python-setup` skill (macOS has no `python`, and system pip writes outside the sandbox).
 - **Plugins** (figma, serena, context7, chrome-devtools, …) are **not** installed by `install.sh` and are not files in this repo — they restore from `settings.json`'s `enabledPlugins` + `extraKnownMarketplaces` on first launch, so just restart Claude Code and let it pull them. Everything under `skills/` is the other kind: authored here, symlinked in, synced by git.
+- **Hooks this repo does not own.** `settings.template.json` declares `PreToolUse` and `PostToolUse` only. A session wrapper — cmux, for one — registers its own `Stop`, `UserPromptSubmit` and `SessionStart` hooks directly in the live `settings.json`, where they fire across every project. If something misbehaves on those three events, it is not in `config/hooks/` and no amount of grepping this repo will find it.
 - **macOS and Linux, including WSL.** `install.sh` is bash and builds a tree of symlinks, so on Windows the route is WSL — clone inside the WSL filesystem (`~/…`), not under `/mnt/c`, whose permissions break symlinks. Running it from Git Bash / MSYS / Cygwin stops with that advice. A manual native-Windows setup is written up in [docs/windows.md](docs/windows.md), untested and honest about which parts are unknown.
 - **Some values are still author-specific**, so check them before adopting this as-is: the sandbox write-roots are `~/Documents/GitHub` and `~/Developers`, and `EDITOR` is WebStorm (kept as-is on macOS; off macOS it falls back to `code --wait` or `vi` when WebStorm is absent). The CA bundle for `SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` is probed at install time, so Debian/Ubuntu gets `/etc/ssl/certs/ca-certificates.crt` rather than the macOS path.
 
@@ -140,6 +141,7 @@ Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (
 | `sunbreak` | **slash-only** (listed here, not on the rail) — review past transcripts; write an Obsidian report (global vs project-specific lessons), applied later |
 | `python-setup` | set up a sandbox-safe Python venv |
 | `node-sandbox-setup` | unblock pnpm + mise under the sandbox (symptom→fix for the install dance) |
+| `shell-traps` | zsh/BSD traps that fail silently — word splitting, glob aborts, aliased `ls`, ASI in pasted one-liners |
 
 ## Secrets
 
