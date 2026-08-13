@@ -45,7 +45,7 @@ Cross-references between IDs and artifacts are `[[file#heading]]` wikilinks — 
 
 Resolve the shared root, create `<shared-root>/<project>/` and its `TODO.md` if missing, and read `TODO.md`. Ask once whether the user has materials to feed in; if yes, have them drop the files in `petrichor-plan/refs/` (or point at paths to copy in), then read those alongside it.
 
-If `00-overview.md` exists, resume from its header (level, phase, open topics). If absent, settle the deliverable level first (for L3 also read `requirements-jp.md`), then start Phase 0.
+If `00-overview.md` exists, resume from its header (level, phase, open topics) — except `Next: NOT BUILDING`, which is a verdict rather than a resume point: show its reason and ask what has changed before reopening. If absent, settle the deliverable level first (for L3 also read `requirements-jp.md`), then start Phase 0.
 
 ## Phase 0
 
@@ -75,7 +75,7 @@ If `00-overview.md` exists, resume from its header (level, phase, open topics). 
 Three gates, in order:
 
 1. No open questions remain anywhere (L3: every applicable `requirements-jp.md` section meets its 終了条件).
-2. **The v1 line is drawn** (L2/L3): every 機能 carries a 優先度, and v1 read as a set still achieves the project's core purpose. Over-scoping is a spec bug — if v1 doesn't stand on its own, or contains everything, run one more scope round.
+2. **The v1 line is drawn** (L2/L3): every 機能 carries a 優先度, and v1 read as a set still achieves the project's core purpose. Over-scoping is a spec bug — if v1 doesn't stand on its own, or contains everything, run one more scope round. When the rounds stop converging, because every v1 that keeps the purpose costs more than the purpose is worth, stopping is the answer rather than another round — and that verdict can land mid-interview, not only here. Say it, set header `Next: NOT BUILDING — <one line why>`, and end the run: not building is a result petrichor returns, not a session quietly abandoned.
 3. Fresh-eyes review — **L3 only**: a fresh-context subagent reads *only* the plan files and hunts contradictions, ambiguities, missing exception paths, unverifiable 受け入れ条件 and non-quantified 非機能. It reads the spec cold, the way `squall` and the build will. Triage its findings; anything real becomes one final round.
 
 When all three hold, set header `Next: DONE`. The spec is `petrichor-plan/00-overview.md`.
