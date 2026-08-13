@@ -22,11 +22,9 @@ Before Phase 0, ask two questions. **How far should this go?** sets interview de
 - L2 — spec: overview + core functional sections (functions, screens, conceptual data, a non-functional outline).
 - L3 — 要件定義: full coverage driven by `requirements-jp.md` (sibling file). Heavy; choose only when a complete spec is wanted. Scope stops at 基本設計（外部設計）— 詳細設計 belongs to `squall`, 実装 to the build.
 
-For L3 the progress header becomes a section-coverage checklist — each `requirements-jp.md` section marked 未着手 / 進行 / 確定, inapplicable ones skipped with a noted reason.
-
 For L2 and L3 every 機能一覧 item carries 優先度 (v1 / v2 / 保留), 概算 (S/M/L, so the v1 line is a cost decision rather than a wish), and 受け入れ条件 (≥1 verifiable criterion; EARS 文型 —「〜のとき、システムは〜する」, exceptions as 「もし〜なら、…」). Those criteria are what keep the spec live downstream: `squall` derives `tasks.md` completion conditions from them, and build checkpoints check real behavior against them. L2 and L3 also carry a short project-level risk list — event, likelihood, and a response of 回避 / 低減 / 移転 / 受容 — because `squall`'s 着工承認 asks for open risks wherever it runs; `requirements-jp.md` G-3 is L3's full form.
 
-**Spec language: don't ask — default `ja`.** The toggle serves the deliverable's audience, not the author, so offer `en` / `ja+en` only on an audience signal (OSS, public release, international collaborators) or when the user raises it. Dual means one canonical language plus a translation rendered at Done; the interview and `NN-topic.md` files stay in the user's language regardless. Note the language in the header only when it is not the default.
+**Spec language: don't ask — default `ja`.** The toggle serves the deliverable's audience, not the author, so offer `en` / `ja+en` only on an audience signal (OSS, public release, international collaborators) or when the user raises it. The interview and `NN-topic.md` files stay in the user's language regardless. Note the language in the header only when it is not the default.
 
 ## Files (`<shared-root>/<project>/`)
 
@@ -55,7 +53,7 @@ If `00-overview.md` exists, resume from its header (level, phase, open topics) �
 
 ## Phase 1+ (per round)
 
-1. List open topics (DB, auth, API, errors, deploy, …) and re-read `TODO.md`. In L3 the topics are `requirements-jp.md` sections in dependency order — each section's 開始条件 gates when it can start, and it becomes 確定 once it meets its 終了条件 and passes its レビュー観点.
+1. List open topics (DB, auth, API, errors, deploy, …) and re-read `TODO.md`. L3 takes its topics and their order from `requirements-jp.md` instead.
 2. Write `NN-topic.md`, one block per question, plus a free-form `## Notes` zone at the bottom:
    ```markdown
    ## <decision point>
@@ -76,7 +74,7 @@ Three gates, in order:
 
 1. No open questions remain anywhere (L3: every applicable `requirements-jp.md` section meets its 終了条件).
 2. **The v1 line is drawn** (L2/L3): every 機能 carries a 優先度, and v1 read as a set still achieves the project's core purpose. Over-scoping is a spec bug — if v1 doesn't stand on its own, or contains everything, run one more scope round. When the rounds stop converging, because every v1 that keeps the purpose costs more than the purpose is worth, stopping is the answer rather than another round — and that verdict can land mid-interview, not only here. Say it, set header `Next: NOT BUILDING — <one line why>`, and end the run: not building is a result petrichor returns, not a session quietly abandoned.
-3. Fresh-eyes review — **L3 only**: a fresh-context subagent reads *only* the plan files and hunts contradictions, ambiguities, missing exception paths, unverifiable 受け入れ条件 and non-quantified 非機能. It reads the spec cold, the way `squall` and the build will. Triage its findings; anything real becomes one final round.
+3. Fresh-eyes review — **L3 only**: a fresh-context subagent reads *only* the plan files, cold the way `squall` will, hunting contradictions, ambiguities, missing exception paths, unverifiable 受け入れ条件 and non-quantified 非機能. Triage; anything real becomes one final round.
 
 When all three hold, set header `Next: DONE`. The spec is `petrichor-plan/00-overview.md`.
 
