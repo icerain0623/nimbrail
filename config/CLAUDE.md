@@ -12,14 +12,10 @@ Entry triage for a new ask; each station explains itself when invoked:
 - existing code, no spec → /overcast
 - "next sensible step given state?" → /monsoon
 
-## Web / LP (Next.js)
-- LP / Figma→page: look at the rendered page after every visual change. GTM via `@next/third-parties/google`, not the raw `<script>` its install page hands you.
-- In-sandbox build check: `next build --webpack` (Turbopack panics; Docker and prod keep the default).
-
 ## Git
 - Worktrees are for **agents running in parallel on one repo** — one per agent, deps per-worktree (no node_modules sharing). A single agent takes an ordinary branch. `git worktree add` runs unsandboxed. `.claude/settings.local.json` is gitignored, so it does not reach a worktree — permissions defined there stop applying while you work in one.
 - Commit autonomously at coherent checkpoints, before risky ops, and when a unit is done; keep commits scoped.
-- Sandbox off for: `git config`, `git remote add/remove`, `git branch -m`, `git init` (the deny is `.git/config` only), and `git push` / `gh` (the credential helper reads `~/Library`; it fails as `could not read Username` or `token is invalid`, not as a permission error). Everything else runs inside, though `git branch -d` leaves a stale `[branch]` section behind.
+- The `.git/config` deny sends most git writes to the ordinary "retry unsandboxed" path. Two that don't look like it: `git push` / `gh` fail as `could not read Username` or `token is invalid` (the credential helper reads `~/Library`), and `git branch -d` succeeds while leaving a stale `[branch]` section behind.
 
 ## Packages & toolchains
 - Prefer pnpm for Node; match an existing repo's lockfile. Tool versions via mise — respect the project's `.mise.toml` / `.tool-versions` pin, run via mise shims (`mise exec --`).
@@ -32,7 +28,7 @@ Entry triage for a new ask; each station explains itself when invoked:
 - `/verify` and `/code-review` are user-invoked: suggest them. A launch needing more than inference (DB, env, multi-step build) → `/run-skill-generator` records the recipe.
 
 ## Delegation
-- Subagents only for large, independent, parallelizable work, such as a wide multi-file investigation. Not for what you'd finish in a few tool calls, and not to check your own work, except petrichor L3's cold read. Keep counts low. Workflows and deep-research on request only.
+- Subagents only for large, independent, parallelizable work, such as a wide multi-file investigation. Not for what you'd finish in a few tool calls, and not to check your own work, except petrichor L3's cold read. Keep counts low.
 
 ## Reporting findings
 - **A report records findings; `TODO.md` records work.** All actions and nothing else → no report, just the TODO lines. It gets a file only when its evidence still reads after those actions close — a measurement, a repro. Fixed on the spot, nothing problematic, or 軽微 alone → chat only.
