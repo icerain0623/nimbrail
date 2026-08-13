@@ -20,7 +20,7 @@ petrichor (要件定義) → squall (詳細設計 ＋ `.claude/` 設定) → 実
 
 - Boundary: "how to build" plus Claude Code repo config. Requirements are petrichor's.
 - Second pass over an existing artifact rewrites it into one current document; appending is what leaves a design doc carrying two of every section.
-- Design sections come from `detail-design-jp.md` (sibling file), taken in dependency order; a section is done when it meets its 終了条件 and passes its レビュー観点. Skip one that doesn't apply, with a noted reason.
+- Design sections come from `detail-design-jp.md` (sibling file), taken in dependency order; a section is done when it meets its 終了条件 and passes its レビュー観点. Skip one that doesn't apply; its reason goes in the GO summary at Done, not into an 適用/除外 table at the head of an artifact.
 - Don't compromise the core (DB relations and the like — failure there is expensive); everything else needs only ready-to-implement granularity.
 - Anything a tool can enforce (naming, format) lands as config (Lint/formatter).
 - Design prose follows the project's **docs language**: take `docs_lang` from the petrichor spec header if present, else default `ja` without asking; propose `en` / `ja+en` only when the repo is public-facing (an OSS README is where dual pays off), and record the result in `project.md`. Code artifacts (Lint config, OpenAPI, IaC) follow the repo's own conventions.

@@ -14,9 +14,9 @@ Two phases, chosen by question type:
 - Phase 0 — chat, one at a time: few, highly-dependent questions.
 - Phase 1+ — batched in files: many independent details, and it yields the written spec.
 
-## Deliverable level (pick once, at the very start)
+## Deliverable level and fixed constraint (pick once, at the very start)
 
-Before Phase 0, ask **one** question: how far should this go? The answer sets interview depth, section coverage, and the Done bar. Record it in the `00-overview.md` header.
+Before Phase 0, ask two questions. **How far should this go?** sets interview depth, section coverage, and the Done bar. **Which constraint is fixed — the date, the scope, or the quality bar?** decides every later 優先度 call, because a fixed date cuts scope while a fixed scope moves the date; solo, cost collapses into time, so those three are the whole choice. Record both in the `00-overview.md` header.
 
 - L1 — sketch: the overview only (≈8–10 questions).
 - L2 — spec: overview + core functional sections (functions, screens, conceptual data, a non-functional outline).

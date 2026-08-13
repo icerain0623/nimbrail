@@ -10,7 +10,7 @@ The sky is already clouded when you arrive — read the weather in a codebase yo
 
 **As-Is only.** overcast records what the code does *now*; new-feature desires that surface during exploration go to `TODO.md` for monsoon's triage — mixing record and wish erases the line between them and breaks weathering's baseline.
 
-## Level (pick once, at the very start — same system as petrichor)
+## Level (pick once, at the very start — petrichor's L1/L2/L3, and only that: nothing here is being scoped, so no fixed-constraint question)
 
 - L1 — map: overview + entry-point map only. Direction right after inheriting.
 - L2 — spec: 機能一覧, 画面 (or command/API) 一覧, data model, permissions.
