@@ -24,7 +24,7 @@ Before Phase 0, ask two questions. **How far should this go?** sets interview de
 
 For L3 the progress header becomes a section-coverage checklist — each `requirements-jp.md` section marked 未着手 / 進行 / 確定, inapplicable ones skipped with a noted reason.
 
-For L2 and L3 every 機能一覧 item carries 優先度 (v1 / v2 / 保留), 概算 (S/M/L, so the v1 line is a cost decision rather than a wish), and 受け入れ条件 (≥1 verifiable criterion; EARS 文型 —「〜のとき、システムは〜する」, exceptions as 「もし〜なら、…」). Those criteria are what keep the spec live downstream: `squall` derives `tasks.md` completion conditions from them, and build checkpoints check real behavior against them.
+For L2 and L3 every 機能一覧 item carries 優先度 (v1 / v2 / 保留), 概算 (S/M/L, so the v1 line is a cost decision rather than a wish), and 受け入れ条件 (≥1 verifiable criterion; EARS 文型 —「〜のとき、システムは〜する」, exceptions as 「もし〜なら、…」). Those criteria are what keep the spec live downstream: `squall` derives `tasks.md` completion conditions from them, and build checkpoints check real behavior against them. L2 and L3 also carry a short project-level risk list — event, likelihood, and a response of 回避 / 低減 / 移転 / 受容 — because `squall`'s 着工承認 asks for open risks wherever it runs; `requirements-jp.md` G-3 is L3's full form.
 
 **Spec language: don't ask — default `ja`.** The toggle serves the deliverable's audience, not the author, so offer `en` / `ja+en` only on an audience signal (OSS, public release, international collaborators) or when the user raises it. Dual means one canonical language plus a translation rendered at Done; the interview and `NN-topic.md` files stay in the user's language regardless. Note the language in the header only when it is not the default.
 
