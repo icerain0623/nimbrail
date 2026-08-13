@@ -30,7 +30,7 @@ done_n=$(grep -E '^\| T-[0-9]+ \|' tasks.md | grep -cE '\*\*done\*\*|\| done')
 
 **Unpushed and unmerged are two different counts.** Unpushed is `@{u}..HEAD`, and no upstream at all means never pushed, a signal on its own. Unmerged is the distance from the integration base — what still needs a PR or a merge; a branch can be 0 unpushed and 5 unmerged with a PR already open.
 
-The integration base is the candidate branch with the smallest ahead count, not `origin/HEAD`: a branch forked from `develop` while `origin/HEAD` is `main` counts every commit since `main`, an order of magnitude off, and a view that prints a wrong number stops being read.
+The integration base is the candidate branch with the smallest ahead count, not `origin/HEAD`: a branch forked from `develop` while `origin/HEAD` is `main` counts every commit since `main`, an order of magnitude off.
 
 ```bash
 for c in develop main master; do   # skip $c when it is the current branch

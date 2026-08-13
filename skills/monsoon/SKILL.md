@@ -10,7 +10,7 @@ The recurring router: it inspects state, picks the next step, and delegates to a
 
 ## Inputs
 - `.claude/project.md` (static config). Missing → Decision step 1 routes.
-- `<shared-root>/<project>/tasks.md` if present (shared root per the global Handoff rule): the build ledger squall produced for a substantial build — dependency-ordered plan and live progress in one Obsidian-readable file. Each task carries ID, dependencies, a completion condition, and a status (todo / in-progress / done / **保留** — a 保留 task blocks its downstream: neither it nor its dependents count as unblocked), plus an append-only `## 進捗ログ` for cross-worktree visibility. It is the source of truth for task progress — a clean git tree does not mean the build is done. Being repo-external it carries mutable progress freely.
+- `<shared-root>/<project>/tasks.md` if present (shared root per the global Handoff rule): squall's build ledger for a substantial build (schema per `detail-design-jp.md` §7). It is the source of truth for task progress — a clean git tree does not mean the build is done. A **保留** task blocks its downstream: neither it nor its dependents count as unblocked.
 - `<shared-root>/<project>/findings.md` if present: incidental discoveries logged during other work (append-only checklist; unchecked lines are open, `## 対応済み` is history). Untriaged cheap items, which is why they wait for a checkpoint instead of interrupting.
 - Live state: `git status`, current branch, `git tag`, unpushed commits, branches merged into the default branch.
 

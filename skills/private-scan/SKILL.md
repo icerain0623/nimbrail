@@ -7,10 +7,10 @@ description: Scan the outgoing commit range for what must not be published — P
 
 The last check before work leaves the machine, over two things prose cannot enforce.
 
-**Credentials.** `warn-secrets.sh` sees content passing through Write/Edit, which is
-not how every line reaches a commit — a file written by a shell command, an editor
-outside the session, or a `git add` of something generated never crosses that hook.
-So the range gets its own pass, and a hit here means the hook was bypassed.
+**Credentials.** `warn-secrets.sh` only sees content passing through Write/Edit — a
+shell-written file, an editor outside the session, or a `git add` of generated output
+never crosses it. So the range gets its own pass, and a hit here means the hook was
+bypassed.
 
 **Private identifiers**, which no token pattern will ever match: a vault path,
 another client's project name, a machine path. Harmless in a private repo,
