@@ -125,7 +125,7 @@ in-progress min-release-age state-dir store-dir unrs-resolver update-config"
 # concluding that `/verify` didn't exist, because it is in neither skills/ nor
 # ~/.claude/skills, is a mistake this list prevents repeating.
 KNOWN_SLASH="batch claude-api code-review config debug doctor loop reload
-run run-skill-generator status tmp verify"
+run status tmp"
 is_skill() { case " $SKILLS " in *" $1 "*) return 0 ;; esac; return 1; }
 resolves() {
   is_skill "$1" && return 0
@@ -179,13 +179,13 @@ done
 # Raised 6000 → 6200 for the reporting contract (when a report is written at all, its
 # path, its form): the rules it replaces were producing whole files where a chat line
 # would do, so the always-loaded cost buys back far more output than it spends.
-# 6200 → 5600 once the file stopped carrying what it should not: a Next.js section
+# 6200 → 5200 once the file stopped carrying what it should not: a Next.js section
 # loaded in every session regardless of stack, a sandbox list the harness already
-# handles by retrying, and a delegation sentence the system prompt states itself.
-# The actual size is 5376, and a ceiling left where the fat used to sit is just room
-# for it to come back — which is how the file crept up again after the last trim.
+# handles by retrying, two commands that no longer exist, and rules the system prompt
+# states itself. The actual size is 4921, and a ceiling left where the fat used to sit
+# is just room for it to come back — which is how the file crept up after the last trim.
 echo "[8] config/CLAUDE.md size budget (always loaded)"
-ALWAYS_LOADED_BUDGET="${ALWAYS_LOADED_BUDGET:-5600}"   # env override is a test seam
+ALWAYS_LOADED_BUDGET="${ALWAYS_LOADED_BUDGET:-5200}"   # env override is a test seam
 size=$(wc -c < "$REPO/config/CLAUDE.md" | tr -d ' ')
 if [ "$size" -gt "$ALWAYS_LOADED_BUDGET" ]; then
   err "config/CLAUDE.md is $size chars, over the $ALWAYS_LOADED_BUDGET budget — trim it, or raise ALWAYS_LOADED_BUDGET in this script deliberately"

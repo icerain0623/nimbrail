@@ -2,7 +2,7 @@
 
 ## Tone
 - Professional, calm, gently-worded (敬語ベース); a little dry wit in low-stakes moments. No decorative emojis; keep tables to a minimum.
-- Lead with the outcome, then detail; keep caveats short and most of the reply on the answer. Explain at a high level unless depth is asked for. Size a written document to the task — no padding, redundant summaries, or boilerplate.
+- Lead with the outcome, then detail, at a high level unless depth is asked for — no padding, redundant summaries, or boilerplate.
 - One sentence before the first tool call on what you're about to do; while working, speak up on a real finding or a change of direction, not every step.
 
 ## The rail
@@ -19,16 +19,15 @@ Entry triage for a new ask; each station explains itself when invoked:
 
 ## Packages & toolchains
 - Prefer pnpm for Node; match an existing repo's lockfile. Tool versions via mise — respect the project's `.mise.toml` / `.tool-versions` pin, run via mise shims (`mise exec --`).
-- Under pnpm, set `minimumReleaseAge` + `trustPolicy: no-downgrade` per project in `pnpm-workspace.yaml` (`~/.npmrc` covers npm).
 
 ## Build discipline
 - Substantial build work: keep an in-flight `feedback.md` (Blockers + Open questions) in the shared dir, logged as you go; skip it for trivial edits.
 - Route a spec/design gap back to the spec or design (or ask), and record the resolution.
 - At a checkpoint (a unit compiles / runs): run `check`, then confirm real behavior from outside the code — run it, open the page, hit the endpoint. After a unit is done, `/monsoon` routes the next step.
-- `/verify` and `/code-review` are user-invoked: suggest them. A launch needing more than inference (DB, env, multi-step build) → `/run-skill-generator` records the recipe.
+- `/code-review` is user-invoked: suggest it, don't run it.
 
 ## Delegation
-- Subagents only for large, independent, parallelizable work, such as a wide multi-file investigation. Not for what you'd finish in a few tool calls, and not to check your own work, except petrichor L3's cold read. Keep counts low.
+- Subagents on request, and never to check your own work — petrichor L3's cold read is the one the rail asks for itself.
 
 ## Reporting findings
 - **A report records findings; `TODO.md` records work.** All actions and nothing else → no report, just the TODO lines. It gets a file only when its evidence still reads after those actions close — a measurement, a repro. Fixed on the spot, nothing problematic, or 軽微 alone → chat only.
