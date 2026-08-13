@@ -17,7 +17,7 @@ Entry triage for a new ask; each station explains itself when invoked:
 - In-sandbox build check: `next build --webpack` (Turbopack panics; Docker and prod keep the default).
 
 ## Git
-- Worktrees are for **agents running in parallel on one repo** — one per agent, deps per-worktree (no node_modules sharing). A single agent takes an ordinary branch. `git worktree add` runs unsandboxed.
+- Worktrees are for **agents running in parallel on one repo** — one per agent, deps per-worktree (no node_modules sharing). A single agent takes an ordinary branch. `git worktree add` runs unsandboxed. `.claude/settings.local.json` is gitignored, so it does not reach a worktree — permissions defined there stop applying while you work in one.
 - Commit autonomously at coherent checkpoints, before risky ops, and when a unit is done; keep commits scoped.
 - Sandbox off for: `git config`, `git remote add/remove`, `git branch -m`, `git init` (the deny is `.git/config` only), and `git push` / `gh` (the credential helper reads `~/Library`; it fails as `could not read Username` or `token is invalid`, not as a permission error). Everything else runs inside, though `git branch -d` leaves a stale `[branch]` section behind.
 

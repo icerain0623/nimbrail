@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # squall
 
-**Explore-first, not an interview.** Read the spec and the existing code/stack before asking anything (Serena's `get_symbols_overview` / `find_symbol` when that MCP is active, else Grep/Read), and ask the user only what neither can answer.
+**Explore-first, not an interview.** Read the spec and the existing code/stack before asking anything (Serena's `get_symbols_overview` / `find_symbol` when that MCP is active, else Grep/Read), and ask the user only what neither can answer. What a library or framework itself does — API shape, config keys, migration paths — comes from `context7`, not from memory, because the design is being pinned to the version this repo actually holds.
 
 ## Place in the flow
 

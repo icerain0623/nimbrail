@@ -33,6 +33,7 @@ nimbrail/
 - **`jq` が必須。** PreToolUse フックが入力のパースに使う（`brew install jq`）。
 - **ツールチェーンは自分で入れる**（Homebrew など）。サンドボックス側の配線は済んでいる: `go`/`cargo`/`colima` はサンドボックス外で走り（`excludedCommands`）、`~/.gradle`・`~/.m2`・`~/.cargo`・`~/.pyenv` は書き込み可。Python は `python-setup` スキルを呼ぶこと（macOS に `python` は無く、システムの pip はサンドボックス外に書く）。
 - **プラグイン**（figma, serena, context7, chrome-devtools, …）は `install.sh` では入らず、この repo のファイルでもない。初回起動時に `settings.json` の `enabledPlugins` と `extraKnownMarketplaces` から復元されるので、Claude Code を再起動して取得させればよい。`skills/` 配下はもう一方の種類で、ここで書き、symlink され、git で同期される。
+- **この repo が持っていない hook。** `settings.template.json` が宣言しているのは `PreToolUse` と `PostToolUse` だけ。セッションのラッパー — 例えば cmux — は `Stop` / `UserPromptSubmit` / `SessionStart` の hook を live の `settings.json` に直接登録し、それらは全プロジェクトで発火する。この3イベントで何かがおかしいとき、原因は `config/hooks/` には無く、この repo をいくら grep しても見つからない。
 - **macOS と Linux（WSL 含む）。** `install.sh` は bash で symlink のツリーを作るため、Windows では WSL を経路にする。clone は **WSL 側のファイルシステム（`~/…`）** に置くこと。`/mnt/c` 配下は権限の都合で symlink が壊れる。Git Bash / MSYS / Cygwin から実行した場合はその案内を出して止まる。native Windows へ手作業で入れる手順は [docs/windows.md](docs/windows.md) にあるが、**未検証**で、どこが不明かは正直に書いてある。
 - **一部の値はまだ作者固有**なので、そのまま採用する前に確認すること: サンドボックスの書き込みルートは `~/Documents/GitHub` と `~/Developers`、`EDITOR` は WebStorm（macOS ではそのまま。macOS 以外では WebStorm が無ければ `code --wait` か `vi` にフォールバック）。`SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` 用の CA bundle は install 時に探索するので、Debian/Ubuntu では macOS のパスではなく `/etc/ssl/certs/ca-certificates.crt` になる。
 
@@ -130,6 +131,7 @@ petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
 | `sunbreak` | **slash 専用**（レールではなくここに載せている）。過去のトランスクリプトを読み返し、Obsidian に報告書を書く（グローバルな学びとプロジェクト固有の学びを分けて）。適用は後から |
 | `python-setup` | サンドボックスで動く Python venv を用意する |
 | `node-sandbox-setup` | サンドボックス下の pnpm と mise を通す（インストール時の手順を症状→対処で） |
+| `shell-traps` | 無言で失敗する zsh/BSD の罠。単語分割されない展開、glob による中断、エイリアスされた `ls`、貼り付けた1行スクリプトの ASI |
 
 ## シークレット
 
