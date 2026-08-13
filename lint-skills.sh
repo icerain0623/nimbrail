@@ -124,8 +124,13 @@ in-progress min-release-age state-dir store-dir unrs-resolver update-config"
 # Slash references that resolve outside this repo. Worth keeping written down:
 # concluding that `/verify` didn't exist, because it is in neither skills/ nor
 # ~/.claude/skills, is a mistake this list prevents repeating.
+# Re-checked 2026-08-13 on a wider search — ~/.claude/commands (absent), every
+# plugin's commands/ and skills/, and the session's own skill listing — and
+# `/verify` and `/run-skill-generator` resolve in none of them, so config/CLAUDE.md
+# stopped naming them. They stay listed: this list exists so the check does not
+# re-litigate a name that resolves somewhere unobservable from here.
 KNOWN_SLASH="batch claude-api code-review config debug doctor loop reload
-run status tmp"
+run run-skill-generator status tmp verify"
 is_skill() { case " $SKILLS " in *" $1 "*) return 0 ;; esac; return 1; }
 resolves() {
   is_skill "$1" && return 0
