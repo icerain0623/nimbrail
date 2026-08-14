@@ -19,4 +19,3 @@ A repo with no `RELEASE_NOTE.md` at its root has not opted in — ask once befor
 ## Rules
 - Append-only history: past release sections stay as written.
 - Terse and user-facing — this is a changelog, not the commit log.
-- Don't tag or push; that is a separate, explicitly confirmed step.
