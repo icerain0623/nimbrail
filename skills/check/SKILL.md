@@ -17,7 +17,10 @@ Skip steps that don't exist, and say which were skipped.
 
 ## Run and log
 For each step, tee combined output to a log and keep the real exit code:
-`<cmd> 2>&1 | tee <shared-root>/check-<project>/<step>.log; exit ${PIPESTATUS[0]}`
+`set -o pipefail; <cmd> 2>&1 | tee <shared-root>/check-<project>/<step>.log`
+`pipefail` rather than a `PIPESTATUS` read: the array is bash-only, and in zsh the
+unset expansion leaves a bare `exit`, which returns `tee`'s status and reports every
+failure as a pass.
 (Create the `check-<project>/` dir first. Shared root: per the global Handoff rule.)
 
 ## Report
