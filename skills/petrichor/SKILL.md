@@ -24,7 +24,7 @@ Before Phase 0, ask two questions. **How far should this go?** sets interview de
 
 For L2 and L3 every 機能一覧 item carries 優先度 (v1 / v2 / 保留), 概算 (S/M/L, so the v1 line is a cost decision rather than a wish), and 受け入れ条件 (≥1 verifiable criterion; EARS 文型 —「〜のとき、システムは〜する」, exceptions as 「もし〜なら、…」). Those criteria are what keep the spec live downstream: `squall` derives `tasks.md` completion conditions from them, and build checkpoints check real behavior against them. L2 and L3 also carry a short project-level risk list — event, likelihood, and a response of 回避 / 低減 / 移転 / 受容 — because `squall`'s 着工承認 asks for open risks wherever it runs; `requirements-jp.md` G-3 is L3's full form.
 
-**Spec language: don't ask — default `ja`.** The toggle serves the deliverable's audience, not the author, so offer `en` / `ja+en` only on an audience signal (OSS, public release, international collaborators) or when the user raises it. The interview and `NN-topic.md` files stay in the user's language regardless. Note the language in the header only when it is not the default.
+Write the spec in the language the project's own docs use, asking only when there are none to follow, and note it in the header. The interview and `NN-topic.md` files stay in the user's language regardless.
 
 ## Files (`<shared-root>/<project>/`)
 
@@ -78,6 +78,6 @@ Three gates, in order:
 
 When all three hold, set header `Next: DONE`. The spec is `petrichor-plan/00-overview.md`.
 
-For a dual-language spec, render the translation now — after the gates, from the canonical file — as a sibling `00-overview.en.md` (or `.ja.md`) opened by a one-line note: "rendered from the canonical spec — edit the canonical, then re-render". IDs stay language-neutral (`REQ-…`, `F-…`) so traceability and in-file wikilinks survive translation, and the canonical is what `squall` and the build read.
+For a dual-language spec, render the translation now — after the gates, from the canonical — as a sibling `00-overview.en.md` (or `.ja.md`). IDs stay language-neutral (`REQ-…`, `F-…`) so traceability and in-file wikilinks survive translation, and the canonical is what `squall` and the build read.
 
 Offer once to copy just the spec (both files when dual) into the project as `<project-root>/SPEC.md` or `docs/SPEC.md`, so it is versioned with the code; the disposable `NN-topic.md` files stay in the shared dir. Check visibility first (`gh repo view --json visibility`) — copying into a public repo publishes every 受け入れ条件 with it, so on PUBLIC say so when offering, and leave them on the shared side if the user would rather not. Then recommend `squall`, which turns the spec into the detailed design and records the repo config into `.claude/`.
