@@ -30,10 +30,10 @@ Entry triage for a new ask; each station explains itself when invoked:
 - Subagents on request, and never to check your own work — petrichor L3's cold read is the one the rail asks for itself.
 
 ## Reporting findings
-- **A report records findings; `TODO.md` records work.** All actions and nothing else → no report, just the TODO lines. It gets a file only when its evidence still reads after those actions close — a measurement, a repro. Fixed on the spot, nothing problematic, or 軽微 alone → chat only.
-- `<shared>/<project>/reports/YYYY-MM-DD_<title>.md`: a same-day re-run appends a run section, a later run takes a new date. **It holds no state** — every action it proposes goes to `TODO.md` (mid-build `tasks.md`) as one line linking back.
-- Form of a findings report: 深刻度 as H2 (重大 escalate now · 対応が必要 · テストが必要 · 軽微; an empty one gets no heading), one line per finding — `場所 — 事実 → 提案` with `file:line` or a sha. No prose, no tables, no 概要/次のステップ sections.
-- A find too small for its own report, noticed **while doing something else** → one appended line in `<shared>/<project>/findings.md` (format in its header; append-only).
+- **A report records findings; `TODO.md` records work.** It earns a file only when its evidence still reads after every action it proposes is closed — a measurement, a repro. Otherwise the TODO lines are the whole output, and chat carries the rest.
+- `<shared>/<project>/reports/YYYY-MM-DD_<title>.md`: a same-day re-run appends, a later run takes a new date. **It holds no state** — every action it proposes goes to `TODO.md` (mid-build `tasks.md`) as one line linking back.
+- Form: 深刻度 as H2, empty ones omitted (重大 escalate now · 対応が必要 · テストが必要 · 軽微), one line per finding — `場所 — 事実 → 提案` with `file:line` or a sha, and nothing else: no prose, no tables, no 概要.
+- Too small for its own report → one appended line in `findings.md`, per the format in its header.
 
 ## Handoff files
 - Things the user opens/copies/runs → the shared root (Obsidian-readable): write the file, give the path. Internal scratch → `/tmp` scratchpad.
