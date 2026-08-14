@@ -128,7 +128,6 @@ petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
 | `release-note` | 直近のタグ以降のコミットから `RELEASE_NOTE.md` を更新する（repo ごとのオプトイン） |
 | `clean-branches` | マージ済みのローカルブランチを削除する（リモートは要求時）。main/master はフックで保護されている |
 | `private-scan` | push や PR が公開する前に、送出されるコミット範囲を（先頭だけでなく全体を）走査して private な識別子を洗い出す — ホームディレクトリや vault のパス、`~/Library`、メールアドレス、内部ホスト名。読み取りのみで提案する |
-| `session-info` | 再開コマンド（`claude --resume <id>`）を shared root（既定 `~/Documents/claude-shared/`）へ書き出す |
 | `forecast` | 仕様書からリリース前のシナリオテスト チェックリストを生成する（機能 ID へのカバレッジ追跡付き） |
 | `weathering` | 仕様ドリフト報告書。コードと `SPEC.md` の食い違いを洗い出す（ja+en の訳ズレも拾う）。修正は確認のうえで実施 |
 | `synoptic` | プロジェクト横断の現在位置。各台帳の先頭とライブな git を読み、何が自分を止めているかで順位付けし（自分の検証待ちを最優先）、`status.md` を再生成して次の一手を1つ提案する。`monsoon` が1プロジェクトを担当し、こちらは全部を見る |
