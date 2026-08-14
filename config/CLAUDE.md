@@ -8,7 +8,7 @@
 ## The rail
 Entry triage for a new ask; each station explains itself when invoked:
 - trivial / well-understood → express lane (just build it)
-- new capability worth planning → /petrichor (L1 sketch → L3 要件定義) → squall → build
+- new capability worth planning → /petrichor (spec) → squall (design) → build
 - existing code, no spec → /overcast
 - "next sensible step given state?" → /monsoon
 
@@ -27,7 +27,7 @@ Entry triage for a new ask; each station explains itself when invoked:
 - `/code-review` is user-invoked: suggest it, don't run it.
 
 ## Delegation
-- Subagents on request, and never to check your own work — petrichor L3's cold read is the one the rail asks for itself.
+- Subagents on request, and never to check your own work — petrichor's cold read at Done is the one the rail asks for itself.
 
 ## Reporting findings
 - **A report records findings; `TODO.md` records work.** It earns a file only when its evidence still reads after every action it proposes is closed — a measurement, a repro. Otherwise the TODO lines are the whole output, and chat carries the rest.

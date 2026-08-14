@@ -10,11 +10,12 @@ The sky is already clouded when you arrive — read the weather in a codebase yo
 
 **As-Is only.** overcast records what the code does *now*; new-feature desires that surface during exploration go to `TODO.md` for monsoon's triage — mixing record and wish erases the line between them and breaks weathering's baseline.
 
-## Level (pick once, at the very start — petrichor's L1/L2/L3, and only that: nothing here is being scoped, so no fixed-constraint question)
+## Depth (pick once, at the very start)
 
-- L1 — map: overview + entry-point map only. Direction right after inheriting.
-- L2 — spec: 機能一覧, 画面 (or command/API) 一覧, data model, permissions.
-- L3 — full As-Is 要件定義: the full section set of petrichor's `requirements-jp.md`. Sections needing knowledge that lives only in stakeholders' heads (the business Why, SLA agreements) are marked 不明.
+- **Map** — overview + entry-point map only. Direction right after inheriting.
+- **Spec** — 機能一覧, 画面 (or command/API) 一覧, data model, permissions. The shape petrichor produces, so the rest of the rail works on it.
+
+Nothing deeper: a full As-Is 要件定義 would have to quantify 非機能 and state the business Why, and code holds neither — those sections would be 不明 exactly where the depth was supposed to pay.
 
 ## Method — explore-first; the interview comes last and stays small
 
@@ -34,7 +35,7 @@ Write the spec to the rail's standard location, `<shared-root>/<project>/petrich
 
 ```markdown
 # <project> — As-Is spec (overcast, YYYY-MM-DD)
-- Level: <L1/L2/L3> / Confidence legend: 事実・推定・不明 / Unknowns remaining: N
+- Depth: <map/spec> / Confidence legend: 事実・推定・不明 / Unknowns remaining: N
 ```
 
 Done when every entry point, route/command and table traces to a 機能 ID or is explicitly flagged, the question round has run once, and suspected-dead items carry 要確認. Then, exactly like petrichor's Done: offer once to promote the file into the repo as `SPEC.md`, and recommend the next station — `squall` if the `.claude/` config or design records are missing, else straight to `monsoon`.

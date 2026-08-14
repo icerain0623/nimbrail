@@ -11,7 +11,7 @@ The pre-release weather report — walk, by hand, whether the spec will hold onc
 
 - The spec: `SPEC.md` in the repo, else `<shared-root>/<project>/petrichor-plan/00-overview.md`. Especially: 機能要件一覧 (優先度・受け入れ条件) / 画面一覧・画面定義書 (or their non-web equivalents: command / API lists) / 業務フロー / 権限マトリクス.
 - `tasks.md` completion conditions, if present — to cross-check against the acceptance criteria.
-- No spec → say so and suggest `petrichor` first; never fabricate scenarios from code alone. L1-sketch-only spec → offer a minimal smoke list from the overview and label it as such.
+- No spec → say so and suggest `petrichor` first; never fabricate scenarios from code alone. A spec with no 受け入れ条件 yet → offer a minimal smoke list from the overview and label it as such.
 
 ## Output
 
