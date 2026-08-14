@@ -1,6 +1,6 @@
-<!-- petrichor L2 spec, promoted 2026-07-03. Working files no longer exist; this file is the record. -->
+<!-- petrichor spec, promoted 2026-07-03. Working files no longer exist; this file is the record. -->
 
-# downpour — スペック(L2)
+# downpour — スペック
 
 ## 概要
 

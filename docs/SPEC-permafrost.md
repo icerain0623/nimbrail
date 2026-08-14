@@ -1,6 +1,6 @@
-<!-- petrichor L2 spec, promoted 2026-07-08. Working files no longer exist; this file is the record. -->
+<!-- petrichor spec, promoted 2026-07-08. Working files no longer exist; this file is the record. -->
 
-# permafrost — 情報ライフサイクル（L2）
+# permafrost — 情報ライフサイクル
 
 ## 概要
 

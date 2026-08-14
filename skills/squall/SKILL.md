@@ -62,13 +62,13 @@ Both files are committed, so they carry no secrets and no mutable progress.
 
 Three gates before handing off to the build:
 
-1. **Cross-artifact consistency — once, before 着工.** Each section already met its own 終了条件; this is the one pass checking that the artifacts agree *with each other*. A reading pass, scaled to level (skip for L1 / trivial, light for L2, full for L3):
+1. **Cross-artifact consistency — once, before 着工.** Each section already met its own 終了条件; this is the one pass checking that the artifacts agree *with each other*. A reading pass, scaled to the build (skip it for a trivial one):
    - every v1 機能 ID in the spec lands in the design and (substantial builds) in `tasks.md`, while v2 / 保留 items are consciously absent;
    - the design introduces nothing the spec didn't ask for;
    - `tasks.md` dependencies match the real design (DB before the modules that need it) and the graph has no cycle;
    - each task's completion condition traces to its 機能 ID's 受け入れ条件.
    Surface drift back to petrichor (a spec gap) or fix it here (a design gap).
 2. Every applicable `detail-design-jp.md` section meets its 終了条件, and the `.claude/` config is recorded.
-3. 着工承認 (GO), skipped for L1 / trivial: present a one-screen summary — key design decisions (DB core, module boundaries, API shape), sections skipped and why, task count with the critical path, open risks — and wait for the user's GO. The design is about to become expensive to change, so the last cheap moment to object is now.
+3. 着工承認 (GO), skipped for a trivial build: present a one-screen summary — key design decisions (DB core, module boundaries, API shape), sections skipped and why, task count with the critical path, open risks — and wait for the user's GO. The design is about to become expensive to change, so the last cheap moment to object is now.
 
 Then build in the normal loop, and `/monsoon` at a checkpoint routes the next step.
