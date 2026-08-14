@@ -73,6 +73,22 @@ It then asks **how much git it may do on its own.** Both answers are enforced by
 | | `never` | refuse them outright; you push by hand |
 | | `auto` | push without asking — **but only in a repo that has a linter or CI** (`.github/workflows`, eslint, biome, golangci, ruff, rubocop, a `lint` script, `lint.sh`). Nothing lands unreviewed where nothing checks it. Force pushes, ref deletions and pushes on `main` still ask. |
 
+### Taking the rules without the machine
+
+`./install.sh --no-settings` installs `CLAUDE.md` and the skills and stops there — no
+`settings.json`, no hooks. You get the rail and the writing rules; you keep your own
+permissions, sandbox and git policy.
+
+That is the only place this kit splits cleanly. `CLAUDE.md` names seven skills and
+twelve skills defer back to its rules, so neither half stands alone — but the
+enforcement layer is exactly the part that encodes *this* machine (write-roots under
+`~/Developers`, WebStorm as `EDITOR`, a probed CA bundle), and it is the part you have
+least reason to inherit.
+
+Re-running with the flag after a full install removes the hook links it left behind.
+Your `settings.json` is never touched either way: it holds the live PAT and whatever
+`/config` has since changed.
+
 A re-run keeps whatever you chose last time. One project can differ: set
 `CLAUDE_KIT_COMMIT` / `CLAUDE_KIT_PUSH` in that repo's `.claude/settings.json`
 (committed, so the whole team gets it) or `.claude/settings.local.json` (gitignored,

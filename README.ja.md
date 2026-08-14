@@ -66,6 +66,14 @@ cd nimbrail
 | | `never` | 一切拒否する。push は自分の手でやる |
 | | `auto` | 確認せず push する — **ただし linter か CI がある repo に限る**（`.github/workflows`、eslint、biome、golangci、ruff、rubocop、`lint` スクリプト、`lint.sh` のいずれか）。何も検査していない場所に、レビューを経ないものを落とさないため。force push・ref 削除・`main` への push は auto でも確認する |
 
+### 規則だけ取り、このマシンの設定は取らない
+
+`./install.sh --no-settings` は `CLAUDE.md` とスキルだけを入れて止まる。`settings.json` もフックも入らない。レールと書き方の規則は手に入り、権限・サンドボックス・git ポリシーは自分のものを使い続けられる。
+
+このキットが綺麗に割れるのはここだけだ。`CLAUDE.md` は7つのスキルを名指しし、12本のスキルがその規則を参照して戻ってくるので、どちらか片方では成り立たない。一方で強制の層は**このマシン**を書き込んだ部分そのもの（`~/Developers` 配下の書き込みルート、`EDITOR` が WebStorm、実行時に探した CA バンドル）で、他人が引き継ぐ理由が最も薄い。
+
+通常インストールの後にこのフラグ付きで再実行すると、残っていたフックのリンクを外す。`settings.json` はどちらの場合も触らない。実 PAT と、その後 `/config` で変えた設定を持っているからだ。
+
 再実行すると前回の選択を引き継ぐ。プロジェクト単位で変えることもできる。そのリポジトリの `.claude/settings.json`（コミットされるのでチーム全体に効く）か `.claude/settings.local.json`（gitignore されるので自分だけ）に `CLAUDE_KIT_COMMIT` / `CLAUDE_KIT_PUSH` を書けばよい。優先順位は Claude Code が user < project < project-local の順で処理する。
 
 続けてシークレットを作る:

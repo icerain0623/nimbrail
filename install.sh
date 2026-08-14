@@ -29,6 +29,15 @@
 #   --push ask|never|auto  what `git push` / `gh pr create` may do. auto pushes
 #                        without asking, but only in a repo that has a linter or CI
 #                        — nothing should land unreviewed where nothing checks it.
+#   --no-settings        install the rules and skills, not the enforcement: skip
+#                        settings.json and the hooks. This is the one clean cut —
+#                        CLAUDE.md and skills name each other, so neither half
+#                        installs alone, while settings.json carries this machine's
+#                        answers (write-roots, EDITOR, CA bundle) that another
+#                        machine has no reason to inherit. Re-running with the flag
+#                        removes hook symlinks left by an earlier full install; an
+#                        existing settings.json is never touched, because it holds
+#                        the live PAT and your runtime /config toggles.
 #
 # Both policies are enforced by the git-workflow hook, which reads them from the
 # environment. A single project can override them in its own .claude/settings.json
@@ -53,6 +62,7 @@ case "${CLAUDE_KIT_UNAME:-$(uname -s 2>/dev/null || echo unknown)}" in
 esac
 
 ASSUME_YES=0
+NO_SETTINGS=0
 SHARED_DIR_ARG=""
 COMMIT_ARG=""
 PUSH_ARG=""
@@ -60,6 +70,7 @@ LANG_ARG=""
 while [ $# -gt 0 ]; do
   case "$1" in
     -y|--yes)     ASSUME_YES=1; shift ;;
+    --no-settings) NO_SETTINGS=1; shift ;;
     --lang)       [ $# -ge 2 ] || { echo "--lang needs en|ja" >&2; exit 2; }
                   LANG_ARG="$2"; shift 2 ;;
     --lang=*)     LANG_ARG="${1#*=}"; shift ;;
@@ -233,7 +244,9 @@ read_setting_env() { # <key> — the live copy only; no jq dependency
 KIT_COMMIT="${COMMIT_ARG:-$(read_setting_env CLAUDE_KIT_COMMIT)}"
 KIT_PUSH="${PUSH_ARG:-$(read_setting_env CLAUDE_KIT_PUSH)}"
 
-if [ -z "$KIT_COMMIT$KIT_PUSH" ] && [ "$ASSUME_YES" = 0 ] && [ -t 0 ]; then
+# Skipped under --no-settings: the answers only ever reach settings.json, and the
+# git-workflow hook that reads them is not being installed either.
+if [ -z "$KIT_COMMIT$KIT_PUSH" ] && [ "$ASSUME_YES" = 0 ] && [ -t 0 ] && [ "$NO_SETTINGS" = 0 ]; then
   echo
   say "Git policy. Claude commits as it works; pushing is a separate decision." \
       "git の扱い。Claude は作業しながらコミットします。push はそれとは別の判断です。"
@@ -264,6 +277,7 @@ SHELVED=()    # real content moved aside to .bak this run
 KEPT=()       # diverging files left as-is (you kept your version)
 RECONCILE=()  # copies that differ from the repo and may want a manual look
 PRUNED=()     # dangling symlinks into this repo (target removed) cleaned up
+UNLINKED=()   # live links removed because this run no longer installs them
 
 shelve() {  # move an existing real file/dir out of the way, recording it
   local p="$1" b
@@ -357,10 +371,40 @@ prune_dangling() {
   done
 }
 
+# Remove links this script owns from a directory the current run no longer installs
+# into — what --no-settings does to hooks left by an earlier full install. Unlike
+# prune_dangling the targets are still there, so the same two guards do the work:
+# symlinks only, and only ones resolving into $REPO. A real file is never removed,
+# which is what keeps settings.json (a copy, holding the live PAT and the runtime
+# /config toggles) out of reach of this.
+unlink_ours() {
+  local dir="$1" l tgt
+  [ -d "$dir" ] || return 0
+  for l in "$dir"/*; do
+    [ -L "$l" ] || continue
+    tgt="$(readlink "$l")"
+    case "$tgt" in
+      "$REPO"/*) rm -f "$l"; UNLINKED+=("$l"); echo "  removed $l -> $tgt" ;;
+    esac
+  done
+  rmdir "$dir" 2>/dev/null || true   # only when we emptied it; anything foreign keeps it
+}
+
 echo "Linking config ..."
 link "$REPO/config/CLAUDE.md"     "$CLAUDE_DIR/CLAUDE.md"
 link "$REPO/config/statusline.sh" "$CLAUDE_DIR/statusline.sh"
 
+if [ "$NO_SETTINGS" = 1 ]; then
+  say "Skipping settings.json and hooks (--no-settings) ..." \
+      "settings.json と hooks を飛ばします（--no-settings）..."
+  # An earlier full install may have left hook links behind; they would keep firing
+  # against a settings.json this run is not writing, so they go.
+  unlink_ours "$CLAUDE_DIR/hooks"
+  if [ -e "$CLAUDE_DIR/settings.json" ]; then
+    say "  kept the existing settings.json — it holds the live PAT and your /config toggles" \
+        "  既存の settings.json はそのまま — 実 PAT と /config の設定を持っているため"
+  fi
+else
 # The template ships this machine's answers as defaults: the shared root in its
 # permissions, its permafrost Read-deny and its sandbox allowWrite, plus the two
 # git-policy env keys. Substitute the chosen values before copying — for the shared
@@ -402,6 +446,7 @@ copy "$SETTINGS_SRC" "$CLAUDE_DIR/settings.json"
 for h in "$REPO"/config/hooks/*.sh; do
   link "$h" "$CLAUDE_DIR/hooks/$(basename "$h")"
 done
+fi
 
 echo "Linking authored skills ..."
 for s in "$REPO"/skills/*/; do
@@ -487,6 +532,13 @@ if [ "${#PRUNED[@]}" -gt 0 ]; then
   say "Pruned dangling links (skill/hook removed from the repo):" \
       "repo から消えたスキル / フックへの壊れたリンクを削除しました:"
   printf '  %s\n' "${PRUNED[@]}"
+fi
+if [ "${#UNLINKED[@]}" -gt 0 ]; then
+  say "Removed hook links this run no longer installs (--no-settings):" \
+      "今回の選択に入らない hook のリンクを外しました（--no-settings）:"
+  printf '  %s\n' "${UNLINKED[@]}"
+  say "  settings.json was left as it is — it holds the live PAT and your /config toggles." \
+      "  settings.json はそのままです — 実 PAT と /config の設定を持っているため。"
 fi
 # `[ ... ] && echo` would abort the script under set -e whenever there IS something
 # to review, swallowing the steps below — the case that needs them most.
