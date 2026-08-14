@@ -18,6 +18,10 @@ whichever skill happened to hit one.
 - **`no matches found` aborts the whole command.** An unmatched glob is a zsh error,
   not an empty expansion as in bash, so the command never runs. Quote the pattern
   when the callee expands it, or `setopt null_glob` for that line.
+- **`PIPESTATUS` is bash-only** — zsh spells it `pipestatus` and indexes from 1. The
+  bash form expands to nothing, so `cmd | tee log; exit ${PIPESTATUS[0]}` runs a bare
+  `exit`, which returns `tee`'s status: every failure reports as a pass. Prefer
+  `set -o pipefail`, which both shells honour.
 
 ## BSD / macOS
 
@@ -29,9 +33,9 @@ whichever skill happened to hit one.
 ## Handing a one-liner to a human
 
 A multi-line function declaration survives being pasted; a one-liner does not. Wrapped
-in a terminal or a chat client, ASI turns `return` at a line break into `return;` and
-the rest of the expression is silently dropped. Write it as a multi-line declaration,
-or put it in a file under the scratchpad and have them copy from there.
+in a terminal or a chat client, JavaScript's ASI turns `return` at a line break into
+`return;` and the rest of the expression is silently dropped. Write it as a multi-line
+declaration, or put it in a file under the scratchpad and have them copy from there.
 
 ## Rules
 

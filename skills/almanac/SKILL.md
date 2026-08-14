@@ -9,7 +9,7 @@ The weather yearbook — the week's weather in one place, with the shared-direct
 
 ## Inputs
 
-- **Active repos**: dirs under `~/Developers/` (and the cwd's repo) with commits in the window. Window = the last 7 days, or since the previous almanac note if one exists (no gap, no overlap).
+- **Active repos**: repos under the sandbox write-roots (`~/Developers`, `~/Documents/GitHub` and their immediate subdirs — the same set `synoptic` calls a project) plus the cwd's repo, with commits in the window. Window = the last 7 days, or since the previous almanac note if one exists (no gap, no overlap).
 - Per active repo: `git log --since` (all branches), merged PRs if `gh` works, current branch state.
 - **Shared dir signals** (per project, shared root per the global Handoff rule): `tasks.md` status changes (done this week / now unblocked), `feedback.md` entries (friction), `TODO.md` additions.
 - Do NOT read transcripts — that depth is sunbreak's job; almanac stays cheap enough to run weekly.
