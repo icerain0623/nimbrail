@@ -24,7 +24,7 @@ Before Phase 0, ask two questions. **How far should this go?** sets interview de
 
 For L2 and L3 every 機能一覧 item carries 優先度 (v1 / v2 / 保留), 概算 (S/M/L, so the v1 line is a cost decision rather than a wish), and 受け入れ条件 (≥1 verifiable criterion; EARS 文型 —「〜のとき、システムは〜する」, exceptions as 「もし〜なら、…」). Those criteria are what keep the spec live downstream: `squall` derives `tasks.md` completion conditions from them, and build checkpoints check real behavior against them. L2 and L3 also carry a short project-level risk list — event, likelihood, and a response of 回避 / 低減 / 移転 / 受容 — because `squall`'s 着工承認 asks for open risks wherever it runs; `requirements-jp.md` G-3 is L3's full form.
 
-The spec's language follows the global Docs language rule. The interview and `NN-topic.md` files stay in the user's language regardless; note the spec's own language in the header only when it is not the default.
+Write the spec in the language the project's own docs use, asking only when there are none to follow, and note it in the header. The interview and `NN-topic.md` files stay in the user's language regardless.
 
 ## Files (`<shared-root>/<project>/`)
 

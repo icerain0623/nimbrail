@@ -27,7 +27,7 @@ After shipping, specs weather — the code moves on, SPEC.md becomes the old ide
 2. Sweep the window's commits and diff for feature-shaped change (new routes, commands, tables, screens) and map each to a 機能 ID. Failing to map is itself a finding.
 3. Walk the spec's v1 機能 ID list in the other direction: does each still exist in code, behaving per its 受け入れ条件? Spot-check the riskiest — full re-checking belongs to the build's own checkpoints.
 4. Check the data model: the spec's ER / データ項目定義 against the actual schema and migrations.
-5. For dual-language projects, check the renderings for the rot the global Docs language rule defines, and offer a re-render.
+5. Where a doc has a translation, one of the pair is canonical and the other is rendered from it; a rendering older than its canonical is rot. Offer a re-render.
 
 ## Output
 

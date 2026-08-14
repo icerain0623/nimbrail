@@ -35,10 +35,6 @@ Entry triage for a new ask; each station explains itself when invoked:
 - Form of a findings report: 深刻度 as H2 (重大 escalate now · 対応が必要 · テストが必要 · 軽微; an empty one gets no heading), one line per finding — `場所 — 事実 → 提案` with `file:line` or a sha. No prose, no tables, no 概要/次のステップ sections.
 - A find too small for its own report, noticed **while doing something else** → one appended line in `<shared>/<project>/findings.md` (format in its header; append-only).
 
-## Docs language
-- Default `ja`, never asked. `en` / `ja+en` only on an audience signal (OSS, public release, outside collaborators) — the toggle serves the audience, not the author.
-- Dual = one canonical plus a rendering that says so on line one, never two edited in parallel. A rendering older than its canonical is rot.
-
 ## Handoff files
 - Things the user opens/copies/runs → the shared root (Obsidian-readable): write the file, give the path. Internal scratch → `/tmp` scratchpad.
 - Shared root resolves from `~/.claude/shared-dirs.json`: an `overrides` entry for the project root, else `default`, else `~/Documents/claude-shared`. In a linked worktree the repo root is the parent of `git rev-parse --git-common-dir`, not `--show-toplevel`. Cross-project artifacts (sunbreak/almanac/synoptic/research) always use the default root; an override root needs a one-time settings grant (`update-config`; restart applies).
