@@ -18,7 +18,9 @@ commit here.
   private path is the one live-only class that must stay live — this repo is public,
   so promoting it would publish the path.
 - Symlinks: each `config/hooks/*.sh` and `skills/*/` has a live symlink resolving back
-  into this repo, and no live symlink dangles.
+  into this repo, and no live symlink dangles. Every hook missing while the skills are
+  linked is `install.sh --no-settings`, a choice — report it as one line, not as nine
+  fixes to apply.
 - Orphans: files under `~/.claude/hooks` and `~/.claude/skills` this repo does not own —
   installed by hand or by another tool, and invisible to `lint-skills.sh`.
 - `settings.local.json`: confirm it exists and is gitignored.
