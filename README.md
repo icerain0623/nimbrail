@@ -19,7 +19,7 @@ nimbrail/
 ├── docs/                      # promoted petrichor specs (downpour, permafrost)
 ├── config/
 │   ├── CLAUDE.md              # global instructions       → ~/.claude/CLAUDE.md
-│   ├── settings.template.json # permissions/sandbox/hooks → ~/.claude/settings.json (COPIED, not linked; PAT placeholder)
+│   ├── settings.template.json # permissions/sandbox/hooks → ~/.claude/settings.json (COPIED, not linked; carries no PAT)
 │   ├── statusline.sh          #                           → ~/.claude/statusline.sh
 │   ├── gitignore_global       # wired via core.excludesfile
 │   ├── npmrc                  # supply-chain hardening    → ~/.npmrc (ignore-scripts + min-release-age)
@@ -161,7 +161,7 @@ Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (
 
 ## Secrets
 
-- The real GitHub PAT lives **only** in `~/.claude/settings.local.json` (gitignored). `settings.local.json` overrides `env.GH_TOKEN` at runtime; the template carries a placeholder.
+- The real GitHub PAT lives **only** in `~/.claude/settings.local.json` (gitignored), which sets `env.GH_TOKEN` at runtime. The template declares no `GH_TOKEN` at all, so there is no placeholder to fill in by mistake — and `gh`'s own keyring login works without one, which is what makes that file optional.
 - `.gitignore` also blocks any literal `settings.json` as a safety net.
 - If a real token ever lands in a commit: **rotate it immediately** on GitHub.
 - Secret scanning and push protection are enabled on this repo, so GitHub blocks a

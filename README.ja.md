@@ -19,7 +19,7 @@ nimbrail/
 ├── docs/                      # petrichor から昇格した仕様書 (downpour, permafrost)
 ├── config/
 │   ├── CLAUDE.md              # グローバル指示           → ~/.claude/CLAUDE.md
-│   ├── settings.template.json # 権限/サンドボックス/フック → ~/.claude/settings.json (symlink ではなくコピー。PAT はプレースホルダ)
+│   ├── settings.template.json # 権限/サンドボックス/フック → ~/.claude/settings.json (symlink ではなくコピー。PAT は持たない)
 │   ├── statusline.sh          #                         → ~/.claude/statusline.sh
 │   ├── gitignore_global       # core.excludesfile 経由で配線
 │   ├── npmrc                  # サプライチェーン対策      → ~/.npmrc (ignore-scripts + min-release-age)
@@ -143,7 +143,7 @@ petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
 
 ## シークレット
 
-- 実 GitHub PAT が置かれるのは `~/.claude/settings.local.json`（gitignore 済み）**だけ**。`settings.local.json` が実行時に `env.GH_TOKEN` を上書きし、テンプレートはプレースホルダを持つ。
+- 実 GitHub PAT が置かれるのは `~/.claude/settings.local.json`（gitignore 済み）**だけ**で、実行時に `env.GH_TOKEN` を設定するのはこのファイル。テンプレートは `GH_TOKEN` 自体を宣言していないので、埋め間違える余地のあるプレースホルダがそもそも無い。`gh` 自身の keyring ログインがあれば無くても動くため、このファイルは任意。
 - `.gitignore` は保険として、リテラルな `settings.json` もすべてブロックする。
 - 実トークンがコミットに入ってしまったら、GitHub 上で**即座にローテーションする**。
 - この repo では secret scanning と push protection を有効にしてあるので、既知の形のトークンは push 時点で GitHub が弾く。ただしこれは最後の砦で、上の2つのルールの代わりにはならない。
