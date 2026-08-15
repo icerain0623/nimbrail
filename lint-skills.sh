@@ -11,7 +11,8 @@
 #      body only on lines that state it is the default (the `<shared-root>`
 #      override convention — see global CLAUDE.md, Handoff files)
 #   5. README.md and README.ja.md each mention every authored skill (table drift)
-#   6. the Obsidian guide, if present, mentions every authored skill
+#   (6 is retired — an Obsidian skills-guide that was never created; numbers are
+#      referenced elsewhere, so the slot stays empty rather than renumbering)
 #   7. backticked references that are shaped like a skill actually resolve to
 #      one — catches a phantom station (`verify`, `landing-page-nextjs`) written
 #      as if it were invocable
@@ -28,14 +29,6 @@
 set -u
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RAIL="petrichor overcast squall downpour monsoon sunbreak"
-# Same resolution the hooks and skills use, so a non-default shared root (chosen at
-# install time) doesn't silently turn check [6] into a no-op.
-SHARED_ROOT="$HOME/Documents/claude-shared"
-if [ -f "$HOME/.claude/shared-dirs.json" ] && command -v jq >/dev/null 2>&1; then
-  d="$(jq -r '.default // empty' "$HOME/.claude/shared-dirs.json" 2>/dev/null)"
-  [ -n "$d" ] && SHARED_ROOT="$d"
-fi
-GUIDE="$SHARED_ROOT/nimbrail/skills-guide.md"
 FAIL=0
 
 err() { printf '  \342\234\227 %s\n' "$1"; FAIL=1; }
@@ -95,16 +88,6 @@ for d in "$REPO"/skills/*/; do
     grep -qE "\`/?$s\`" "$REPO/$r" || err "$r does not list '\`$s\`'"
   done
 done
-
-echo "[6] Obsidian guide lists every authored skill (backticked)"
-if [ -f "$GUIDE" ]; then
-  for d in "$REPO"/skills/*/; do
-    s="$(basename "${d%/}")"
-    grep -qE "\`/?$s\`" "$GUIDE" || err "skills-guide.md does not list '\`$s\`'"
-  done
-else
-  note "(guide not found at $GUIDE — skipped)"
-fi
 
 echo "[7] backticked skill-shaped references resolve to a skill"
 # Three narrow rules, chosen because they catch the phantom references this kit

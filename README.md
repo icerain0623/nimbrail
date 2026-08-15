@@ -143,6 +143,7 @@ Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (
 | skill | what it does |
 | --- | --- |
 | `check` | run lint/typecheck (`full` adds test+build); logs to the shared root (default `~/Documents/claude-shared/`) |
+| `calibrate` | tune continuous UI values (spacing, color, radius, shadow, timing) with sliders in the browser — ships the panel it pastes in, extracts hardcoded values into tokens first, applies what comes back |
 | `release-note` | update `RELEASE_NOTE.md` from commits since the last tag (opt-in per repo) |
 | `clean-branches` | delete merged local branches (remote on request); main/master is hook-protected |
 | `private-scan` | scan the outgoing commit range — not just the tip — for private identifiers (home-dir and vault paths, `~/Library`, emails, internal hosts) before a push or PR publishes them; read-only, proposes |

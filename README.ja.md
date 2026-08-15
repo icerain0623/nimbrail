@@ -125,6 +125,7 @@ petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
 | スキル | 何をするか |
 | --- | --- |
 | `check` | lint/typecheck を走らせる（`full` でテストとビルドも）。ログは shared root（既定 `~/Documents/claude-shared/`）へ |
+| `calibrate` | 連続値の UI 調整（余白・色・角丸・影・時間）をブラウザのスライダーで。貼り込むパネル本体を同梱し、トークン化されていなければ先に抽出、戻ってきた値を反映する |
 | `release-note` | 直近のタグ以降のコミットから `RELEASE_NOTE.md` を更新する（repo ごとのオプトイン） |
 | `clean-branches` | マージ済みのローカルブランチを削除する（リモートは要求時）。main/master はフックで保護されている |
 | `private-scan` | push や PR が公開する前に、送出されるコミット範囲を（先頭だけでなく全体を）走査して private な識別子を洗い出す — ホームディレクトリや vault のパス、`~/Library`、メールアドレス、内部ホスト名。読み取りのみで提案する |
