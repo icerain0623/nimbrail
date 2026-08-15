@@ -41,5 +41,5 @@ Entry triage for a new ask; each station explains itself when invoked:
 
 ## Information lifecycle (claude-shared)
 - claude-shared is scratch memory, not an archive — stale docs mislead. **Open the live file by name.** `<shared-root>/permafrost/` is Read-denied: `mv` in, thaw to read out.
-- **One question, one file**: mutable progress → `tasks.md`, incidental finds → `findings.md`, facts outliving the project → `memory/`. A cross-project view is regenerated from those, never hand-edited.
+- **One question, one file**: mutable progress → `tasks.md`, incidental finds → `findings.md`, facts outliving the project → the harness's own `memory/`. A cross-project view is regenerated from those, never hand-edited.
 - Closed checklist item (`TODO.md`, `findings.md`, a forecast run): strike it through and move it to a trailing `## 対応済み` with its sha or date — `- [x]` done, `- [-]` 見送り plus the reason.
