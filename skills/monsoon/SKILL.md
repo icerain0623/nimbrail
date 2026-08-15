@@ -28,7 +28,6 @@ The recurring router: it inspects state, picks the next step, and delegates to a
 10. Nothing pending here → offer `synoptic`: this router only sees the current repo, so a sibling stopped on your verification is invisible from it. `sunbreak` on explicit request.
 
 ## Behavior
-- Read-only steps (check, inspecting state) run automatically. Outward or irreversible ones — push, PR, branch deletion, release tagging — are proposed and run only on confirmation.
 - State which branch and which conditions it observed, which numbered step matched and which earlier steps it ruled out, and which skill it is delegating to — the routing is otherwise invisible until it fires.
 - Mutable workflow state lives in the in-session task list or the `tasks.md` ledger.
 - monsoon only routes — defer to the dedicated skill for the actual work. Exception: committing has no dedicated skill; do it with the built-in harness behavior.
