@@ -14,6 +14,7 @@ English → [README.md](README.md)
 nimbrail/
 ├── install.sh                 # 3つ質問したうえで、以下すべてを ~/.claude へ symlink する
 ├── test-hooks.sh              # config/hooks/*.sh の挙動リグレッションテスト
+├── test-install.sh            # 使い捨ての HOME に settings.json をレンダリングして結果を検証
 ├── lint.sh                    # install/test/statusline とフックへの shellcheck (brew install shellcheck)
 ├── lint-skills.sh             # スキルの規約検査: frontmatter, slash 専用の rail, shared-root, 相互参照
 ├── docs/                      # petrichor から昇格した仕様書 (downpour, permafrost)
@@ -35,7 +36,23 @@ nimbrail/
 - **プラグイン**（figma, serena, context7, chrome-devtools, …）は `install.sh` では入らず、この repo のファイルでもない。初回起動時に `settings.json` の `enabledPlugins` と `extraKnownMarketplaces` から復元されるので、Claude Code を再起動して取得させればよい。`skills/` 配下はもう一方の種類で、ここで書き、symlink され、git で同期される。
 - **この repo が持っていない hook。** `settings.template.json` が宣言しているのは `PreToolUse` と `PostToolUse` だけ。セッションのラッパー — 例えば cmux — は `Stop` / `UserPromptSubmit` / `SessionStart` の hook を live の `settings.json` に直接登録し、それらは全プロジェクトで発火する。この3イベントで何かがおかしいとき、原因は `config/hooks/` には無く、この repo をいくら grep しても見つからない。
 - **macOS と Linux（WSL 含む）。** `install.sh` は bash で symlink のツリーを作るため、Windows では WSL を経路にする。clone は **WSL 側のファイルシステム（`~/…`）** に置くこと。`/mnt/c` 配下は権限の都合で symlink が壊れる。Git Bash / MSYS / Cygwin から実行した場合はその案内を出して止まる。native Windows へ手作業で入れる手順は [docs/windows.md](docs/windows.md) にあるが、**未検証**で、どこが不明かは正直に書いてある。
-- **一部の値はまだ作者固有**なので、そのまま採用する前に確認すること: サンドボックスの書き込みルートは `~/Documents/GitHub` と `~/Developers`、`EDITOR` は WebStorm（macOS ではそのまま。macOS 以外では WebStorm が無ければ `code --wait` か `vi` にフォールバック）。`SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` 用の CA bundle は install 時に探索するので、Debian/Ubuntu では macOS のパスではなく `/etc/ssl/certs/ca-certificates.crt` になる。
+- **一部の値はまだ作者固有**なので、そのまま採用する前に確認すること: サンドボックスの書き込みルートは `~/Documents/GitHub` と `~/Developers`。`SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` 用の CA bundle は install 時に探索するので、Debian/Ubuntu では macOS のパスではなく `/etc/ssl/certs/ca-certificates.crt` になる。
+- **`EDITOR` が `nano` なのは意図的**。ctrl+g（プロンプトバッファの編集）と /memory が開くのはこれで、どちらも IDE に渡すほどのものではない。nano はセッションが既に描画しているペインをそのまま奪うので、エディタがターミナルの外に出ない。おかげでここでは珍しく**作者固有ではない**値でもある: nano は macOS にも大半の Linux ベースにも最初から入っていて、`install.sh` が `vi` にフォールバックするのは本当に見つからなかったときだけだ。合わなければ `EDITOR`/`VISUAL` を自分のものに向ければいい。ただし GUI エディタにはファイルを閉じるまでブロックするフラグが要る（`code --wait`、`webstorm --wait`）。macOS の `open -e -W` はそれに当たらない — `-W` は確かにブロックするが、待つのは TextEdit の*終了*であってドキュメントを閉じることではないので、余計なウィンドウが1つ開いているだけでアプリごと終了するまでセッションが止まる。
+
+  カーソル移動は素の状態で足りている。矢印キー、Ctrl+←/→ の単語単位、Home/End、PgUp/PgDn はすべてデフォルトのキーバインドだ。足りないのは**長い**プロンプトを扱うために要るもので、ソフトラップが無ければ段落は折り返さずに右へ流れていくし、マウスは何もしない。どちらも rc ファイル1枚で片付く。キットはこれを入れない。`~/.nanorc` は `~/.claude/` の外にあり、`install.sh` が書き込むのはそのツリーだけだからだ。ここは自分で置く:
+
+  ```
+  set mouse           # クリックでカーソル移動、ドラッグで選択
+  set softwrap        # 長い段落が右に流れず折り返す
+  set atblanks        # ... 折り返しは単語の途中ではなく空白で
+  set smarthome       # Home は最初の非空白へ、もう一度押すと桁1へ
+  set zap             # Backspace/Delete が1文字ではなく選択範囲を消す
+  set constantshow    # 行/桁の常時表示
+  set linenumbers
+  include "/opt/homebrew/share/nano/*.nanorc"   # Linux では /usr/share/nano/*.nanorc
+  ```
+
+  代償があるのは `set mouse` の行だ。nano がマウスを掴むので、ドラッグで**システム**クリップボード向けの選択ができなくなる。ターミナル側の選択に戻すには Option（iTerm2、Ghostty）か Shift（その他大半）を押しながら操作する。それと Apple の `/usr/bin/nano` は実体が UW PICO 5.09 で、上のほとんどを無視する — `brew install nano` を入れれば本物の GNU nano が `PATH` の前に来る。
 
 ## 新マシンでのセットアップ
 
@@ -70,7 +87,7 @@ cd nimbrail
 
 `./install.sh --no-settings` は `CLAUDE.md` とスキルだけを入れて止まる。`settings.json` もフックも入らない。レールと書き方の規則は手に入り、権限・サンドボックス・git ポリシーは自分のものを使い続けられる。
 
-このキットが綺麗に割れるのはここだけだ。`CLAUDE.md` は7つのスキルを名指しし、12本のスキルがその規則を参照して戻ってくるので、どちらか片方では成り立たない。一方で強制の層は**このマシン**を書き込んだ部分そのもの（`~/Developers` 配下の書き込みルート、`EDITOR` が WebStorm、実行時に探した CA バンドル）で、他人が引き継ぐ理由が最も薄い。
+このキットが綺麗に割れるのはここだけだ。`CLAUDE.md` は7つのスキルを名指しし、12本のスキルがその規則を参照して戻ってくるので、どちらか片方では成り立たない。一方で強制の層は**このマシン**を書き込んだ部分そのもの（`~/Developers` 配下の書き込みルート、実行時に探した CA バンドル）で、他人が引き継ぐ理由が最も薄い。
 
 通常インストールの後にこのフラグ付きで再実行すると、残っていたフックのリンクを外す。`settings.json` はどちらの場合も触らない。実 PAT と、その後 `/config` で変えた設定を持っているからだ。
 
@@ -93,6 +110,7 @@ cd nimbrail
 - 正しい symlink は読み飛ばすので、再実行は静かに終わる。
 - repo と**乖離した**ライブファイルは diff として提示され、**既定では温存**される。repo 側の版が黙って押し付けられることはない。置き換えるならファイルごとに承認するか、`./install.sh --yes` で repo の変更を一括で取り込む。置き換えたファイルは `<file>.bak.<epoch>` へ退避され（削除はしない）、実行の最後に「退避したもの / 温存したもの / 未解決のもの」の要約が出る。
 - `settings.json` も同じ流れだが*コピー*なので、マシン固有の調整と `settings.local.json` の実 PAT は残る。
+- 裏を返すと、**`settings.template.json` の既定値を変えても既存マシンには自動では届かない** — そしてこの README が書いているのは*新規*インストールで入る内容だ。再実行は diff を見せた上で手元のファイルを残し、`--yes` は repo 版を採るがその後 `/config` が書き込んだものを退避してしまう。1キーだけの変更（`EDITOR` の既定が nano になった、など）なら、`~/.claude/settings.json` の該当行を自分で書き換えて他は触らないのが一番影響が小さい。編集に Claude Code の再起動が要るのもこのファイルだけだ。
 
 ## ワークフロー
 

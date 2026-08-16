@@ -11,7 +11,7 @@ if ! command -v shellcheck >/dev/null 2>&1; then
   exit 127
 fi
 
-FILES=("$REPO/install.sh" "$REPO/lint.sh" "$REPO/test-hooks.sh"
+FILES=("$REPO/install.sh" "$REPO/lint.sh" "$REPO/test-hooks.sh" "$REPO/test-install.sh"
        "$REPO/config/statusline.sh" "$REPO"/config/hooks/*.sh)
 
 # shellcheck disable=SC2086

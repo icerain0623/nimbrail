@@ -33,7 +33,7 @@
 #                        settings.json and the hooks. This is the one clean cut —
 #                        CLAUDE.md and skills name each other, so neither half
 #                        installs alone, while settings.json carries this machine's
-#                        answers (write-roots, EDITOR, CA bundle) that another
+#                        answers (write-roots, CA bundle) that another
 #                        machine has no reason to inherit. Re-running with the flag
 #                        removes hook symlinks left by an earlier full install; an
 #                        existing settings.json is never touched, because it holds
@@ -51,7 +51,7 @@ SHARED_DIR_DEFAULT="$HOME/Documents/claude-shared"
 # shellcheck disable=SC2088  # a literal ~ on purpose: this is the template's own text
 TEMPLATE_ROOT="~/Documents/claude-shared"   # literal string the template ships with
 TEMPLATE_CA="/etc/ssl/cert.pem"             # macOS CA bundle the template ships with
-TEMPLATE_EDITOR="webstorm --wait"
+TEMPLATE_EDITOR="nano"
 
 # Test seam (unset in production): CLAUDE_KIT_UNAME.
 case "${CLAUDE_KIT_UNAME:-$(uname -s 2>/dev/null || echo unknown)}" in
@@ -203,11 +203,12 @@ case "$SHARED_DIR" in
 esac
 SHARED_DIR_SETTINGS="$(tildify "$SHARED_DIR")"
 
-# ── machine-specific values the template guesses at ─────────────────────────────
-# The template carries this author's macOS answers. Both of these break quietly
-# rather than loudly when they are wrong — a missing CA bundle makes TLS fail
-# inside curl and cargo, and a missing $EDITOR only surfaces when something opens
-# one — so resolve them against the machine instead of shipping the guess.
+# ── values that have to be resolved against this machine ────────────────────────
+# Both break quietly rather than loudly when they are wrong — a missing CA bundle
+# makes TLS fail inside curl and cargo, and a missing $EDITOR only surfaces when
+# something opens one — so check them here rather than trusting the template. The
+# CA path is this author's macOS answer and usually needs replacing; the editor is
+# portable and the check is expected to confirm it.
 detect_ca_bundle() {
   local c
   for c in /etc/ssl/cert.pem /etc/ssl/certs/ca-certificates.crt \
@@ -218,14 +219,19 @@ detect_ca_bundle() {
 KIT_CA="$(detect_ca_bundle)"
 KIT_CA="${KIT_CA:-$TEMPLATE_CA}"   # none found → leave the template's value alone
 
-# Editor: only off macOS. `command -v` reads whatever PATH this shell happens to
-# have, and a GUI launcher often is not on it — testing this from a restricted
-# shell on the author's own Mac silently rewrote EDITOR to vi. Getting a wrong
-# $EDITOR is a loud failure when something opens one; getting it silently changed
-# is not. So the guess is only replaced where it is almost certainly wrong.
+# Editor: nano ships with macOS and with nearly every Linux base, so the template's
+# value is portable and `command -v` is a real test of it — unlike a GUI launcher,
+# which a restricted PATH hides even where it is installed, and which once silently
+# rewrote EDITOR to vi on the author's own Mac. Probe every fallback too: a slim
+# container image can be missing all three, and writing an editor that is not there
+# turns into a failure at ctrl+g with nothing pointing back here.
 KIT_EDITOR="$TEMPLATE_EDITOR"
-if [ "$PLATFORM" != macos ] && ! command -v webstorm >/dev/null 2>&1; then
-  if command -v code >/dev/null 2>&1; then KIT_EDITOR="code --wait"; else KIT_EDITOR="vi"; fi
+KIT_EDITOR_MISSING=""
+if ! command -v "$TEMPLATE_EDITOR" >/dev/null 2>&1; then
+  if   command -v vi   >/dev/null 2>&1; then KIT_EDITOR="vi"
+  elif command -v code >/dev/null 2>&1; then KIT_EDITOR="code --wait"
+  else KIT_EDITOR_MISSING=1
+  fi
 fi
 
 # ── git policy ──────────────────────────────────────────────────────────────────
@@ -429,8 +435,16 @@ if [ "$KIT_CA" != "$TEMPLATE_CA" ]; then
   render_args+=(-e "s|$TEMPLATE_CA|$KIT_CA|g")   # SSL_CERT_FILE and CARGO_HTTP_CAINFO
   say "  CA bundle: $TEMPLATE_CA -> $KIT_CA" "  CA バンドル: $TEMPLATE_CA -> $KIT_CA"
 fi
-if [ "$KIT_EDITOR" != "$TEMPLATE_EDITOR" ]; then
-  render_args+=(-e "s|$TEMPLATE_EDITOR|$KIT_EDITOR|g")   # EDITOR and VISUAL
+if [ -n "$KIT_EDITOR_MISSING" ]; then
+  say "  editor: no $TEMPLATE_EDITOR, vi or code on PATH — leaving $TEMPLATE_EDITOR in settings.json; set EDITOR yourself" \
+      "  エディタ: $TEMPLATE_EDITOR も vi も code も PATH に無い — settings.json は $TEMPLATE_EDITOR のまま。EDITOR は自分で設定すること"
+elif [ "$KIT_EDITOR" != "$TEMPLATE_EDITOR" ]; then
+  # Anchored on the keys, like the two git-policy keys above and unlike the CA
+  # bundle. $TEMPLATE_EDITOR is a bare command name now, so a loose s|nano|vi|g
+  # would also rewrite every rendered path that happens to contain it — including
+  # a shared root the line above just substituted in.
+  render_args+=(-e "s|\(\"EDITOR\"[[:space:]]*:[[:space:]]*\)\"[^\"]*\"|\1\"$KIT_EDITOR\"|")
+  render_args+=(-e "s|\(\"VISUAL\"[[:space:]]*:[[:space:]]*\)\"[^\"]*\"|\1\"$KIT_EDITOR\"|")
   say "  editor: $TEMPLATE_EDITOR not on PATH -> $KIT_EDITOR" \
       "  エディタ: $TEMPLATE_EDITOR が PATH に無いため $KIT_EDITOR にしました"
 fi

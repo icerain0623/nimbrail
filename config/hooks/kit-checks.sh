@@ -94,8 +94,9 @@ dir=$(dirname "$file_path")
 repo="${CLAUDE_HOOK_REPO_TOP:-$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null)}"
 [ -n "$repo" ] || exit 0
 
-# Structural fingerprint. All three, or this is some other repo.
+# Structural fingerprint. All four, or this is some other repo.
 [ -f "$repo/test-hooks.sh" ] || exit 0
+[ -f "$repo/test-install.sh" ] || exit 0
 [ -f "$repo/lint-skills.sh" ] || exit 0
 [ -f "$repo/config/settings.template.json" ] || exit 0
 
@@ -116,6 +117,11 @@ case "$rel" in
   config/hooks/*.sh)
     run_check "test-hooks.sh" bash test-hooks.sh
     run_check "lint.sh" bash lint.sh
+    ;;
+  install.sh|config/settings.template.json)
+    # Both sides of the rendering: the installer substitutes values into the
+    # template, and neither file can be judged without the rendered result.
+    run_check "test-install.sh" bash test-install.sh
     ;;
   skills/*.md|README.md|README.ja.md|config/CLAUDE.md)
     # `case` globs match across `/`, so skills/*.md covers any depth.
