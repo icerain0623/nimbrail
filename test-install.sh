@@ -78,6 +78,92 @@ ok "none: install exits 0"        "$rc" 0
 ok "none: EDITOR left alone"      "$(key "$H3" '.env.EDITOR')" nano
 ok "none: installer said so"      "$(grep -qi 'set EDITOR yourself' "$H3/install.log" && echo yes || echo no)" yes
 
+# ── code roots ────────────────────────────────────────────────────────────────
+# The template ships no repository paths, so everything below is generated. A
+# rule that never matches raises no error, which is why each of these asserts on
+# the rendered file rather than on the installer's own account of what it did.
+shared_key() { jq -r "$2" "$1/.claude/shared-dirs.json" 2>/dev/null; }
+CR="$TB/cr"; mkdir -p "$CR/roots/alpha/.git" "$CR/roots/beta/.git" "$CR/decoy/gamma/.git"
+
+# F-2 / D20: three allow rules and one write-root per root, from one spelling.
+H4="$TB/h4"
+rc=$(run_install "$H4" "$PATH" --shared-dir "$H4/shared" --code-root "$CR/roots")
+ok "F-2: install exits 0"          "$rc" 0
+ok "F-2: three allow rules"        "$(key "$H4" "[.permissions.allow[] | select(test(\"$CR/roots\"))] | length")" 3
+ok "F-2: one write-root"           "$(key "$H4" "[.sandbox.filesystem.allowWrite[] | select(test(\"$CR/roots\"))] | length")" 1
+ok "F-2: valid JSON"               "$(jq -e . "$H4/.claude/settings.json" >/dev/null 2>&1; echo $?)" 0
+ok "F-8: codeRoots persisted"      "$(shared_key "$H4" '.codeRoots | length')" 1
+ok "F-8: default preserved"        "$(shared_key "$H4" '.default != null')" true
+ok "F-8: overrides preserved"      "$(shared_key "$H4" '.overrides != null')" true
+
+# F-10: a nested pair collapses to the parent. The flag arrives shell-expanded,
+# so this only passes if both spellings are folded before the comparison.
+H5="$TB/h5"
+rc=$(run_install "$H5" "$PATH" --shared-dir "$H5/shared" \
+       --code-root "$CR/roots" --code-root "$CR/roots/alpha" --code-root "$CR/roots/")
+ok "F-10: nesting and duplicates collapse" "$(shared_key "$H5" '.codeRoots | length')" 1
+ok "F-10: the child is not granted"        "$(key "$H5" "[.permissions.allow[] | select(test(\"roots/alpha\"))] | length")" 0
+
+# F-3: no root settles, so no code-root entry is written — and nothing that
+# shares those arrays is taken with it. Asserting "no path rules" would fail
+# here, and asserting "identical to the template" would fail on any --shared-dir.
+H6="$TB/h6"
+rc=$(run_install "$H6" "$PATH" --shared-dir "$H6/shared")
+ok "F-3: exits 0"                  "$rc" 0
+ok "F-3: no code-root allow rule"  "$(key "$H6" "[.permissions.allow[] | select(test(\"$CR\"))] | length")" 0
+# Exactly the three the template carries for the handoff dir — the shared root is
+# substituted into them, so matching on "claude-shared" would pass only when
+# --shared-dir was left at its default.
+ok "F-3: template path rules kept" \
+  "$(key "$H6" '[.permissions.allow[] | select(startswith("Edit(") or startswith("Write(") or startswith("Read("))] | length')" 3
+ok "F-3: toolchain write-roots kept" "$(key "$H6" '.sandbox.filesystem.allowWrite | length')" 14
+ok "F-3: codeRoots is []"          "$(shared_key "$H6" '.codeRoots | length')" 0
+ok "F-3: said so"                  "$(grep -qi 'No code root is set' "$H6/install.log" && echo yes || echo no)" yes
+
+# F-1 clause 3 over clause 4. Reversed, --yes on a configured machine adopts
+# nothing and replaces the live settings with a copy granting no repository —
+# and --yes is the one path that does replace it.
+rc=$(run_install "$H4" "$PATH" --shared-dir "$H4/shared")
+ok "F-1(3): re-run exits 0"        "$rc" 0
+ok "F-1(3): rules survive --yes"   "$(key "$H4" "[.permissions.allow[] | select(test(\"$CR/roots\"))] | length")" 3
+ok "F-1(3): codeRoots survive"     "$(shared_key "$H4" '.codeRoots | length')" 1
+
+# The scan is bounded to nine fixed candidates. Proving a syscall did not happen
+# is not portable, so this proves the consequence: a repository parked outside
+# that list is never offered, and a widened scan fails here.
+H7="$TB/h7"; mkdir -p "$H7/Sites/delta/.git"
+rc=$(run_install "$H7" "$PATH" --shared-dir "$H7/shared")
+ok "scan: outside the candidate list, not adopted" "$(shared_key "$H7" '.codeRoots | length')" 0
+
+# F-9 / D9: --no-settings settles nothing, and says it ignored the flag.
+H8="$TB/h8"
+rc=$(run_install "$H8" "$PATH" --no-settings --code-root "$CR/roots")
+ok "F-9: --no-settings exits 0"    "$rc" 0
+ok "F-9: no settings.json"         "$([ -f "$H8/.claude/settings.json" ] && echo yes || echo no)" no
+ok "F-9: said it ignored the flag" "$(grep -qi 'ignored --code-root' "$H8/install.log" && echo yes || echo no)" yes
+
+# F-9 / D15: a root that does not exist yet is taken non-interactively, with a word.
+H9="$TB/h9"
+rc=$(run_install "$H9" "$PATH" --shared-dir "$H9/shared" --code-root "$H9/not-yet")
+ok "F-9: nonexistent root taken"   "$(shared_key "$H9" '.codeRoots | length')" 1
+ok "F-9: and reported"             "$(grep -qi 'does not exist yet' "$H9/install.log" && echo yes || echo no)" yes
+
+# F-10: characters that would corrupt the rule form or the JSON are refused.
+H10="$TB/h10"
+rc=$(run_install "$H10" "$PATH" --shared-dir "$H10/shared" --code-root "$CR/ro)ots")
+ok "F-10: unusable characters refused" "$(shared_key "$H10" '.codeRoots | length')" 0
+ok "F-10: still valid JSON"        "$(jq -e . "$H10/.claude/settings.json" >/dev/null 2>&1; echo $?)" 0
+
+# F-4: the warning fires where the live file is actually written, and removes
+# nothing. Read H5's log, not H4's — H4 was re-run above for the clause-3 case,
+# and a re-run is not a first install, so its log no longer holds the warning.
+ok "F-4: first install warns"      "$(grep -qi 'disables four plugins' "$H5/install.log" && echo yes || echo no)" yes
+ok "F-4: nothing removed"          "$(key "$H5" '.enabledPlugins | length')" 6
+
+# F-11: the template itself carries no repository path any more.
+ok "F-11: template has no code root" \
+  "$(jq -r '[.permissions.allow[], .sandbox.filesystem.allowWrite[] | select(test("Documents/GitHub|Developers"))] | length' "$REPO/config/settings.template.json")" 0
+
 echo "────────────────────────"
 echo "PASS=$pass FAIL=$fail"
 [ "$fail" -eq 0 ]
