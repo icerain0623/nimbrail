@@ -195,8 +195,7 @@
       "Bash(kubectl delete *)",
       "Bash(gpg --export-secret-keys*)",
       "Bash(git rm *)",
-      "Bash(git config *)",
-      "WebFetch"
+      "Bash(git config *)"
     ]
   },
   "hooks": {
