@@ -414,8 +414,9 @@ else
   # stub — NOT the real repo — is load-bearing: kit-checks runs test-hooks.sh on a
   # config/hooks/*.sh edit, and pointing that at this checkout would recurse.
   K="$JB/kit"; mkdir -p "$K/config/hooks"
-  printf '#!/bin/bash\necho "stub test-hooks failed"\nexit 1\n' > "$K/test-hooks.sh"
-  printf '#!/bin/bash\necho "stub lint-skills failed"\nexit 1\n' > "$K/lint-skills.sh"
+  printf '#!/bin/bash\necho "stub test-hooks failed"\nexit 1\n'   > "$K/test-hooks.sh"
+  printf '#!/bin/bash\necho "stub test-install failed"\nexit 1\n' > "$K/test-install.sh"
+  printf '#!/bin/bash\necho "stub lint-skills failed"\nexit 1\n'  > "$K/lint-skills.sh"
   : > "$K/config/settings.template.json"
   : > "$K/README.md"; : > "$K/README.ja.md"; : > "$K/install.sh"
   : > "$K/config/CLAUDE.md"; : > "$K/config/hooks/x.sh"
@@ -426,8 +427,11 @@ else
   expect_rc kit-checks.sh "$K/config/CLAUDE.md"     2 CLAUDE_HOOK_REPO_TOP="$K"
   expect_rc kit-checks.sh "$K/skills/demo/SKILL.md" 2 CLAUDE_HOOK_REPO_TOP="$K"
   expect_rc kit-checks.sh "$K/config/hooks/x.sh"    2 CLAUDE_HOOK_REPO_TOP="$K"
-  # Out of scope for either suite → silent, however broken the repo is.
-  expect_rc kit-checks.sh "$K/install.sh"           0 CLAUDE_HOOK_REPO_TOP="$K"
+  # Both halves of the settings rendering route to test-install.sh.
+  expect_rc kit-checks.sh "$K/install.sh"                     2 CLAUDE_HOOK_REPO_TOP="$K"
+  expect_rc kit-checks.sh "$K/config/settings.template.json"  2 CLAUDE_HOOK_REPO_TOP="$K"
+  # Out of scope for every suite → silent, however broken the repo is.
+  expect_rc kit-checks.sh "$K/lint.sh"              0 CLAUDE_HOOK_REPO_TOP="$K"
 
   # README parity, judged on the outgoing range rather than mid-edit.
   expect_parity "git push"      "README.md"$'\n'"README.ja.md" "$K" none

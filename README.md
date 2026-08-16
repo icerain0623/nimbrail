@@ -14,6 +14,7 @@ My portable [Claude Code](https://claude.com/claude-code) setup — config **and
 nimbrail/
 ├── install.sh                 # asks 3 questions, then symlinks everything below into ~/.claude
 ├── test-hooks.sh              # behavioral regression suite for config/hooks/*.sh
+├── test-install.sh            # renders settings.json into a throwaway HOME and asserts on the result
 ├── lint.sh                    # shellcheck over install/test/statusline + the hooks (brew install shellcheck)
 ├── lint-skills.sh             # skill conventions: frontmatter, slash-only rail, shared-root, cross-references
 ├── docs/                      # promoted petrichor specs (downpour, permafrost)
@@ -127,6 +128,7 @@ Restart Claude Code.
 - Already-correct symlinks are skipped, so a re-run is quiet.
 - A live file that has **diverged** from the repo is shown as a diff and **kept by default** — the repo version is never silently forced on you. Confirm per file to replace it, or run `./install.sh --yes` to take every repo change at once. Replaced files are shelved to `<file>.bak.<epoch>` (never deleted), and the run ends with a summary of what was shelved / kept / left to reconcile.
 - `settings.json` follows the same flow but is a *copy*, so your machine-local tweaks (and the real PAT in `settings.local.json`) survive.
+- Which also means **a changed default in `settings.template.json` does not reach an existing machine on its own** — and this README describes what a *fresh* install gets. A re-run offers the diff and keeps your file; `--yes` takes the repo version but shelves everything `/config` has written into it since. For a one-key change (the `EDITOR` default moving to nano, say) the least disruptive route is to edit those lines in `~/.claude/settings.json` yourself and leave the rest alone. That file is also the only one whose edits need a Claude Code restart.
 
 ## Workflow
 

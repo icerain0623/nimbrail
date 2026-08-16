@@ -14,6 +14,7 @@ English → [README.md](README.md)
 nimbrail/
 ├── install.sh                 # 3つ質問したうえで、以下すべてを ~/.claude へ symlink する
 ├── test-hooks.sh              # config/hooks/*.sh の挙動リグレッションテスト
+├── test-install.sh            # 使い捨ての HOME に settings.json をレンダリングして結果を検証
 ├── lint.sh                    # install/test/statusline とフックへの shellcheck (brew install shellcheck)
 ├── lint-skills.sh             # スキルの規約検査: frontmatter, slash 専用の rail, shared-root, 相互参照
 ├── docs/                      # petrichor から昇格した仕様書 (downpour, permafrost)
@@ -109,6 +110,7 @@ cd nimbrail
 - 正しい symlink は読み飛ばすので、再実行は静かに終わる。
 - repo と**乖離した**ライブファイルは diff として提示され、**既定では温存**される。repo 側の版が黙って押し付けられることはない。置き換えるならファイルごとに承認するか、`./install.sh --yes` で repo の変更を一括で取り込む。置き換えたファイルは `<file>.bak.<epoch>` へ退避され（削除はしない）、実行の最後に「退避したもの / 温存したもの / 未解決のもの」の要約が出る。
 - `settings.json` も同じ流れだが*コピー*なので、マシン固有の調整と `settings.local.json` の実 PAT は残る。
+- 裏を返すと、**`settings.template.json` の既定値を変えても既存マシンには自動では届かない** — そしてこの README が書いているのは*新規*インストールで入る内容だ。再実行は diff を見せた上で手元のファイルを残し、`--yes` は repo 版を採るがその後 `/config` が書き込んだものを退避してしまう。1キーだけの変更（`EDITOR` の既定が nano になった、など）なら、`~/.claude/settings.json` の該当行を自分で書き換えて他は触らないのが一番影響が小さい。編集に Claude Code の再起動が要るのもこのファイルだけだ。
 
 ## ワークフロー
 
