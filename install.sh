@@ -225,9 +225,12 @@ CODE_ROOT_CANDIDATES=(
   "$HOME/repos" "$HOME/projects" "$HOME/ghq" "$HOME/work" "$HOME/dev"
 )
 
-# Refuse the characters that would corrupt the sed replacement or the JSON around
-# it, the same reason --shared-dir refuses its set. Code roots add ")" because it
-# closes the Edit(<root>/**) rule form.
+# Refuse rather than escape, the same call --shared-dir makes, and the same set so
+# the two share this function. Each character earns its place: ")" closes the
+# Edit(<root>/**) rule form, '"' closes the JSON string, and a backslash is read as
+# an escape by awk's -v assignment below. "|" and "&" are inert here — they were
+# hazards while the shared root went through a sed replacement, and stay refused
+# because parity with --shared-dir is worth more than the paths it costs.
 bad_path_char() { # <path> [with-paren]
   case "$1" in
     *[\"\\\|\&]*) return 0 ;;
