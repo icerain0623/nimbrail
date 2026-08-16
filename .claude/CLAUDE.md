@@ -8,6 +8,11 @@ This repo is the source of the global Claude Code config: `install.sh` symlinks 
 - Git ops that rewrite the working tree (`checkout` / `switch` / `merge` / `reset` / `stash`) therefore need the sandbox disabled, and so does the `git status` after them: in-sandbox they fail per-file under `config/` **while still exiting 0**, leaving a partly-moved tree. Recover a half-applied `stash` with Edit, then drop the entry.
 - After editing `skills/calibrate/calibrator.js`, open `skills/calibrate/fixture.html` in a browser — each CSS block there is one claim the script makes, and nothing automated checks any of them. It is also the known-good page that tells a panel bug apart from a project that simply has no tokens.
 
+## Checks
+- `./lint.sh` (shellcheck) and `./lint-skills.sh` (kit conventions) before a commit; `./test-hooks.sh` and `./test-install.sh` when `config/hooks/*.sh`, `install.sh` or the settings template changes — `kit-checks.sh` already picks the right ones per edited path.
+- **`test-install.sh` prints `SKIP` and exits 0 when `$TMPDIR` is unwritable**, which is the sandbox's normal state, so a green run there proves nothing. Run it unsandboxed before trusting it.
+- One feature branch per change, PR into `main` — the model `git-workflow` enforces.
+
 ## Writing rules
 - Shortest form that still works, and **say a thing once** — the same fact in two places is the failure mode here, not a missing rule. State only what nothing else enforces. Bold marks a signpost — a label, a branch condition, the one thing not to skim past — never decoration.
 - **Agent-facing** splits by when it loads. Always loaded, in one context window: `config/CLAUDE.md` ([8]) *and* every listed skill's `description` ([9]) — so a rule written in both is loaded twice, which is how the lifecycle section drifted. A skill body loads on demand ([12]). Always-loaded text gets one sentence per rule, and a rationale clause only where its absence would let the rule lose to a plausible local judgement. **Human-facing** (`README.md`, `README.ja.md`, `CONTRIBUTING.md`, `SECURITY.md`) can spend length on framing, tables and worked examples.
