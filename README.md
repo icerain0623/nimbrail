@@ -36,7 +36,7 @@ nimbrail/
 - **Plugins** (figma, serena, context7, chrome-devtools, …) are **not** installed by `install.sh` and are not files in this repo — they restore from `settings.json`'s `enabledPlugins` + `extraKnownMarketplaces` on first launch, so just restart Claude Code and let it pull them. Everything under `skills/` is the other kind: authored here, symlinked in, synced by git.
 - **Hooks this repo does not own.** `settings.template.json` declares `PreToolUse` and `PostToolUse` only. A session wrapper — cmux, for one — registers its own `Stop`, `UserPromptSubmit` and `SessionStart` hooks directly in the live `settings.json`, where they fire across every project. If something misbehaves on those three events, it is not in `config/hooks/` and no amount of grepping this repo will find it.
 - **macOS and Linux, including WSL.** `install.sh` is bash and builds a tree of symlinks, so on Windows the route is WSL — clone inside the WSL filesystem (`~/…`), not under `/mnt/c`, whose permissions break symlinks. Running it from Git Bash / MSYS / Cygwin stops with that advice. A manual native-Windows setup is written up in [docs/windows.md](docs/windows.md), untested and honest about which parts are unknown.
-- **Some values are still author-specific**, so check them before adopting this as-is: the sandbox write-roots are `~/Documents/GitHub` and `~/Developers`. The CA bundle for `SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` is probed at install time, so Debian/Ubuntu gets `/etc/ssl/certs/ca-certificates.crt` rather than the macOS path.
+- **Machine-specific values are resolved at install time**, not shipped: the sandbox write-roots come from the code roots `install.sh` asks about (see [Setup](#setup-on-a-new-machine)), and the CA bundle for `SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` is probed, so Debian/Ubuntu gets `/etc/ssl/certs/ca-certificates.crt` rather than the macOS path.
 - **`EDITOR` is `nano`, on purpose.** It is what ctrl+g (edit the prompt buffer) and the /memory command open, and neither is worth handing to an IDE — nano takes over the pane the session is already drawing in, so the editor never leaves the terminal. That also makes it the rare value here that is *not* author-specific: nano ships with macOS and with nearly every Linux base, and `install.sh` falls back to `vi` only if it is genuinely absent. Point `EDITOR`/`VISUAL` at your own if you disagree; a GUI editor needs a flag that blocks until the file is closed (`code --wait`, `webstorm --wait`), and macOS `open -e -W` is not one — `-W` does block, but it waits for TextEdit to *quit*, not for you to close the document, so the session stays stuck behind one stray window until you quit the whole app.
 
   Moving around in it is fine out of the box — arrow keys, Ctrl+←/→ by word, Home/End, PgUp/PgDn are all default bindings. What is missing is everything that makes a *long* prompt bearable: without soft wrap a paragraph runs off the right edge instead of folding, and the mouse does nothing. Both are one rc file away. The kit does not install it, because `~/.nanorc` is outside `~/.claude/` and that tree is the only thing `install.sh` writes — so this one is yours to place:
@@ -66,7 +66,7 @@ It opens by asking which language to run in — English or 日本語 — and eve
 after that, prompts and closing notes alike, follows the answer. `$LANG` only picks
 the default; `--lang en|ja` skips the question.
 
-Then it asks three things. First, **where handoff docs should live.** Specs, reports and
+Then it asks four things. First, **where handoff docs should live.** Specs, reports and
 task ledgers are written outside your repos so a project never fills up with `.md`
 files — pick a directory you can write to (an Obsidian vault subfolder works well).
 The answer is stored in `~/.claude/shared-dirs.json` and substituted into the
@@ -78,6 +78,18 @@ The answer is stored in `~/.claude/shared-dirs.json` and substituted into the
 | non-interactive | `./install.sh --shared-dir ~/vault/claude-docs` |
 | change it later | re-run with `--shared-dir <new path>`, then move the old contents across yourself — the script repoints, it never moves your files |
 | one project elsewhere | add an `"overrides"` entry (project root → its own dir) in `shared-dirs.json`; re-runs preserve it |
+
+Second, **where you keep repositories.** The permission rules and the sandbox
+write-roots are generated from the answer, so the template ships none of its own — an
+install that settles on nothing writes neither, and says so rather than leaving you to
+discover it one denied edit at a time.
+
+| | |
+|---|---|
+| offered | the directories among `~/Developers`, `~/Documents/GitHub`, `~/src`, `~/code`, `~/repos`, `~/projects`, `~/ghq`, `~/work`, `~/dev` that hold at least one repository |
+| non-interactive | `./install.sh --code-root ~/src --code-root ~/work` (repeat the flag; it replaces the stored list rather than adding to it) |
+| stored in | `~/.claude/shared-dirs.json` as `codeRoots`, which is also where `almanac` reads them from |
+| re-runs | inherited silently once set; a root that has since disappeared is reported, never dropped for you |
 
 It then asks **how much git it may do on its own.** Both answers are enforced by the
 `git-workflow` hook, not by good intentions.
@@ -98,9 +110,9 @@ permissions, sandbox and git policy.
 
 That is the only place this kit splits cleanly. `CLAUDE.md` names seven skills and
 twelve skills defer back to its rules, so neither half stands alone — but the
-enforcement layer is exactly the part that encodes *this* machine (write-roots under
-`~/Developers`, a probed CA bundle), and it is the part you have least reason to
-inherit.
+enforcement layer is exactly the part that encodes *this* machine (a probed CA bundle,
+the git policy answered at install, this account's plugin choices), and it is the part
+you have least reason to inherit.
 
 Re-running with the flag after a full install removes the hook links it left behind.
 Your `settings.json` is never touched either way: it holds the live PAT and whatever

@@ -25,6 +25,10 @@
 #   --shared-dir PATH    where handoff docs live (default ~/Documents/claude-shared).
 #                        Omitted: keep the path already in shared-dirs.json, else ask,
 #                        else the default.
+#   --code-root PATH     a directory holding your repositories; repeat for more.
+#                        The permission rules and sandbox write-roots are generated
+#                        from these. Omitted: keep what is in shared-dirs.json, else
+#                        offer the directories that look like one, else ask.
 #   --commit auto|ask    commit at checkpoints without asking, or confirm each one.
 #   --push ask|never|auto  what `git push` / `gh pr create` may do. auto pushes
 #                        without asking, but only in a repo that has a linter or CI
