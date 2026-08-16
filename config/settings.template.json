@@ -11,14 +11,8 @@
   },
   "permissions": {
     "allow": [
-      "Edit(~/Documents/GitHub/**)",
-      "Edit(~/Developers/**)",
       "Edit(~/Documents/claude-shared/**)",
-      "Write(~/Documents/GitHub/**)",
-      "Write(~/Developers/**)",
       "Write(~/Documents/claude-shared/**)",
-      "Read(~/Documents/GitHub/**)",
-      "Read(~/Developers/**)",
       "Read(~/Documents/claude-shared/**)",
       "Bash(npm run build)",
       "Bash(npm run test *)",
@@ -368,9 +362,7 @@
     },
     "filesystem": {
       "allowWrite": [
-        "~/Documents/GitHub",
         "~/Documents/claude-shared",
-        "~/Developers",
         "~/.gitignore_global",
         "~/.gitconfig",
         "~/.claude/skills",

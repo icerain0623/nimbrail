@@ -94,7 +94,7 @@ substitutes these; nothing else in the file is machine-specific.
 | `env.EDITOR`, `env.VISUAL` | `nano` | `notepad`, which blocks until the window closes, or `code --wait`. Git for Windows does ship `nano.exe`, but under `usr\bin`, which only its third PATH option adds — and it is an MSYS binary, which this route otherwise avoids |
 | `env.CLAUDE_KIT_COMMIT` | `auto` | `ask` to confirm every commit |
 | `env.CLAUDE_KIT_PUSH` | `ask` | `never`, or `auto` to push unprompted where a linter or CI exists |
-| `sandbox.filesystem.allowWrite` | `~/Documents/GitHub`, `~/Developers` | wherever you keep repos |
+| `sandbox.filesystem.allowWrite` | generated from the code roots `install.sh` asks about | wherever you keep repos — pass `--code-root` to skip the question |
 | the five `~/Documents/claude-shared` paths | | where handoff docs should live, if not that |
 
 Finally create the handoff directory and point the kit at it:

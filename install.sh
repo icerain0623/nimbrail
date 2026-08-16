@@ -25,6 +25,10 @@
 #   --shared-dir PATH    where handoff docs live (default ~/Documents/claude-shared).
 #                        Omitted: keep the path already in shared-dirs.json, else ask,
 #                        else the default.
+#   --code-root PATH     a directory holding your repositories; repeat for more.
+#                        The permission rules and sandbox write-roots are generated
+#                        from these. Omitted: keep what is in shared-dirs.json, else
+#                        offer the directories that look like one, else ask.
 #   --commit auto|ask    commit at checkpoints without asking, or confirm each one.
 #   --push ask|never|auto  what `git push` / `gh pr create` may do. auto pushes
 #                        without asking, but only in a repo that has a linter or CI
@@ -64,6 +68,7 @@ esac
 ASSUME_YES=0
 NO_SETTINGS=0
 SHARED_DIR_ARG=""
+CODE_ROOT_ARGS=()
 COMMIT_ARG=""
 PUSH_ARG=""
 LANG_ARG=""
@@ -77,6 +82,9 @@ while [ $# -gt 0 ]; do
     --shared-dir) [ $# -ge 2 ] || { echo "--shared-dir needs a path" >&2; exit 2; }
                   SHARED_DIR_ARG="$2"; shift 2 ;;
     --shared-dir=*) SHARED_DIR_ARG="${1#*=}"; shift ;;
+    --code-root)  [ $# -ge 2 ] || { echo "--code-root needs a path" >&2; exit 2; }
+                  CODE_ROOT_ARGS+=("$2"); shift 2 ;;
+    --code-root=*) CODE_ROOT_ARGS+=("${1#*=}"); shift ;;
     --commit)     [ $# -ge 2 ] || { echo "--commit needs auto|ask" >&2; exit 2; }
                   COMMIT_ARG="$2"; shift 2 ;;
     --commit=*)   COMMIT_ARG="${1#*=}"; shift ;;
@@ -203,6 +211,196 @@ case "$SHARED_DIR" in
 esac
 SHARED_DIR_SETTINGS="$(tildify "$SHARED_DIR")"
 
+# ── code roots ──────────────────────────────────────────────────────────────────
+# Where this machine keeps repositories. The template ships without them, so the
+# permission rules and the sandbox write-roots below are generated from whatever
+# is settled here — an install that settles nothing writes neither, loudly.
+#
+# Precedence, first match wins (spec F-1). Order is load-bearing: the codeRoots
+# clause has to sit above the non-interactive one, or `install.sh --yes` on a
+# configured machine discovers nothing, adopts nothing, and replaces the live
+# settings with a copy that grants no repository at all.
+CODE_ROOT_CANDIDATES=(
+  "$HOME/Developers" "$HOME/Documents/GitHub" "$HOME/src" "$HOME/code"
+  "$HOME/repos" "$HOME/projects" "$HOME/ghq" "$HOME/work" "$HOME/dev"
+)
+
+# Refuse the characters that would corrupt the sed replacement or the JSON around
+# it, the same reason --shared-dir refuses its set. Code roots add ")" because it
+# closes the Edit(<root>/**) rule form.
+bad_path_char() { # <path> [with-paren]
+  case "$1" in
+    *[\"\\\|\&]*) return 0 ;;
+    *'
+'*) return 0 ;;
+  esac
+  if [ "${2:-}" = with-paren ]; then
+    case "$1" in *\)*) return 0 ;; esac
+  fi
+  return 1
+}
+
+# (0) relative -> absolute, (1) $HOME -> ~, (2) drop trailing slashes,
+# (3) drop duplicates and nested roots (the parent wins).
+# The order is the whole point: the shell expands `--code-root ~/src` before this
+# script sees it, so a flag-supplied root and a discovered one arrive in different
+# spellings. Folding them to one form BEFORE comparing is what stops the same
+# directory being granted twice under two names.
+normalize_roots() { # <path...> -> one normalized root per line
+  local p q abs raw=() out=() nested
+  for p in "$@"; do
+    [ -n "$p" ] || continue
+    case "$p" in
+      /*)         abs="$p" ;;
+      "~"|"~/"*)  abs="$(expand_tilde "$p")" ;;
+      *)          abs="$PWD/$p" ;;
+    esac
+    while [ "$abs" != "/" ] && [ "$abs" != "${abs%/}" ]; do abs="${abs%/}"; done
+    raw+=("$(tildify "$abs")")
+  done
+  for p in "${raw[@]+"${raw[@]}"}"; do
+    nested=0
+    for q in "${raw[@]+"${raw[@]}"}"; do
+      [ "$p" = "$q" ] && continue
+      case "$p" in "$q"/*) nested=1; break ;; esac
+    done
+    [ "$nested" = 1 ] && continue
+    for q in "${out[@]+"${out[@]}"}"; do
+      [ "$p" = "$q" ] && { nested=1; break; }
+    done
+    [ "$nested" = 1 ] && continue
+    out+=("$p")
+  done
+  [ "${#out[@]}" -gt 0 ] && printf '%s\n' "${out[@]}"
+  return 0
+}
+
+# A candidate counts when it holds at least one repository — not when it IS one.
+# `~/src` is the shape being looked for, and `~/src/.git` is not it.
+discover_code_roots() {
+  local d g
+  for d in "${CODE_ROOT_CANDIDATES[@]}"; do
+    [ -d "$d" ] || continue
+    if [ ! -r "$d" ] || [ ! -x "$d" ]; then
+      CODE_ROOT_SKIPPED+=("$(tildify "$d")")
+      continue
+    fi
+    for g in "$d"/*/.git; do
+      if [ -e "$g" ]; then printf '%s\n' "$(tildify "$d")"; break; fi
+    done
+  done
+}
+
+read_code_roots() { # persisted value, or nothing
+  [ -f "$SHARED_DIRS_JSON" ] || return 0
+  if command -v jq >/dev/null 2>&1; then
+    jq -r 'if (.codeRoots | type) == "array" then .codeRoots[] else empty end' \
+      "$SHARED_DIRS_JSON" 2>/dev/null
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 -c 'import json,sys
+v=json.load(open(sys.argv[1])).get("codeRoots")
+print("\n".join(v) if isinstance(v,list) else "")' "$SHARED_DIRS_JSON" 2>/dev/null
+  fi
+}
+
+CODE_ROOTS=()
+CODE_ROOT_SKIPPED=()   # candidates skipped because they could not be read
+CODE_ROOT_MISSING=()   # inherited roots that no longer exist or cannot be read
+CODE_ROOT_FOUND=()     # discovered but not adopted (non-interactive)
+CODE_ROOT_NOTE=""      # one-line explanation for the closing summary
+
+if [ "$NO_SETTINGS" = 1 ]; then
+  # Nothing to generate and nothing to persist, so the answer has no use here.
+  if [ "${#CODE_ROOT_ARGS[@]}" -gt 0 ]; then
+    CODE_ROOT_NOTE="ignored --code-root: --no-settings writes no settings.json"
+  fi
+elif [ "${#CODE_ROOT_ARGS[@]}" -gt 0 ]; then
+  while IFS= read -r r; do
+    [ -n "$r" ] || continue
+    if bad_path_char "$r" with-paren; then
+      say "  ignored (unusable characters): $r" "  無視しました（使えない文字）: $r"
+      continue
+    fi
+    if [ ! -d "$(expand_tilde "$r")" ]; then
+      if [ "$ASSUME_YES" = 1 ] || [ ! -t 0 ]; then
+        say "  $r does not exist yet — taking it anyway" "  $r はまだ存在しません（そのまま採用します）"
+      else
+        ans=""
+        read -r -p "$(phrase "  $r does not exist. Use it anyway? [y/N] " \
+                             "  $r は存在しません。それでも使いますか [y/N] ")" ans || true
+        case "$ans" in [yY]*) ;; *) continue ;; esac
+      fi
+    fi
+    CODE_ROOTS+=("$r")
+  done < <(normalize_roots "${CODE_ROOT_ARGS[@]}")
+elif [ -n "$(read_code_roots)" ]; then
+  while IFS= read -r r; do
+    [ -n "$r" ] || continue
+    CODE_ROOTS+=("$r")
+    e="$(expand_tilde "$r")"
+    if [ ! -d "$e" ] || [ ! -r "$e" ]; then CODE_ROOT_MISSING+=("$r"); fi
+  done < <(read_code_roots)
+  say "Code roots: ${#CODE_ROOTS[@]} from $SHARED_DIRS_JSON" \
+      "コードルート: ${#CODE_ROOTS[@]} 件（${SHARED_DIRS_JSON} より）"
+elif [ "$ASSUME_YES" = 1 ] || [ ! -t 0 ]; then
+  while IFS= read -r r; do [ -n "$r" ] && CODE_ROOT_FOUND+=("$r"); done < <(discover_code_roots)
+  if [ "${#CODE_ROOT_FOUND[@]}" -gt 0 ]; then
+    CODE_ROOT_NOTE="found ${#CODE_ROOT_FOUND[@]} candidate(s) but adopted none: nothing here can confirm them"
+  fi
+else
+  found=()
+  while IFS= read -r r; do [ -n "$r" ] && found+=("$r"); done < <(discover_code_roots)
+  echo
+  say "Where do you keep repositories? These get write permission and a sandbox write-root." \
+      "リポジトリはどこに置いていますか。ここに書き込み権限とサンドボックスの書き込みルートが与えられます。"
+  if [ "${#found[@]}" -gt 0 ]; then
+    printf '  %s\n' "${found[@]}"
+    ans=""
+    read -r -p "$(phrase "  Take all of these? [Y/n] " "  すべて採用しますか [Y/n] ")" ans || true
+    case "$ans" in
+      [nN]*) ans=""
+             read -r -p "$(phrase "  Directories, space separated: " "  ディレクトリをスペース区切りで: ")" ans || true
+             # shellcheck disable=SC2206  # splitting on spaces is the input format
+             found=($ans) ;;
+    esac
+  else
+    say "  No candidate found." "  候補が見つかりませんでした。"
+    ans=""
+    read -r -p "$(phrase "  Directory holding your repos (empty to skip): " \
+                         "  リポジトリを置いているディレクトリ（空でスキップ）: ")" ans || true
+    # shellcheck disable=SC2206
+    [ -n "$ans" ] && found=($ans)
+  fi
+  if [ "${#found[@]}" -gt 0 ]; then
+    while IFS= read -r r; do
+      [ -n "$r" ] || continue
+      if bad_path_char "$r" with-paren; then
+        say "  ignored (unusable characters): $r" "  無視しました（使えない文字）: $r"
+        continue
+      fi
+      CODE_ROOTS+=("$r")
+    done < <(normalize_roots "${found[@]}")
+  fi
+fi
+
+# The file is validated HERE, before settings.json is written, not next to the
+# write itself further down. The other order aborts after the live settings have
+# already been replaced, leaving codeRoots unpersisted and the two out of step.
+if [ "$NO_SETTINGS" = 0 ] && [ -f "$SHARED_DIRS_JSON" ]; then
+  shared_dirs_bad=""
+  if command -v jq >/dev/null 2>&1; then
+    jq -e . "$SHARED_DIRS_JSON" >/dev/null 2>&1 || shared_dirs_bad=1
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$SHARED_DIRS_JSON" >/dev/null 2>&1 \
+      || shared_dirs_bad=1
+  fi
+  if [ -n "$shared_dirs_bad" ]; then
+    say "$SHARED_DIRS_JSON is not valid JSON. Refusing to overwrite it — fix or move it, then re-run." \
+        "$SHARED_DIRS_JSON が壊れた JSON です。上書きを避けて中止します。直すか退避してから再実行してください。" >&2
+    exit 2
+  fi
+fi
+
 # ── values that have to be resolved against this machine ────────────────────────
 # Both break quietly rather than loudly when they are wrong — a missing CA bundle
 # makes TLS fail inside curl and cargo, and a missing $EDITOR only surfaces when
@@ -279,6 +477,8 @@ case "$KIT_COMMIT" in auto|ask) ;; *) echo "--commit must be auto or ask: $KIT_C
 case "$KIT_PUSH" in ask|never|auto) ;; *) echo "--push must be ask, never or auto: $KIT_PUSH" >&2; exit 2 ;; esac
 
 # ── run summary (printed at the end) ────────────────────────────────────────────
+SETTINGS_WAS_NEW=0   # no live settings.json before this run (a first install)
+SETTINGS_REPLACED=0  # live settings.json actually replaced this run (--yes)
 SHELVED=()    # real content moved aside to .bak this run
 KEPT=()       # diverging files left as-is (you kept your version)
 RECONCILE=()  # copies that differ from the repo and may want a manual look
@@ -448,15 +648,61 @@ elif [ "$KIT_EDITOR" != "$TEMPLATE_EDITOR" ]; then
   say "  editor: $TEMPLATE_EDITOR not on PATH -> $KIT_EDITOR" \
       "  エディタ: $TEMPLATE_EDITOR が PATH に無いため $KIT_EDITOR にしました"
 fi
-if [ "${#render_args[@]}" -gt 0 ]; then
+# Code roots are appended to two arrays, which is an insertion rather than the
+# substitutions above, and it runs as its own pass after them: mixing the two
+# would let a later substitution rewrite a line this one just inserted.
+#
+# awk, not sed, because a replacement containing \n is a GNU extension — BSD sed
+# on macOS writes a literal n instead, and this kit targets both. awk also leaves
+# every other byte alone, which is the property that matters: copy() decides
+# idempotence with `diff -q` against the live file, so a pass that reformatted the
+# document would diverge for every existing install, and the default on divergence
+# is to keep the live copy — the new rules would never land while install reported
+# success.
+insert_code_roots() { # <file> -> stdout
+  awk -v roots="$(printf '%s\n' "${CODE_ROOTS[@]}")" '
+    BEGIN { n = split(roots, R, "\n") }
+    { print }
+    /^    "allow": \[$/ {
+      for (i = 1; i <= n; i++) if (R[i] != "") {
+        printf "      \"Edit(%s/**)\",\n", R[i]
+        printf "      \"Write(%s/**)\",\n", R[i]
+        printf "      \"Read(%s/**)\",\n", R[i]
+      }
+    }
+    /^      "allowWrite": \[$/ {
+      for (i = 1; i <= n; i++) if (R[i] != "") printf "        \"%s\",\n", R[i]
+    }
+  ' "$1"
+}
+
+if [ "${#render_args[@]}" -gt 0 ] || [ "${#CODE_ROOTS[@]}" -gt 0 ]; then
   # Rendered next to the destination rather than in $TMPDIR — the temp dir is not
   # always writable (the Claude Code sandbox denies it), and ~/.claude always is.
   SETTINGS_SRC="$CLAUDE_DIR/.settings.rendered.$$.json"
-  trap 'rm -f "$SETTINGS_SRC"' EXIT
-  sed "${render_args[@]}" "$REPO/config/settings.template.json" > "$SETTINGS_SRC"
+  trap 'rm -f "$SETTINGS_SRC" "$SETTINGS_SRC.ins"' EXIT
+  if [ "${#render_args[@]}" -gt 0 ]; then
+    sed "${render_args[@]}" "$REPO/config/settings.template.json" > "$SETTINGS_SRC"
+  else
+    cp "$REPO/config/settings.template.json" "$SETTINGS_SRC"
+  fi
+  if [ "${#CODE_ROOTS[@]}" -gt 0 ]; then
+    insert_code_roots "$SETTINGS_SRC" > "$SETTINGS_SRC.ins" \
+      && mv "$SETTINGS_SRC.ins" "$SETTINGS_SRC"
+    echo "  code roots in settings: ${#CODE_ROOTS[@]}"
+  fi
 fi
 echo "  git policy: commit=$KIT_COMMIT push=$KIT_PUSH"
+settings_diverged=0
+if [ ! -e "$CLAUDE_DIR/settings.json" ] && [ ! -L "$CLAUDE_DIR/settings.json" ]; then
+  SETTINGS_WAS_NEW=1
+elif ! diff -q "$CLAUDE_DIR/settings.json" "$SETTINGS_SRC" >/dev/null 2>&1; then
+  settings_diverged=1
+fi
 copy "$SETTINGS_SRC" "$CLAUDE_DIR/settings.json"
+if [ "$settings_diverged" = 1 ] && diff -q "$CLAUDE_DIR/settings.json" "$SETTINGS_SRC" >/dev/null 2>&1; then
+  SETTINGS_REPLACED=1
+fi
 for h in "$REPO"/config/hooks/*.sh; do
   link "$h" "$CLAUDE_DIR/hooks/$(basename "$h")"
 done
@@ -518,11 +764,93 @@ else
   echo "        $SHARED_DIRS_JSON by hand (existing overrides left untouched)."
 fi
 
+# codeRoots lives in the same file, and only this key is touched: default and
+# overrides are read at runtime by the hooks and skills, so losing them would
+# take the handoff directory with them. --no-settings persists nothing, having
+# asked nothing. A failed write is fatal rather than a warning — almanac resolves
+# its repositories from this key, so a silent miss leaves it permanently blank.
+if [ "$NO_SETTINGS" = 0 ]; then
+  code_roots_json='[]'
+  if [ "${#CODE_ROOTS[@]}" -gt 0 ] && command -v jq >/dev/null 2>&1; then
+    code_roots_json="$(printf '%s\n' "${CODE_ROOTS[@]}" | jq -R . | jq -s -c .)"
+  fi
+  if command -v jq >/dev/null 2>&1; then
+    jq --argjson r "$code_roots_json" '.codeRoots = $r' "$SHARED_DIRS_JSON" \
+      > "$SHARED_DIRS_JSON.tmp.$$" && mv "$SHARED_DIRS_JSON.tmp.$$" "$SHARED_DIRS_JSON" || {
+        rm -f "$SHARED_DIRS_JSON.tmp.$$"
+        say "could not write codeRoots into $SHARED_DIRS_JSON" \
+            "$SHARED_DIRS_JSON に codeRoots を書けませんでした" >&2
+        exit 2; }
+    echo "  codeRoots: ${#CODE_ROOTS[@]} in $SHARED_DIRS_JSON"
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 - "$SHARED_DIRS_JSON" "${CODE_ROOTS[@]+"${CODE_ROOTS[@]}"}" <<'PY' || exit 2
+import json,sys
+p=sys.argv[1]
+d=json.load(open(p))
+d["codeRoots"]=sys.argv[2:]
+json.dump(d,open(p,"w"),indent=2,ensure_ascii=False)
+open(p,"a").write("\n")
+PY
+    echo "  codeRoots: ${#CODE_ROOTS[@]} in $SHARED_DIRS_JSON"
+  else
+    say "  no jq or python3: add \"codeRoots\" to $SHARED_DIRS_JSON by hand" \
+        "  jq も python3 も無いため、$SHARED_DIRS_JSON に \"codeRoots\" を手で足してください"
+  fi
+fi
+
 # ── summary ─────────────────────────────────────────────────────────────────────
 echo
 say "── Summary ─────────────────────────────────────────────" \
     "── まとめ ───────────────────────────────────────────────"
 total=$(( ${#SHELVED[@]} + ${#KEPT[@]} + ${#RECONCILE[@]} ))
+
+# Code roots. Everything here is a case where the run did something other than
+# what the reader would assume, so silence is the one option that is never right.
+if [ -n "$CODE_ROOT_NOTE" ]; then
+  say "  note: $CODE_ROOT_NOTE" "  注記: $CODE_ROOT_NOTE"
+  if [ "${#CODE_ROOT_FOUND[@]}" -gt 0 ]; then printf '    %s\n' "${CODE_ROOT_FOUND[@]}"; fi
+fi
+if [ "${#CODE_ROOT_SKIPPED[@]}" -gt 0 ]; then
+  say "Skipped while looking for repositories (could not read):" \
+      "リポジトリの探索中に飛ばしました（読めません）:"
+  printf '  %s\n' "${CODE_ROOT_SKIPPED[@]}"
+fi
+if [ "${#CODE_ROOT_MISSING[@]}" -gt 0 ]; then
+  say "Configured code roots that are gone or unreadable (kept, not removed):" \
+      "設定済みのコードルートのうち、存在しないか読めないもの（消さずに残しています）:"
+  printf '  %s\n' "${CODE_ROOT_MISSING[@]}"
+fi
+if [ "$NO_SETTINGS" = 0 ] && [ "${#CODE_ROOTS[@]}" = 0 ]; then
+  say "No code root is set, so nothing outside this kit is writable — every edit will ask." \
+      "コードルートが未設定です。このキットの外は書き込み対象にならないので、編集のたびに確認が出ます。"
+  say "  Fix with: ./install.sh --code-root ~/where/your/repos/live" \
+      "  直すには: ./install.sh --code-root ~/リポジトリを置いている場所"
+fi
+# The one path where the answer was taken but cannot have reached settings.json.
+if [ "${#CODE_ROOT_ARGS[@]}" -gt 0 ] && [ "$NO_SETTINGS" = 0 ]; then
+  for f in "${KEPT[@]+"${KEPT[@]}"}"; do
+    if [ "$f" = "$CLAUDE_DIR/settings.json" ]; then
+      say "  codeRoots was updated, but settings.json was kept — re-run with --yes to apply it." \
+          "  codeRoots は更新しましたが settings.json は温存しました。反映するには --yes で再実行してください。"
+      break
+    fi
+  done
+fi
+# Only where the live file is actually written: a first install, or --yes
+# replacing it. On an ordinary re-run the live copy wins, so nothing is imposed
+# and saying otherwise would train the reader to ignore the one that matters.
+if [ "$NO_SETTINGS" = 0 ] && { [ "$SETTINGS_WAS_NEW" = 1 ] || [ "$SETTINGS_REPLACED" = 1 ]; }; then
+  say "This kit's settings.json disables four plugins for you:" \
+      "このキットの settings.json は 4 つのプラグインを無効化します:"
+  say "  frontend-design — no equivalent elsewhere, so you lose the capability" \
+      "  frontend-design — 代替が無いので、機能そのものを失います"
+  say "  figma, chrome-devtools-mcp — reachable another way (claude.ai connector, claude-in-chrome)" \
+      "  figma, chrome-devtools-mcp — 別経路で使えます（claude.ai コネクタ、claude-in-chrome）"
+  say "  deploy-on-aws — plus an agent-plugins-for-aws marketplace entry and an mcp__pencil permission" \
+      "  deploy-on-aws — ほかに agent-plugins-for-aws マーケットプレイスと mcp__pencil の許可も入ります"
+  say "  Nothing was removed from your file. Edit ~/.claude/settings.json, or run /barometer." \
+      "  あなたのファイルからは何も削っていません。~/.claude/settings.json を直すか /barometer を回してください。"
+fi
 if [ "${#SHELVED[@]}" -gt 0 ]; then
   say "Shelved (review, then delete once you're happy):" \
       "退避しました（確認して、問題なければ削除してください）:"
