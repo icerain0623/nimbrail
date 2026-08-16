@@ -91,7 +91,7 @@ substitutes these; nothing else in the file is machine-specific.
 | key | shipped value | what to put |
 |---|---|---|
 | `env.SSL_CERT_FILE`, `env.CARGO_HTTP_CAINFO` | `/etc/ssl/cert.pem` | your CA bundle, or delete both keys and let the tools use the system store |
-| `env.EDITOR`, `env.VISUAL` | `nano` | keep it if a `nano` is on PATH (Git for Windows ships one); otherwise `notepad`, which blocks until you close the window, or `code --wait` |
+| `env.EDITOR`, `env.VISUAL` | `nano` | `notepad`, which blocks until the window closes, or `code --wait`. Git for Windows does ship `nano.exe`, but under `usr\bin`, which only its third PATH option adds — and it is an MSYS binary, which this route otherwise avoids |
 | `env.CLAUDE_KIT_COMMIT` | `auto` | `ask` to confirm every commit |
 | `env.CLAUDE_KIT_PUSH` | `ask` | `never`, or `auto` to push unprompted where a linter or CI exists |
 | `sandbox.filesystem.allowWrite` | `~/Documents/GitHub`, `~/Developers` | wherever you keep repos |
