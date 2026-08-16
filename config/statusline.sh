@@ -35,12 +35,13 @@ GREEN=$'\033[32m'
 YELLOW=$'\033[33m'
 RED=$'\033[31m'
 
-# color by usage threshold: <50 green, <80 yellow, else red
+# color by usage threshold: <50 green, <CTX_WARN yellow, else red
+CTX_WARN=80
 usage_color() {
   local pct
   pct=$(printf '%.0f' "${1:-0}")
   if   [ "$pct" -lt 50 ]; then printf '%s' "$GREEN"
-  elif [ "$pct" -lt 80 ]; then printf '%s' "$YELLOW"
+  elif [ "$pct" -lt "$CTX_WARN" ]; then printf '%s' "$YELLOW"
   else printf '%s' "$RED"
   fi
 }
@@ -123,4 +124,14 @@ if [ ${#parts[@]} -gt 0 ]; then
     line2="${line2}${parts[$i]}"
   done
   printf '\n%s' "$line2"
+fi
+
+# ── Line 3: flush hint, at the threshold that already turns ctx red ────────────
+# Compaction discards whatever exists only in this window, so the hint is to
+# persist first — a fresh shell then reads the ledger off disk instead of
+# spending the window you are trying to save. Order matters: flush here, route
+# there. It fires at CTX_WARN rather than nearer the limit because by then there
+# is no room left to do what it asks.
+if [ -n "$used" ] && [ "$(printf '%.0f' "$used")" -ge "$CTX_WARN" ]; then
+  printf '\n%s%s%s' "$RED" "⚑ flush state (commit, feedback.md), then /monsoon in a new shell" "$RESET"
 fi
