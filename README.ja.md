@@ -38,6 +38,21 @@ nimbrail/
 - **一部の値はまだ作者固有**なので、そのまま採用する前に確認すること: サンドボックスの書き込みルートは `~/Documents/GitHub` と `~/Developers`。`SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` 用の CA bundle は install 時に探索するので、Debian/Ubuntu では macOS のパスではなく `/etc/ssl/certs/ca-certificates.crt` になる。
 - **`EDITOR` が `nano` なのは意図的**。ctrl+g（プロンプトバッファの編集）と /memory が開くのはこれで、どちらも IDE に渡すほどのものではない。nano はセッションが既に描画しているペインをそのまま奪うので、エディタがターミナルの外に出ない。おかげでここでは珍しく**作者固有ではない**値でもある: nano は macOS にも大半の Linux ベースにも最初から入っていて、`install.sh` が `vi` にフォールバックするのは本当に見つからなかったときだけだ。合わなければ `EDITOR`/`VISUAL` を自分のものに向ければいい。ただし GUI エディタにはファイルを閉じるまでブロックするフラグが要る（`code --wait`、`webstorm --wait`）。macOS の `open -e -W` はそれに当たらない — 待つのは TextEdit の*終了*なので、既に起動していれば即座に戻り、Claude は編集されていないファイルを読み戻す。
 
+  カーソル移動は素の状態で足りている。矢印キー、Ctrl+←/→ の単語単位、Home/End、PgUp/PgDn はすべてデフォルトのキーバインドだ。足りないのは**長い**プロンプトを扱うために要るもので、ソフトラップが無ければ段落は折り返さずに右へ流れていくし、マウスは何もしない。どちらも rc ファイル1枚で片付く。キットはこれを入れない。`~/.nanorc` は `~/.claude/` の外にあり、`install.sh` が書き込むのはそのツリーだけだからだ。ここは自分で置く:
+
+  ```
+  set mouse           # クリックでカーソル移動、ドラッグで選択
+  set softwrap        # 長い段落が右に流れず折り返す
+  set atblanks        # ... 折り返しは単語の途中ではなく空白で
+  set smarthome       # Home は最初の非空白へ、もう一度押すと桁1へ
+  set zap             # Backspace/Delete が1文字ではなく選択範囲を消す
+  set constantshow    # 行/桁の常時表示
+  set linenumbers
+  include "/opt/homebrew/share/nano/*.nanorc"   # Linux では /usr/share/nano/*.nanorc
+  ```
+
+  代償があるのは `set mouse` の行だ。nano がマウスを掴むので、ドラッグで**システム**クリップボード向けの選択ができなくなる。ターミナル側の選択に戻すには Option（iTerm2、Ghostty）か Shift（その他大半）を押しながら操作する。それと Apple の `/usr/bin/nano` は実体が UW PICO 5.09 で、上のほとんどを無視する — `brew install nano` を入れれば本物の GNU nano が `PATH` の前に来る。
+
 ## 新マシンでのセットアップ
 
 ```bash

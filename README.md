@@ -38,6 +38,21 @@ nimbrail/
 - **Some values are still author-specific**, so check them before adopting this as-is: the sandbox write-roots are `~/Documents/GitHub` and `~/Developers`. The CA bundle for `SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` is probed at install time, so Debian/Ubuntu gets `/etc/ssl/certs/ca-certificates.crt` rather than the macOS path.
 - **`EDITOR` is `nano`, on purpose.** It is what ctrl+g (edit the prompt buffer) and the /memory command open, and neither is worth handing to an IDE — nano takes over the pane the session is already drawing in, so the editor never leaves the terminal. That also makes it the rare value here that is *not* author-specific: nano ships with macOS and with nearly every Linux base, and `install.sh` falls back to `vi` only if it is genuinely absent. Point `EDITOR`/`VISUAL` at your own if you disagree; a GUI editor needs a flag that blocks until the file is closed (`code --wait`, `webstorm --wait`), and macOS `open -e -W` is not one — it waits for TextEdit to *quit*, so an already-running TextEdit returns instantly and Claude reads the file back untouched.
 
+  Moving around in it is fine out of the box — arrow keys, Ctrl+←/→ by word, Home/End, PgUp/PgDn are all default bindings. What is missing is everything that makes a *long* prompt bearable: without soft wrap a paragraph runs off the right edge instead of folding, and the mouse does nothing. Both are one rc file away. The kit does not install it, because `~/.nanorc` is outside `~/.claude/` and that tree is the only thing `install.sh` writes — so this one is yours to place:
+
+  ```
+  set mouse           # click to place the cursor, drag to select
+  set softwrap        # a long paragraph folds instead of running off the right edge
+  set atblanks        # ... and folds at spaces, not mid-word
+  set smarthome       # Home -> first non-blank, press again for column 1
+  set zap             # Backspace/Delete removes the selection, not one character
+  set constantshow    # live line/column readout
+  set linenumbers
+  include "/opt/homebrew/share/nano/*.nanorc"   # /usr/share/nano/*.nanorc on Linux
+  ```
+
+  `set mouse` is the line with a cost: nano captures the mouse, so dragging stops selecting text for the *system* clipboard. Hold Option (iTerm2, Ghostty) or Shift (most others) to get the terminal's own selection back. And Apple's `/usr/bin/nano` is really UW PICO 5.09, which ignores most of the above — `brew install nano` puts a genuine GNU nano earlier on `PATH`.
+
 ## Setup on a new machine
 
 ```bash
