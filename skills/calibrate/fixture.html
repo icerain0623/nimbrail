@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>calibrator fixture</title>
+
+<!--
+  calibrator.js's contract, written as a page. Every CSS block below is one claim
+  the script makes, named in its comment; nothing automated checks any of them.
+
+  Run: open this file in a browser (file:// is enough), then run the calibrator
+  snippet on it. Two uses — after editing calibrator.js, and as the known-good
+  page that separates a panel bug from a project that simply has no tokens.
+
+  Expected: ~20 tokens, --card-pad absent, --layered and --nested present,
+  --tw-* under "internal", the ☾ control darkening the card. On file:// the
+  reload-and-rerun restore may fail, since some browsers deny localStorage there.
+-->
+
+<style>
+  /* --- 1. ordinary root tokens: one per control type the panel infers --- */
+  :root {
+    --space:    12px;                          /* slider, step 1  */
+    --radius:   0.5rem;                        /* slider, step .05 */
+    --dur:      200ms;                         /* slider, step 10 */
+    --line:     1.5;                           /* unitless slider */
+    --width:    60%;                           /* slider 0..100   */
+    --brand:    #3d5afe;                       /* color picker    */
+    --accent:   oklch(0.72 0.15 250);          /* color, only if canvas converts it */
+    --surface:  #f5f6f8;                       /* color picker    */
+    --ink:      #1c1f26;                       /* color picker    */
+    --shadow:   0 2px 8px rgba(0, 0, 0, .18);  /* text input      */
+    --ease:     cubic-bezier(.2, .8, .2, 1);   /* text input      */
+    --alias:    var(--brand);                  /* resolves -> color picker */
+
+    /* nested CSS inside the same rule: collection must not stop here */
+    --nested: 2px;
+    & .probe { outline: 0; }
+  }
+
+  /* --- 2. must NOT appear: scoped to a component, unresolvable at :root --- */
+  .card { --card-pad: 14px; }
+
+  /* --- 3. must appear: declared inside @layer (recursion through layer rules) --- */
+  @layer theme {
+    :root { --layered: 4px; }
+  }
+
+  /* --- 4. name already known; must not duplicate a row --- */
+  @media (prefers-color-scheme: dark) {
+    :root { --brand: #8ab4ff; }
+  }
+
+  /* --- 5. both dark conventions, for the panel's A / ☀ / ☾ control --- */
+  .dark               { --surface: #10131a; --ink: #e7e9ee; }
+  [data-theme="dark"] { --surface: #0b0e14; --ink: #e7e9ee; }
+
+  /* --- 6. framework-internal: resolves at root, must land in "internal" --- */
+  * { --tw-ring-offset-width: 0px; --tw-ring-color: #93c5fd; }
+
+  /* --- the visible surface, so a slider move is obvious --- */
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center;
+    background: var(--surface); color: var(--ink);
+    font: 14px/var(--line) ui-sans-serif, -apple-system, sans-serif;
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  }
+  .card {
+    width: var(--width); max-width: 520px;
+    padding: calc(var(--space) * 2) var(--space);
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--surface) 85%, var(--ink));
+    box-shadow: var(--shadow);
+    border-top: var(--layered) solid var(--alias);
+    transition: all var(--dur) var(--ease);
+  }
+  h1 { margin: 0 0 var(--space); font-size: 1.25rem; line-height: var(--line); }
+  p  { margin: 0 0 var(--space); opacity: .8; }
+  button {
+    padding: calc(var(--space) / 2) var(--space);
+    border: var(--nested) solid var(--brand);
+    border-radius: var(--radius);
+    background: var(--brand); color: #fff; font: inherit; cursor: pointer;
+    transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  button:hover  { background: var(--accent); transform: translateY(-1px); }
+  button:focus-visible { outline: var(--nested) solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="card">
+  <h1>calibrator fixture</h1>
+  <p>Every visible property here is driven by a root token. Move a slider and this card
+     should change immediately. Hover the button — that state is the one the panel
+     cannot freeze yet.</p>
+  <button type="button">Hover me</button>
+</div>

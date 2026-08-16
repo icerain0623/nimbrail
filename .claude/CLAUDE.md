@@ -6,6 +6,7 @@ This repo is the source of the global Claude Code config: `install.sh` symlinks 
 - **Restart needed?** `settings.json` edits only. Skill bodies, sibling files, a changed `name`/`description`, and a newly linked skill all apply on next invocation.
 - Bash writes under this repo's `config/` fail with `Operation not permitted`, in a worktree too — the harness's `.git/config` protection landing on `<repo>/config`. **Use Edit/Write, which are unaffected**, and disable the sandbox when a command must do the writing. `~/.claude/projects/` behaves the same way.
 - Git ops that rewrite the working tree (`checkout` / `switch` / `merge` / `reset` / `stash`) therefore need the sandbox disabled, and so does the `git status` after them: in-sandbox they fail per-file under `config/` **while still exiting 0**, leaving a partly-moved tree. Recover a half-applied `stash` with Edit, then drop the entry.
+- After editing `skills/calibrate/calibrator.js`, open `skills/calibrate/fixture.html` in a browser — each CSS block there is one claim the script makes, and nothing automated checks any of them. It is also the known-good page that tells a panel bug apart from a project that simply has no tokens.
 
 ## Writing rules
 - Shortest form that still works, and **say a thing once** — the same fact in two places is the failure mode here, not a missing rule. State only what nothing else enforces. Bold marks a signpost — a label, a branch condition, the one thing not to skim past — never decoration.
