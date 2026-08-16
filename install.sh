@@ -33,7 +33,7 @@
 #                        settings.json and the hooks. This is the one clean cut —
 #                        CLAUDE.md and skills name each other, so neither half
 #                        installs alone, while settings.json carries this machine's
-#                        answers (write-roots, EDITOR, CA bundle) that another
+#                        answers (write-roots, CA bundle) that another
 #                        machine has no reason to inherit. Re-running with the flag
 #                        removes hook symlinks left by an earlier full install; an
 #                        existing settings.json is never touched, because it holds
@@ -51,7 +51,7 @@ SHARED_DIR_DEFAULT="$HOME/Documents/claude-shared"
 # shellcheck disable=SC2088  # a literal ~ on purpose: this is the template's own text
 TEMPLATE_ROOT="~/Documents/claude-shared"   # literal string the template ships with
 TEMPLATE_CA="/etc/ssl/cert.pem"             # macOS CA bundle the template ships with
-TEMPLATE_EDITOR="webstorm --wait"
+TEMPLATE_EDITOR="nano"
 
 # Test seam (unset in production): CLAUDE_KIT_UNAME.
 case "${CLAUDE_KIT_UNAME:-$(uname -s 2>/dev/null || echo unknown)}" in
@@ -218,15 +218,12 @@ detect_ca_bundle() {
 KIT_CA="$(detect_ca_bundle)"
 KIT_CA="${KIT_CA:-$TEMPLATE_CA}"   # none found → leave the template's value alone
 
-# Editor: only off macOS. `command -v` reads whatever PATH this shell happens to
-# have, and a GUI launcher often is not on it — testing this from a restricted
-# shell on the author's own Mac silently rewrote EDITOR to vi. Getting a wrong
-# $EDITOR is a loud failure when something opens one; getting it silently changed
-# is not. So the guess is only replaced where it is almost certainly wrong.
+# Editor: nano ships with macOS and with nearly every Linux base, so the template's
+# value is portable and `command -v` is a real test of it — unlike a GUI launcher,
+# which a restricted PATH hides even where it is installed, and which once silently
+# rewrote EDITOR to vi on the author's own Mac.
 KIT_EDITOR="$TEMPLATE_EDITOR"
-if [ "$PLATFORM" != macos ] && ! command -v webstorm >/dev/null 2>&1; then
-  if command -v code >/dev/null 2>&1; then KIT_EDITOR="code --wait"; else KIT_EDITOR="vi"; fi
-fi
+command -v nano >/dev/null 2>&1 || KIT_EDITOR="vi"
 
 # ── git policy ──────────────────────────────────────────────────────────────────
 # Same precedence as the shared root: flag > what the live settings.json already

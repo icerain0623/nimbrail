@@ -35,7 +35,8 @@ nimbrail/
 - **Plugins** (figma, serena, context7, chrome-devtools, …) are **not** installed by `install.sh` and are not files in this repo — they restore from `settings.json`'s `enabledPlugins` + `extraKnownMarketplaces` on first launch, so just restart Claude Code and let it pull them. Everything under `skills/` is the other kind: authored here, symlinked in, synced by git.
 - **Hooks this repo does not own.** `settings.template.json` declares `PreToolUse` and `PostToolUse` only. A session wrapper — cmux, for one — registers its own `Stop`, `UserPromptSubmit` and `SessionStart` hooks directly in the live `settings.json`, where they fire across every project. If something misbehaves on those three events, it is not in `config/hooks/` and no amount of grepping this repo will find it.
 - **macOS and Linux, including WSL.** `install.sh` is bash and builds a tree of symlinks, so on Windows the route is WSL — clone inside the WSL filesystem (`~/…`), not under `/mnt/c`, whose permissions break symlinks. Running it from Git Bash / MSYS / Cygwin stops with that advice. A manual native-Windows setup is written up in [docs/windows.md](docs/windows.md), untested and honest about which parts are unknown.
-- **Some values are still author-specific**, so check them before adopting this as-is: the sandbox write-roots are `~/Documents/GitHub` and `~/Developers`, and `EDITOR` is WebStorm (kept as-is on macOS; off macOS it falls back to `code --wait` or `vi` when WebStorm is absent). The CA bundle for `SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` is probed at install time, so Debian/Ubuntu gets `/etc/ssl/certs/ca-certificates.crt` rather than the macOS path.
+- **Some values are still author-specific**, so check them before adopting this as-is: the sandbox write-roots are `~/Documents/GitHub` and `~/Developers`. The CA bundle for `SSL_CERT_FILE`/`CARGO_HTTP_CAINFO` is probed at install time, so Debian/Ubuntu gets `/etc/ssl/certs/ca-certificates.crt` rather than the macOS path.
+- **`EDITOR` is `nano`, on purpose.** It is what ctrl+g (edit the prompt buffer) and the /memory command open, and neither is worth handing to an IDE — nano takes over the pane the session is already drawing in, so the editor never leaves the terminal. That also makes it the rare value here that is *not* author-specific: nano ships with macOS and with nearly every Linux base, and `install.sh` falls back to `vi` only if it is genuinely absent. Point `EDITOR`/`VISUAL` at your own if you disagree; a GUI editor needs a flag that blocks until the file is closed (`code --wait`, `webstorm --wait`), and macOS `open -e -W` is not one — it waits for TextEdit to *quit*, so an already-running TextEdit returns instantly and Claude reads the file back untouched.
 
 ## Setup on a new machine
 
@@ -82,7 +83,7 @@ permissions, sandbox and git policy.
 That is the only place this kit splits cleanly. `CLAUDE.md` names seven skills and
 twelve skills defer back to its rules, so neither half stands alone — but the
 enforcement layer is exactly the part that encodes *this* machine (write-roots under
-`~/Developers`, WebStorm as `EDITOR`, a probed CA bundle), and it is the part you have
+`~/Developers`, a probed CA bundle), and it is the part you have
 least reason to inherit.
 
 Re-running with the flag after a full install removes the hook links it left behind.
