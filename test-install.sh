@@ -96,6 +96,19 @@ ok "F-8: codeRoots persisted"      "$(shared_key "$H4" '.codeRoots | length')" 1
 ok "F-8: default preserved"        "$(shared_key "$H4" '.default != null')" true
 ok "F-8: overrides preserved"      "$(shared_key "$H4" '.overrides != null')" true
 
+# Two roots that both survive. Nothing else exercised this: the earlier cases
+# pass one root, or three that collapse to one — so the newline between two roots
+# never reached the injection, and an awk -v assignment cannot carry one. It
+# failed on a real machine, not here.
+H4B="$TB/h4b"
+rc=$(run_install "$H4B" "$PATH" --shared-dir "$H4B/shared" \
+       --code-root "$CR/roots" --code-root "$CR/decoy")
+ok "F-2: two roots exit 0"         "$rc" 0
+ok "F-2: six allow rules"          "$(key "$H4B" "[.permissions.allow[] | select(test(\"$CR/(roots|decoy)\"))] | length")" 6
+ok "F-2: two write-roots"          "$(key "$H4B" "[.sandbox.filesystem.allowWrite[] | select(test(\"$CR/(roots|decoy)\"))] | length")" 2
+ok "F-2: both persisted"           "$(shared_key "$H4B" '.codeRoots | length')" 2
+ok "F-2: two roots valid JSON"     "$(jq -e . "$H4B/.claude/settings.json" >/dev/null 2>&1; echo $?)" 0
+
 # F-10: a nested pair collapses to the parent. The flag arrives shell-expanded,
 # so this only passes if both spellings are folded before the comparison.
 H5="$TB/h5"

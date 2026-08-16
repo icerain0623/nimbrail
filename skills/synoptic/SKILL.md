@@ -15,7 +15,7 @@ Default is every project. An argument narrows it: one or more project names (`/s
 
 Shared root per the global Handoff rule.
 
-- **Projects** = dirs directly under the shared root that have a matching repo — a dir of the same name holding a `.git` under the sandbox write-roots (`~/Developers`, `~/Documents/GitHub` and their immediate subdirs). The repo check is what separates a project from a skill's output dir (`permafrost/`, `almanac/`, `sunbreak/`, `check-<project>/`).
+- **Projects** = dirs directly under the shared root that have a matching repo — a dir of the same name holding a `.git` directly under one of the `codeRoots` in `~/.claude/shared-dirs.json` (`install.sh` writes that key per machine; hardcoding paths here would look in the author's directories on someone else's install and miss theirs). Missing, empty or unparseable → say so and treat every dir as unmatched rather than guessing. The repo check is what separates a project from a skill's output dir (`permafrost/`, `almanac/`, `sunbreak/`, `check-<project>/`).
 - Per project, the ledger head only: the first 15 lines of `tasks.md` (the `> **Resume**` block), and `TODO.md`'s unchecked lines above its `## 対応済み`. Anything deeper — the rest of a ledger, `feedback.md`, reports — is `almanac`'s job, and synoptic has to stay cheap enough to run on a whim.
 - Per project, live git: current branch, uncommitted count, unpushed commits.
 

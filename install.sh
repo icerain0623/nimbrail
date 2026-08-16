@@ -225,9 +225,12 @@ CODE_ROOT_CANDIDATES=(
   "$HOME/repos" "$HOME/projects" "$HOME/ghq" "$HOME/work" "$HOME/dev"
 )
 
-# Refuse the characters that would corrupt the sed replacement or the JSON around
-# it, the same reason --shared-dir refuses its set. Code roots add ")" because it
-# closes the Edit(<root>/**) rule form.
+# Refuse rather than escape, the same call --shared-dir makes, and the same set so
+# the two share this function. Each character earns its place: ")" closes the
+# Edit(<root>/**) rule form, '"' closes the JSON string, and a backslash is read as
+# an escape by awk's -v assignment below. "|" and "&" are inert here — they were
+# hazards while the shared root went through a sed replacement, and stay refused
+# because parity with --shared-dir is worth more than the paths it costs.
 bad_path_char() { # <path> [with-paren]
   case "$1" in
     *[\"\\\|\&]*) return 0 ;;
@@ -660,8 +663,12 @@ fi
 # is to keep the live copy — the new rules would never land while install reported
 # success.
 insert_code_roots() { # <file> -> stdout
-  awk -v roots="$(printf '%s\n' "${CODE_ROOTS[@]}")" '
-    BEGIN { n = split(roots, R, "\n") }
+  # Through the environment, not -v: an awk -v assignment cannot carry a literal
+  # newline, and two roots is the first case that contains one. It failed loudly
+  # but the `&&` below swallowed the consequence — the file was written without
+  # any rule at all, which reads exactly like a successful install.
+  CODE_ROOTS_NL="$(printf '%s\n' "${CODE_ROOTS[@]}")" awk '
+    BEGIN { n = split(ENVIRON["CODE_ROOTS_NL"], R, "\n") }
     { print }
     /^    "allow": \[$/ {
       for (i = 1; i <= n; i++) if (R[i] != "") {
@@ -687,8 +694,22 @@ if [ "${#render_args[@]}" -gt 0 ] || [ "${#CODE_ROOTS[@]}" -gt 0 ]; then
     cp "$REPO/config/settings.template.json" "$SETTINGS_SRC"
   fi
   if [ "${#CODE_ROOTS[@]}" -gt 0 ]; then
-    insert_code_roots "$SETTINGS_SRC" > "$SETTINGS_SRC.ins" \
-      && mv "$SETTINGS_SRC.ins" "$SETTINGS_SRC"
+    if ! insert_code_roots "$SETTINGS_SRC" > "$SETTINGS_SRC.ins"; then
+      say "could not write the code-root rules into settings.json" \
+          "settings.json にコードルートの規則を書けませんでした" >&2
+      exit 2
+    fi
+    mv "$SETTINGS_SRC.ins" "$SETTINGS_SRC"
+    # Count what actually landed. The first version of this failed inside awk and
+    # the `&&` ate it, so a file with no rule at all was copied over the live one
+    # and the run reported success — the exact silence the whole change is about.
+    for r in "${CODE_ROOTS[@]}"; do
+      if ! grep -qF "\"Edit($r/**)\"" "$SETTINGS_SRC"; then
+        say "settings.json is missing the rule for $r" \
+            "settings.json に $r の規則がありません" >&2
+        exit 2
+      fi
+    done
     echo "  code roots in settings: ${#CODE_ROOTS[@]}"
   fi
 fi
