@@ -21,7 +21,7 @@ added there is the clearest possible report.
 
 - **Secrets in this repo.** There are none. The real GitHub PAT lives only in
   `~/.claude/settings.local.json`, which is gitignored and never committed; the
-  template carries a placeholder.
+  template declares no `GH_TOKEN` at all.
 - **The macOS and author-specific paths** in `config/settings.template.json`
   (`~/Documents/GitHub`, `~/Developers`, `/etc/ssl/cert.pem`, …). They are
   deliberate for this machine, not a misconfiguration.
