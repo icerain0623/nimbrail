@@ -129,7 +129,11 @@
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:docs.claude.com)",
       "WebFetch(domain:code.claude.com)",
+      "WebFetch(domain:platform.claude.com)",
+      "WebFetch(domain:support.claude.com)",
+      "WebFetch(domain:downloads.claude.ai)",
       "WebFetch(domain:www.anthropic.com)",
+      "WebFetch(domain:github.com)",
       "mcp__pencil",
       "mcp__plugin_context7_context7__resolve-library-id",
       "mcp__plugin_context7_context7__query-docs"
