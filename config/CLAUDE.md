@@ -21,6 +21,7 @@ Entry triage for a new ask; each station explains itself when invoked:
 - Prefer pnpm for Node; match an existing repo's lockfile. Tool versions via mise — respect the project's `.mise.toml` / `.tool-versions` pin, run via mise shims (`mise exec --`).
 
 ## Build discipline
+- Library facts (API shape, config keys, migrations) come from `context7` at the version the lockfile pins, not a web search. Serena's symbol tools beat Grep when the target is a definition rather than a string.
 - Substantial build work: keep an in-flight `feedback.md` (Blockers + Open questions) in the shared dir, logged as you go; skip it for trivial edits.
 - Route a spec/design gap back to the spec or design (or ask), and record the resolution.
 - At a checkpoint (a unit compiles / runs): run `check`, then confirm real behavior from outside the code — run it, open the page, hit the endpoint. After a unit is done, `/monsoon` routes the next step.
