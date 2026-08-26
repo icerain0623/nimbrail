@@ -9,7 +9,7 @@ The synoptic chart — the whole region at one moment, on one sheet. `monsoon` r
 
 ## Scope
 
-Default is every project, and `monsoon` step 10 calls it that way. An argument narrows it to one or more project names (`/synoptic <project> <project>`). **A narrowed run reports in chat and leaves `status.md` untouched** — regenerating the whole file from a subset would silently drop the projects that were filtered out, and the file is the one place claiming to cover everything.
+Default is every project, and `monsoon` step 11 calls it that way. An argument narrows it to one or more project names (`/synoptic <project> <project>`). **A narrowed run reports in chat and leaves `status.md` untouched** — regenerating the whole file from a subset would silently drop the projects that were filtered out, and the file is the one place claiming to cover everything.
 
 There is no current-repo shorthand. One repo's next step is `monsoon`, which reads `.claude/project.md`, `findings.md`, tags and merged branches — everything below the ledger head that synoptic deliberately skips.
 
@@ -18,7 +18,7 @@ There is no current-repo shorthand. One repo's next step is `monsoon`, which rea
 Shared root per the global Handoff rule.
 
 - **Projects** = dirs directly under the shared root that have a matching repo — a dir of the same name holding a `.git` directly under one of the `codeRoots` in `~/.claude/shared-dirs.json` (`install.sh` writes that key per machine; hardcoding paths here would look in the author's directories on someone else's install and miss theirs). Missing, empty or unparseable → say so and treat every dir as unmatched rather than guessing. The repo check is what separates a project from a skill's output dir (`permafrost/`, `sunbreak/`, `reports/`, `check-<project>/`).
-- Per project, the ledger head only: the first 15 lines of `tasks.md` (the `> **Resume**` block), and `TODO.md`'s unchecked lines above its `## 対応済み`. Nothing deeper — not the rest of a ledger, not `feedback.md`, not reports: synoptic has to stay cheap enough to run on a whim, and `monsoon` step 10 now runs it unattended.
+- Per project, the ledger head only: the first 15 lines of `tasks.md` (the `> **Resume**` block), and `TODO.md`'s unchecked lines above its `## 対応済み`. Nothing deeper — not the rest of a ledger, not `feedback.md`, not reports: synoptic has to stay cheap enough to run on a whim, and `monsoon` step 11 now runs it unattended.
 - Per project, live git: current branch, uncommitted count, unpushed commits.
 
 ## Counts
