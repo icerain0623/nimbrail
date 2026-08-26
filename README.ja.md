@@ -79,7 +79,7 @@ cd nimbrail
 |---|---|
 | 提示されるもの | `~/Developers` `~/Documents/GitHub` `~/src` `~/code` `~/repos` `~/projects` `~/ghq` `~/work` `~/dev` のうち、リポジトリを1つ以上持つもの |
 | 非対話 | `./install.sh --code-root ~/src --code-root ~/work`（反復指定。保存済みのリストに足すのではなく置き換える） |
-| 保存先 | `~/.claude/shared-dirs.json` の `codeRoots`。`almanac` もここから読む |
+| 保存先 | `~/.claude/shared-dirs.json` の `codeRoots`。`synoptic` もここから読む |
 | 再実行 | 一度決まれば黙って引き継ぐ。消えたルートは報告するが、こちらでは消さない |
 
 3つ目と4つ目は、**git をどこまで自分でやってよいか**。どちらの答えも `git-workflow` フックが強制する。善意に頼る作りにはなっていない。
@@ -160,8 +160,7 @@ petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
 | `weathering` | 仕様ドリフト報告書。コードと `SPEC.md` の食い違いを洗い出す（ja+en の訳ズレも拾う）。修正は確認のうえで実施 |
 | `synoptic` | プロジェクト横断の現在位置。各台帳の先頭とライブな git を読み、何が自分を止めているかで順位付けし（自分の検証待ちを最優先）、`status.md` を再生成して次の一手を1つ提案する。読み取り中に踏んだ台帳の不具合は、毎回再発見されないよう各プロジェクトの `TODO.md` へ落とす。`monsoon` は1プロジェクトを担当し、そのプロジェクトに保留が無くなった時点でこちらを走らせる。`status.md` が古びないのはこの経路のおかげ |
 | `barometer` | キットと環境のドリフト。ライブな `~/.claude` をこの repo と突き合わせる（コピーされた `settings.json`、symlink の健全性、孤立ファイル）ほか、キットが前提にしているハーネス側の面がまだ存在するかを見る。読み取りのみで提案する。Claude Code を上げたあとに走らせる |
-| `almanac` | 稼働中の repo を横断した週次ダイジェスト（週報のドラフト）と、共有ディレクトリのライフサイクルのうち*提案*側。凍結候補の古いファイルを挙げる（保管庫は `permafrost`） |
-| `permafrost` | claude-shared の情報ライフサイクル機構。完了・陳腐化した資料を完全不可視のコールドストアへ凍結し（Read/grep 拒否の書き込み専用。読むには `thaw`）、warm 側を薄く保つ（追い出し）。強制は `settings.json` と `config/CLAUDE.md` にあり、スキーム自体の掃き出しと解凍を担うのがこのスキル。候補を挙げるのは `almanac` |
+| `permafrost` | claude-shared の情報ライフサイクル機構。完了・陳腐化した資料を完全不可視のコールドストアへ凍結し（Read/grep 拒否の書き込み専用。読むには `thaw`）、warm 側を薄く保つ（追い出し）。強制は `settings.json` と `config/CLAUDE.md` にあり、掃き出しと解凍、および凍結候補の提示を担うのがこのスキル |
 | `cirrus` | 逐次的なリサーチノート。見つけた時点で Obsidian に残るので、コンテキストが死んでも再開できる |
 | `sunbreak` | **slash 専用**（レールではなくここに載せている）。過去のトランスクリプトを読み返し、Obsidian に報告書を書く（グローバルな学びとプロジェクト固有の学びを分けて）。適用は後から |
 | `python-setup` | サンドボックスで動く Python venv を用意する |
