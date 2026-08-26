@@ -1,6 +1,7 @@
 ---
 name: legend
 description: Revision pass that strips the AI-writing tells from a document — decorative bold, tables for non-tabular data, nested bullets, rules — against a measured density, plus the conventions for one someone executes (runbook, deploy procedure, handover): one paste per code block with its expected result, recovery in an appendix.
+disable-model-invocation: true
 ---
 
 # legend
@@ -10,6 +11,8 @@ The legend on a chart — the part that lets someone else act on it without the 
 ## When it runs
 
 After the draft exists, not before. Style rules carried through generation are paid for in accuracy; the same rules applied to finished text cost nothing, because the thinking is already done. Write the document first, then run this over it.
+
+Slash-only for the same reason. A model-invocable skill puts its description in every context window whether or not a document is being written, and could fire mid-task; this one costs nothing until `/legend` is typed. `monsoon` names it once a session has produced a handoff document, which is the trigger a manually-invoked skill otherwise never gets.
 
 Two layers. Layer 1 applies to any document written to a file. Layer 2 adds to it when the document is executed step by step.
 

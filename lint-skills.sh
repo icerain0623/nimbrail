@@ -6,7 +6,7 @@
 # script only enforces what is specific to THIS kit:
 #   1. every skills/<dir> has a SKILL.md whose frontmatter `name:` matches the dir
 #   2. frontmatter `description:` is present and non-empty
-#   3. rail skills are slash-only (`disable-model-invocation: true`)
+#   3. the slash-only set matches the flag (`disable-model-invocation: true`)
 #   4. shared-root convention: `~/Documents/claude-shared` appears in a skill
 #      body only on lines that state it is the default (the `<shared-root>`
 #      override convention — see global CLAUDE.md, Handoff files)
@@ -28,7 +28,9 @@
 
 set -u
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RAIL="petrichor overcast squall downpour monsoon sunbreak"
+# The slash-only set. The rail is most of it; `sunbreak` and `legend` join for
+# their own reasons — see the check below.
+SLASH_ONLY="petrichor overcast squall downpour monsoon sunbreak legend"
 FAIL=0
 
 err() { printf '  \342\234\227 %s\n' "$1"; FAIL=1; }
@@ -49,19 +51,19 @@ for d in "$REPO"/skills/*/; do
     || err "$s: description missing or empty"
 done
 
-echo "[3] rail skills are slash-only (both directions)"
-for s in $RAIL; do
+echo "[3] the slash-only set matches the flag (both directions)"
+for s in $SLASH_ONLY; do
   grep -q '^disable-model-invocation:[[:space:]]*true' "$REPO/skills/$s/SKILL.md" 2>/dev/null \
     || err "$s: missing 'disable-model-invocation: true'"
 done
-# reverse: any skill carrying the flag must be listed in RAIL — keeps the list
-# from silently diverging when a new slash-only skill is added
+# reverse: any skill carrying the flag must be listed above — keeps the set from
+# silently diverging when a new slash-only skill is added
 for d in "$REPO"/skills/*/; do
   s="$(basename "${d%/}")"
   if grep -q '^disable-model-invocation:[[:space:]]*true' "$d/SKILL.md" 2>/dev/null; then
-    case " $RAIL " in
+    case " $SLASH_ONLY " in
       *" $s "*) : ;;
-      *) err "$s carries disable-model-invocation:true but is not in this script's RAIL list" ;;
+      *) err "$s carries disable-model-invocation:true but is not in this script's SLASH_ONLY list" ;;
     esac
   fi
 done
