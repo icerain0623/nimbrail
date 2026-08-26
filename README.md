@@ -88,7 +88,7 @@ discover it one denied edit at a time.
 |---|---|
 | offered | the directories among `~/Developers`, `~/Documents/GitHub`, `~/src`, `~/code`, `~/repos`, `~/projects`, `~/ghq`, `~/work`, `~/dev` that hold at least one repository |
 | non-interactive | `./install.sh --code-root ~/src --code-root ~/work` (repeat the flag; it replaces the stored list rather than adding to it) |
-| stored in | `~/.claude/shared-dirs.json` as `codeRoots`, which is also where `almanac` reads them from |
+| stored in | `~/.claude/shared-dirs.json` as `codeRoots`, which is also where `synoptic` reads them from |
 | re-runs | inherited silently once set; a root that has since disappeared is reported, never dropped for you |
 
 It then asks **how much git it may do on its own.** Both answers are enforced by the
@@ -179,10 +179,9 @@ Authored skills come in two invocation modes. The **rail + `sunbreak`** skills (
 | `private-scan` | scan the outgoing commit range — not just the tip — for private identifiers (home-dir and vault paths, `~/Library`, emails, internal hosts) before a push or PR publishes them; read-only, proposes |
 | `forecast` | generate a pre-release scenario-test checklist from the spec (coverage-traced to 機能 IDs) |
 | `weathering` | spec-drift report: where the code and `SPEC.md` disagree (+ stale ja+en rendering); edits on confirmation |
-| `synoptic` | cross-project current position — reads each ledger's head + live git, ranks by what blocks you (your verification first), regenerates `status.md`, recommends one next action. `monsoon` routes one project; this one covers all of them |
+| `synoptic` | cross-project current position — reads each ledger's head + live git, ranks by what blocks you (your verification first), regenerates `status.md`, recommends one next action, and logs any ledger defect it trips over to that project's `TODO.md` so it stops being re-found every run. `monsoon` routes one project and runs this one once that project has nothing pending, which is what keeps `status.md` current |
 | `barometer` | kit-vs-environment drift: live `~/.claude` against this repo (copied `settings.json`, symlink integrity, orphans) + whether the harness surface the kit assumes still exists. Read-only, proposes. Run it after upgrading Claude Code |
-| `almanac` | weekly digest across active repos (週報 draft) + the *propose* side of the shared-dir lifecycle: flags stale files for freezing (the store is `permafrost`) |
-| `permafrost` | the claude-shared information-lifecycle mechanism — freeze completed/stale docs into a hard-invisible cold store (Read/grep-denied, write-only; `thaw` to read) and keep warm files thin (eviction). Enforcement lives in `settings.json` + `config/CLAUDE.md`; the skill runs the sweep/thaw. `almanac` proposes candidates here |
+| `permafrost` | the claude-shared information-lifecycle mechanism — freeze completed/stale docs into a hard-invisible cold store (Read/grep-denied, write-only; `thaw` to read) and keep warm files thin (eviction). Enforcement lives in `settings.json` + `config/CLAUDE.md`; the skill runs the sweep/thaw and proposes its own candidates |
 | `cirrus` | incremental research notebook — findings persist to Obsidian as found, resumable after context death |
 | `sunbreak` | **slash-only** (listed here, not on the rail) — review past transcripts; write an Obsidian report (global vs project-specific lessons), applied later |
 | `python-setup` | set up a sandbox-safe Python venv |

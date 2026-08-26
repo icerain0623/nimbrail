@@ -1,6 +1,6 @@
 ---
 name: monsoon
-description: Recurring workflow router — read .claude/project.md + tasks.md + findings.md + live git state, triage new work by size (small → express lane; substantial → back to petrichor; existing code with no spec → overcast), and propose the next step, delegating to check / release-note / forecast / weathering / downpour / clean-branches / permafrost / sunbreak.
+description: Recurring workflow router — read .claude/project.md + tasks.md + findings.md + live git state, triage new work by size (small → express lane; substantial → back to petrichor; existing code with no spec → overcast), and propose the next step, delegating to check / release-note / forecast / weathering / downpour / clean-branches / permafrost / synoptic / sunbreak.
 disable-model-invocation: true
 ---
 
@@ -25,7 +25,7 @@ The recurring router: it inspects state, picks the next step, and delegates to a
 7. A spec exists and substantial feature commits have landed since it last changed → `weathering`.
 8. A work unit shipped and left stale material in claude-shared → `permafrost`, which owns what counts as stale; gate the suggestion on a concrete signal rather than on the milestone alone.
 9. `findings.md` has unchecked lines above `## 対応済み` that no step above covers → surface them, most severe 分類 first, and ask which to take: each was logged because it was out of scope when found, so picking it up is the user's call. A project routing findings to its issue tracker instead: read its open issues in place of the file.
-10. Nothing pending here → offer `synoptic`: this router only sees the current repo, so a sibling stopped on your verification is invisible from it. `sunbreak` on explicit request.
+10. Nothing pending here → **run** `synoptic` (full, unnarrowed), don't offer it: this router only sees the current repo, so a sibling stopped on your verification is invisible from it, and this step is the moment that question actually arises. Running it is also what keeps `status.md` current — invoked on its own it fires a fraction as often as this router does. `sunbreak` on explicit request.
 
 ## Behavior
 - State which branch and which conditions it observed, which numbered step matched and which earlier steps it ruled out, and which skill it is delegating to — the routing is otherwise invisible until it fires.

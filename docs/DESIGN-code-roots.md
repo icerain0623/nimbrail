@@ -136,7 +136,7 @@
 }
 ```
 
-読み手: `install.sh`(読み書き)、`skills/almanac`(読みのみ)。フックと `lint-skills.sh` は `.default` しか見ないので影響を受けない。
+読み手: `install.sh`(読み書き)、`skills/synoptic`(読みのみ)。フックと `lint-skills.sh` は `.default` しか見ないので影響を受けない。
 
 ---
 

@@ -9,14 +9,16 @@ The synoptic chart — the whole region at one moment, on one sheet. `monsoon` r
 
 ## Scope
 
-Default is every project. An argument narrows it: one or more project names (`/synoptic <project> <project>`), or `.` for the current repo only. **A narrowed run reports in chat and leaves `status.md` untouched** — regenerating the whole file from a subset would silently drop the projects that were filtered out, and the file is the one place claiming to cover everything.
+Default is every project, and `monsoon` step 10 calls it that way. An argument narrows it to one or more project names (`/synoptic <project> <project>`). **A narrowed run reports in chat and leaves `status.md` untouched** — regenerating the whole file from a subset would silently drop the projects that were filtered out, and the file is the one place claiming to cover everything.
+
+There is no current-repo shorthand. One repo's next step is `monsoon`, which reads `.claude/project.md`, `findings.md`, tags and merged branches — everything below the ledger head that synoptic deliberately skips.
 
 ## Inputs
 
 Shared root per the global Handoff rule.
 
-- **Projects** = dirs directly under the shared root that have a matching repo — a dir of the same name holding a `.git` directly under one of the `codeRoots` in `~/.claude/shared-dirs.json` (`install.sh` writes that key per machine; hardcoding paths here would look in the author's directories on someone else's install and miss theirs). Missing, empty or unparseable → say so and treat every dir as unmatched rather than guessing. The repo check is what separates a project from a skill's output dir (`permafrost/`, `almanac/`, `sunbreak/`, `check-<project>/`).
-- Per project, the ledger head only: the first 15 lines of `tasks.md` (the `> **Resume**` block), and `TODO.md`'s unchecked lines above its `## 対応済み`. Anything deeper — the rest of a ledger, `feedback.md`, reports — is `almanac`'s job, and synoptic has to stay cheap enough to run on a whim.
+- **Projects** = dirs directly under the shared root that have a matching repo — a dir of the same name holding a `.git` directly under one of the `codeRoots` in `~/.claude/shared-dirs.json` (`install.sh` writes that key per machine; hardcoding paths here would look in the author's directories on someone else's install and miss theirs). Missing, empty or unparseable → say so and treat every dir as unmatched rather than guessing. The repo check is what separates a project from a skill's output dir (`permafrost/`, `sunbreak/`, `reports/`, `check-<project>/`).
+- Per project, the ledger head only: the first 15 lines of `tasks.md` (the `> **Resume**` block), and `TODO.md`'s unchecked lines above its `## 対応済み`. Nothing deeper — not the rest of a ledger, not `feedback.md`, not reports: synoptic has to stay cheap enough to run on a whim, and `monsoon` step 10 now runs it unattended.
 - Per project, live git: current branch, uncommitted count, unpushed commits.
 
 ## Counts
@@ -73,12 +75,16 @@ An empty result means the current branch is the integration base, so unmerged is
 
 ## 台帳なし
 - <project> — TODO.md の未対応 N 件（`tasks.md` なし）
+
+## 台帳の不具合
+- <project> — <規約から外れている点>（`TODO.md` に記録済み）
 ```
 
 In chat, give one recommendation with its reason; leave the rest to the file.
 
 ## Rules
-- Read-only apart from `status.md`. Push, PR, branch deletion and freezing belong to `monsoon` and `permafrost` — name the next step.
-- Report any project whose `tasks.md` lacks a `> **Resume**` block in its first 15 lines instead of silently showing nothing for it: the head-only read is the whole reason synoptic is cheap, so a missing Resume is a defect to fix, not a project to skip.
+- Read-only apart from `status.md` and the ledger-defect lines below. Push, PR, branch deletion and freezing belong to `monsoon` and `permafrost` — name the next step.
+- A ledger that breaks the conventions this read depends on is a **defect to report, never a project to silently show nothing for** — the head-only read is the whole reason synoptic is cheap. Three kinds: no `> **Resume**` block inside `tasks.md`'s first 15 lines; task rows the count regex misses (headings instead of `| T-nnn |` rows); a Resume dated before the project's last commit.
+- Each defect also gets one unchecked line in that project's `TODO.md`. `status.md` is regenerated whole every run, so a defect recorded only there is re-discovered from scratch every time and never closes. Skip a defect that already has an open line — a re-run must not grow the list.
 - Every line traces to a ledger head, a task-row count, or a git observation; editorializing is `sunbreak`'s territory.
 - A project with no ledger still appears (under 台帳なし); `state.json`-style side files do not exist and must not be reintroduced.

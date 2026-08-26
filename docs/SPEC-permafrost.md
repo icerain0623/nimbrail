@@ -26,7 +26,7 @@ claude-shared は「本編（コード／会話コンテキスト）を軽くす
 - **D7. 名前と位置**: 置き場＝ `permafrost`。sweep 手続きも同名（`/permafrost`）。位置は **`<shared-root>` 規約に従う**（グローバル CLAUDE.md の解決規則。per-project override root があればそれに従い、warm と cold を同じ resolved root 下に置く）：`<shared-root>/permafrost/<project>/…`。デフォルト root なら `~/Documents/claude-shared/permafrost/<project>/…`（default）。**per-project 作業ディレクトリの外**に置くのが物理分離の要（Serena の project onboarding や project-scoped grep の動線から外れる）。
 - **D8. 衝突回避**: 素性保存パス `permafrost/<project>/<YYYY-MM-DD>_<HHMMSS>_<元ファイル名>/…`（**日付＋時刻で一意化**）。凍結は `mv -n`（既存があれば上書きせず）＋事前の衝突チェックで、silent overwrite を構造的に防ぐ。
 - **D9. 人間の閲覧**: 人間はサンドボックス外。Obsidian/Finder で permafrost を常時読める。**盲目になるのは Claude だけ** → 「見失う」問題は起きない。
-- **D10. スコープ外**: `MEMORY.md`、クロスプロジェクト成果物（sunbreak/almanac 等、共有ルート直下）、repo ソース。既存 `archive/` は permafrost 方式へ移行（F-5）。
+- **D10. スコープ外**: `MEMORY.md`、クロスプロジェクト成果物（sunbreak/synoptic 等、共有ルート直下）、repo ソース。既存 `archive/` は permafrost 方式へ移行（F-5）。
 - **D11. サンドボックス非対称の明示**: permafrost は Bash サンドボックスで **read-deny かつ write-allow**。`mv` は宛先を*書く*だけで読まないため凍結は通り、`cat`/`grep`/`find` は届かない。実装者が blanket deny（read+write 両方）にすると凍結が壊れる —— **read だけを deny、write は allow** が必須。
 - **D12. 既知の限界（残余リスク）**: v1 の 軽め enforcement が **ハードに塞ぐのは Read ツール＋ Bash(`cat`/`grep`/`find`) のみ**。Grep/Glob ツール・MCP ファイル系・override 付き Bash は advisory（物理分離＋CLAUDE.md 姿勢）でのみ抑制。ここを保証に格上げしたくなったら F-9。
   - **override shared-root の穴（許容）**: enforcement の deny は `<default root>/permafrost/**` という**default ルート固定**（install.sh が settings.json のコピーへ選択されたルートを差し込むので、default を変えた分は追従する）で、`shared-dirs.json` の per-project override root（D7）配下の permafrost には Read-deny も sandbox read-deny も掛からない。**これは意図的に許容する**——本機構の狙いは「Claude が毎セッション stale 資料を*不用意に*吸い込むのを止める」ことで、そこは**どのルートでも効く CLAUDE.md 姿勢**（丸ごと grep しない・名指しで開く）が主担当。deny はあくまでデフォルトルート（現状すべての実データが在る場所）のバックストップ。金庫化が目的ではないので override 穴は塞がない。必要になったら安い順に：cold を常にデフォルトルートへ固定（穴自体が消える）／ `update-config` の override 手順に `Read(<root>/permafrost/**)` 付与を混ぜる。**F-9（フック完全封鎖）はこの目的に対しオーバーキルなので採らない。**
@@ -86,10 +86,10 @@ Claude がオンデマンドで読んでよい小集合のみ：
   - AC: 既存 `archive/` 配下が permafrost 方式（D7/D8 のパス）へ移される
 - **F-6 過剰凍結ガード** — v1 / S
   - AC: 凍結候補は「実装済み & 情報がコード or 既コミットの repo docs or issue に存在」を満たす物に限る（issue の存在は `gh issue list` で確認する）
-- **F-7 `almanac` からの候補提示連携** — v1 / S
-  - AC: `almanac` の週次スイープが、その週の窓に絞った凍結候補を理由つきで提示する
-  - AC: 提示までが `almanac`、確認後の凍結そのものは F-2 の手続きに渡る（凍結の実装を二重に持たない）
-  - AC: 除外リストは本節の warm セットを共有し、`almanac` 側はそれを拡張するだけ（人手で書いたガイド／レポート、共有ルート直下の `check-<project>/`）
+- **F-7 スイープ範囲と除外リストの拡張** — v1 / S（2026-08-26 改定: 旧「almanac からの候補提示連携」。almanac 廃止に伴い permafrost 本体へ移設）
+  - AC: sweep は共有ルート直下と各 `<project>/` の両階層を見る（`check-<project>/` はルート直下に在るため、per-project だけを見ると候補から漏れる）
+  - AC: 除外リストは本節の warm セットに、人手で書いたガイド／レポートを足したもの
+  - AC: 候補提示は F-2 の1リストに統合する（提示経路を二重に持たない）
 - **F-8 `gh` による issue 作成** — v1 / S
   - AC: 承認済みの下書きを `gh issue create` で作成し、作成された issue の URL を報告する
   - AC: 承認を得ていない下書きは作成しない（F-4 のゲートと同一）

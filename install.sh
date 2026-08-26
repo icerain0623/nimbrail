@@ -788,8 +788,8 @@ fi
 # codeRoots lives in the same file, and only this key is touched: default and
 # overrides are read at runtime by the hooks and skills, so losing them would
 # take the handoff directory with them. --no-settings persists nothing, having
-# asked nothing. A failed write is fatal rather than a warning — almanac resolves
-# its repositories from this key, so a silent miss leaves it permanently blank.
+# asked nothing. A failed write is fatal rather than a warning — synoptic resolves
+# its projects from this key, so a silent miss leaves it permanently blank.
 if [ "$NO_SETTINGS" = 0 ]; then
   code_roots_json='[]'
   if [ "${#CODE_ROOTS[@]}" -gt 0 ] && command -v jq >/dev/null 2>&1; then
