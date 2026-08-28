@@ -22,6 +22,10 @@ A category walked without a surface list produces a confident audit of nothing. 
 
 Detect the stack from the manifest and framework conventions — Next.js route files, `routes.rb`, FastAPI decorators — before falling back to grep; Serena's symbol tools beat grep for a definition.
 
+**One deployable at a time.** In a monorepo the matrix is per app or service: averaged over three deployables it says nothing, and a 該当なし earned in one is a false green over the others. Name the scope in the output.
+
+Count the entry points from two directions — the router or manifest, and the file tree. A framework exposes more than its route table lists (server actions, route handlers hit directly, generated CRUD, admin panels, background jobs), and an under-enumerated surface makes every 該当なし in the run wrong.
+
 - **Entry points**: HTTP routes and handlers, GraphQL resolvers, server actions, CLI commands, webhooks, queue consumers, scheduled jobs.
 - **Identity**: the authn mechanism, session and token storage, the role set, and where each entry point's authz decision is actually taken.
 - **Data**: schema and migrations, raw query sites, ORM escape hatches, and the ownership columns that make up the IDOR surface.
@@ -56,6 +60,8 @@ What does not count as 対策あり:
 - An unproven vulnerability is not a finding. With no reachable path from an entry point it stays 未確認 and never becomes a report line — the discipline that keeps the output from filling with generic input-validation noise.
 - Framework defaults are real controls: Django's ORM parameterises, Rails escapes ERB, React escapes children. Cite the default and check only where the code opts out of it.
 - Where a spec exists, the 権限マトリクス is the authority on what A01 should enforce; a boundary the code has and the spec does not is drift, and belongs to `weathering`.
+- A probe that could not run is 未確認 with the reason, never 該当なし — no network under the sandbox, no lockfile, the audit tool absent (`node-sandbox-setup` for the pnpm case). An unrun probe reads exactly like a clean one in the output unless it is labelled.
+- An app that calls an LLM has a surface this catalogue does not cover: prompt injection and tool-use abuse are OWASP's separate Top 10 for LLM Applications. Say so as 対象外 rather than folding them into A05, which would report coverage the run never had.
 
 ## Output
 
@@ -63,8 +69,8 @@ What does not count as 対策あり:
 
 ```markdown
 # Windshear — <project> <date>
-照合先: OWASP Top 10:2025 (catalogue.md)
-スタック: <detected> / 表面: <n> entry points, <n> raw query sites, ...
+対象: <app or service> / スタック: <detected> / 照合先: OWASP Top 10:2025
+表面: <n> entry points, <n> raw query sites, ... (列挙の出どころ)
 ## A01:2025 — Broken Access Control
 - [x] <control> — path/file.ts:34
 - [ ] 不在: <surface> を守るものが無い
@@ -74,7 +80,7 @@ What does not count as 対策あり:
 - 未確認: <調べきれなかった表面と理由>
 ```
 
-Every 不在 becomes one line in `TODO.md`. A confirmed reachable exploit is not coverage: it takes the global Reporting findings form, and one reachable without authentication is said in chat immediately rather than filed and left.
+Every 不在 becomes one line in `TODO.md`. On a re-run, read the previous run's lines there first: a 不在 that was closed and is open again is a regression, and is said as one rather than filed as a fresh finding. A confirmed reachable exploit is not coverage: it takes the global Reporting findings form, and one reachable without authentication is said in chat immediately rather than filed and left.
 
 ## Rules
 
