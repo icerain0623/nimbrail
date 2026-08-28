@@ -28,11 +28,15 @@ Detect the stack from the manifest and framework conventions — Next.js route f
 - **Egress**: outbound HTTP, redirect targets, any request whose URL is user-influenced.
 - **Sinks**: HTML and template output, `innerHTML` assignment, `eval`, shell exec, deserialization, path joins and file reads on user input.
 - **Config**: cookie flags, CORS, security headers, TLS termination, upload handling, `.env` tracking, CI and IaC secret handling.
-- **Dependencies**: the manifest at its lockfile version.
+- **Supply chain**: the manifest at its lockfile version, install scripts, CI workflows and their permissions, base images, anything downloaded and executed at build time.
+- **Observability**: where authentication outcomes, authorization denials, permission changes and admin actions are recorded — and whether anything alerts on them.
+- **Failure paths**: the branch each authz, validation and signature check takes on exception, swallowed exceptions, and what happens when an external call times out.
 
 ## B. Three verdicts per category, never two
 
-For each of A01–A10:
+`catalogue.md` holds the pinned OWASP edition and, per category, the surface it lands on, the probe that decides the cell, and what counts as enforced. Read it before filling anything in — the numbering is not stable across editions, so recalling the list instead is how the matrix quietly changes shape between runs.
+
+For each category in it:
 
 - 対策あり — with the `file:line` where the control is *enforced*.
 - 不在 — the surface exists and nothing guards it.
@@ -59,8 +63,9 @@ What does not count as 対策あり:
 
 ```markdown
 # Windshear — <project> <date>
+照合先: OWASP Top 10:2025 (catalogue.md)
 スタック: <detected> / 表面: <n> entry points, <n> raw query sites, ...
-## A01 アクセス制御
+## A01:2025 — Broken Access Control
 - [x] <control> — path/file.ts:34
 - [ ] 不在: <surface> を守るものが無い
 - 該当なし: <理由と探し方>
