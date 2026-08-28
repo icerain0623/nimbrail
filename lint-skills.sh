@@ -115,7 +115,7 @@ in-progress min-release-age state-dir store-dir unrs-resolver update-config"
 # stopped naming them. They stay listed: this list exists so the check does not
 # re-litigate a name that resolves somewhere unobservable from here.
 KNOWN_SLASH="batch claude-api code-review config debug doctor loop reload
-run run-skill-generator status tmp verify"
+run run-skill-generator security-review status tmp verify"
 is_skill() { case " $SKILLS " in *" $1 "*) return 0 ;; esac; return 1; }
 resolves() {
   is_skill "$1" && return 0
