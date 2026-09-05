@@ -50,7 +50,7 @@ If `00-overview.md` exists, resume from its header (phase, open topics) — exce
 
 ## Phase 1+ (per round)
 
-1. List open topics (DB, auth, API, errors, deploy, …) and re-read `TODO.md`.
+1. List open topics (DB, auth, API, errors, deploy, …) and re-read `TODO.md`. A round is the frontier — every question whose prerequisites are already settled, asked together; a question that depends on an answer still open this round waits for the next one, so nothing is answered against a guess.
 2. Write `NN-topic.md`, one block per question, plus a free-form `## Notes` zone at the bottom:
    ```markdown
    ## <decision point>
