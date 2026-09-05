@@ -100,7 +100,7 @@ It then asks **how much git it may do on its own.** Both answers are enforced by
 | | `ask` | confirm every commit |
 | `--push` | `ask` *(default)* | confirm every `git push` / `gh pr create` |
 | | `never` | refuse them outright; you push by hand |
-| | `auto` | push without asking — **but only in a repo that has a linter or CI** (`.github/workflows`, eslint, biome, golangci, ruff, rubocop, a `lint` script, `lint.sh`). Nothing lands unreviewed where nothing checks it. Force pushes, ref deletions and pushes on `main` still ask. |
+| | `auto` | push and open PRs without asking. Force pushes, ref deletions and pushes on `main` still ask, and so does `gh pr merge` under every policy — a feature branch lands nothing, so the line sits at the merge, not at the push. |
 
 ### Taking the rules without the machine
 

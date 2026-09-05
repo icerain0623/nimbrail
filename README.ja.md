@@ -90,7 +90,7 @@ cd nimbrail
 | | `ask` | 毎回のコミットを確認する |
 | `--push` | `ask` *(既定)* | `git push` / `gh pr create` を毎回確認する |
 | | `never` | 一切拒否する。push は自分の手でやる |
-| | `auto` | 確認せず push する — **ただし linter か CI がある repo に限る**（`.github/workflows`、eslint、biome、golangci、ruff、rubocop、`lint` スクリプト、`lint.sh` のいずれか）。何も検査していない場所に、レビューを経ないものを落とさないため。force push・ref 削除・`main` への push は auto でも確認する |
+| | `auto` | 確認せず push し、PR を開く。force push・ref 削除・`main` への push は auto でも確認し、`gh pr merge` はどの方針でも確認する — feature ブランチへの push は何も着地させないので、線は push ではなくマージに引く |
 
 ### 規則だけ取り、このマシンの設定は取らない
 
