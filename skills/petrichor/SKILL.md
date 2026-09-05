@@ -45,7 +45,7 @@ If `00-overview.md` exists, resume from its header (phase, open topics) — exce
 
 ## Phase 0
 
-- Switch out when the project is restatable in one paragraph and only independent details remain: present that summary, ask to proceed, wait for GO. **Hard stop: after 8–10 questions you MUST propose the switch.**
+- Switch out when the project is restatable in one paragraph and only independent details remain: present that summary, ask to proceed, wait for GO. After 8–10 questions, propose the switch even if details remain — the rest belongs in batched files.
 - On GO, write `00-overview.md` with the Phase 0 conclusions, then go to Phase 1.
 
 ## Phase 1+ (per round)

@@ -29,12 +29,12 @@ Then always invoke `.venv/bin/python` / `.venv/bin/pip`.
 - pip failing with `SSLCertVerificationError` is the sandbox verifying certs, not a broken index or a missing CA — re-run unsandboxed rather than passing `--trusted-host`.
 
 ## Pinned version (pyenv)
-`~/.pyenv` is sandbox-writable:
+`~/.pyenv` is sandbox-writable. Take `<version>` from the project's pin; absent one, the current stable release:
 
 ```bash
-pyenv install 3.12.4   # if missing
-pyenv local 3.12.4     # writes .python-version
-python3 -m venv .venv  # then the venv flow above
+pyenv install <version>   # if missing
+pyenv local <version>     # writes .python-version
+python3 -m venv .venv     # then the venv flow above
 ```
 
 ## Notes

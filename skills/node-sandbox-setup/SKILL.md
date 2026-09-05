@@ -5,7 +5,7 @@ description: Unblock pnpm + mise for a Node project under the sandbox. Use when 
 
 # node-sandbox-setup
 
-The install "dance" is a predictable multi-failure sequence; apply the fix per symptom — network behaviour here is inconsistent, and even allowlisted hosts can be unreachable, so the mechanism is not worth theorizing about. Verified on pnpm 11 + mise.
+The install "dance" is a predictable multi-failure sequence; apply the fix per symptom — network behaviour here is inconsistent, and even allowlisted hosts can be unreachable, so the mechanism is not worth theorizing about. Verified on pnpm 11 + mise (last checked 2026-09-05, pnpm 11.25).
 
 Per project, `pnpm-workspace.yaml` carries `minimumReleaseAge` + `trustPolicy: no-downgrade` (`~/.npmrc` covers npm) — the policy the first three errors below are the fallout of.
 
