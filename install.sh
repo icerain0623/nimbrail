@@ -31,8 +31,8 @@
 #                        offer the directories that look like one, else ask.
 #   --commit auto|ask    commit at checkpoints without asking, or confirm each one.
 #   --push ask|never|auto  what `git push` / `gh pr create` may do. auto pushes
-#                        without asking, but only in a repo that has a linter or CI
-#                        — nothing should land unreviewed where nothing checks it.
+#                        without asking except onto main/master, with --force, or
+#                        deleting a ref. `gh pr merge` asks under every policy.
 #   --no-settings        install the rules and skills, not the enforcement: skip
 #                        settings.json and the hooks. This is the one clean cut —
 #                        CLAUDE.md and skills name each other, so neither half
@@ -464,7 +464,8 @@ if [ -z "$KIT_COMMIT$KIT_PUSH" ] && [ "$ASSUME_YES" = 0 ] && [ -t 0 ] && [ "$NO_
   say "  Push / PR —"                                    "  push / PR —"
   say "    a    ask every time"                          "    a    毎回確認する"
   say "    n    never"                                   "    n    行わない"
-  say "    auto only where a linter or CI exists"        "    auto linter か CI がある repo でのみ自動"
+  say "    auto push and open PRs unprompted; main, force and merge still ask" \
+      "    auto push と PR 作成は確認なし。main・force・マージは確認"
   push_ans=""
   read -r -p "$(phrase "  Choose [a/n/auto] " "  選択 [a/n/auto] ")" push_ans || true
   case "$push_ans" in

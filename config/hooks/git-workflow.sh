@@ -2,6 +2,7 @@
 # Enforce the mechanically-checkable git-workflow rules:
 #   - never delete main/master (local or remote);
 #   - confirm before merge/rebase into, or commit onto, main/master (branch-first);
+#   - confirm `gh pr merge` whatever the policy — automation stops at PR creation;
 #   - apply the commit / push policy chosen at install time (see below).
 # The Write|Edit half of branch-first (nudge before editing on main) is branch-guard.sh.
 
@@ -44,28 +45,6 @@ if echo "$cmd" | grep -qE 'git[[:space:]]+push[[:space:]]+.*(--delete[[:space:]]
   deny "リモートの main/master ブランチの削除は禁止です。"
 fi
 
-# Is there anything in this repo that would check the code a push carries? Used
-# only by push_policy=auto: unreviewed code may land automatically where a linter
-# or CI will catch it, and needs a human anywhere else.
-# Test seam (unset in production): CLAUDE_HOOK_HAS_CHECKS.
-has_checks() {
-  if [ -n "${CLAUDE_HOOK_HAS_CHECKS+x}" ]; then [ "$CLAUDE_HOOK_HAS_CHECKS" = 1 ]; return; fi
-  local top f
-  top="${CLAUDE_HOOK_REPO_TOP:-$(git rev-parse --show-toplevel 2>/dev/null)}"
-  [ -n "$top" ] || return 1
-  ls "$top"/.github/workflows/*.yml "$top"/.github/workflows/*.yaml >/dev/null 2>&1 && return 0
-  for f in .gitlab-ci.yml .circleci/config.yml \
-           eslint.config.js eslint.config.mjs eslint.config.cjs eslint.config.ts \
-           .eslintrc .eslintrc.js .eslintrc.json .eslintrc.yml \
-           biome.json biome.jsonc .golangci.yml .golangci.yaml \
-           ruff.toml .ruff.toml .rubocop.yml lint.sh; do
-    [ -e "$top/$f" ] && return 0
-  done
-  grep -q '"lint"[[:space:]]*:' "$top/package.json" 2>/dev/null && return 0
-  grep -qE '^\[tool\.(ruff|flake8|black|mypy)' "$top/pyproject.toml" 2>/dev/null && return 0
-  return 1
-}
-
 # Push / PR policy. After the main/master deletion denies above, so those still win.
 if echo "$cmd" | grep -qE '(^|[[:space:];&|(])[[:space:]]*(git[[:space:]]+push|gh[[:space:]]+pr[[:space:]]+create)([[:space:]]|$)'; then
   branch="${CLAUDE_HOOK_BRANCH:-$(git branch --show-current 2>/dev/null)}"
@@ -73,20 +52,27 @@ if echo "$cmd" | grep -qE '(^|[[:space:];&|(])[[:space:]]*(git[[:space:]]+push|g
     never)
       deny "push / PR は無効です（CLAUDE_KIT_PUSH=never）。人が手で push してください。変更したい場合は install.sh --push ask|auto、またはプロジェクトの .claude/settings.local.json で上書きできます。" ;;
     auto)
-      # Rewriting history, deleting a ref, or aiming at main is never automatic —
-      # the policy buys away routine confirmation, not the irreversible cases.
+      # A push to a feature branch lands nothing: the PR is where it gets reviewed.
+      # So the policy guards only what bypasses that — rewriting history, deleting
+      # a ref, or aiming at main. (Until 2026-09-05 it also asked in a repo with no
+      # linter or CI; that gate protected the branch, not main, and was dropped.)
       if echo "$cmd" | grep -qE '(--force([[:space:]]|=|$)|--force-with-lease|[[:space:]]-f([[:space:]]|$)|--delete|--mirror)'; then
         ask "force / delete を伴う push は auto の対象外です。内容を確認してください。"
       elif [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
         ask "現在のブランチが '$branch' です。main/master への push は auto の対象外です。"
-      elif has_checks; then
-        allow "CLAUDE_KIT_PUSH=auto、かつこの repo に linter / CI があります。"
       else
-        ask "CLAUDE_KIT_PUSH=auto ですが、この repo に linter も CI も見つかりません（.github/workflows・eslint・biome・golangci・ruff・rubocop・package.json の lint スクリプト・lint.sh のいずれも無し）。何も検査しない場所へ自動 push はしません。"
+        allow "CLAUDE_KIT_PUSH=auto: main/master 以外への push / PR 作成は自動です。"
       fi ;;
     *)
       ask "push / PR は確認が必要です（CLAUDE_KIT_PUSH=ask）。" ;;
   esac
+fi
+
+# `gh pr merge` lands the PR on its base — main, in this kit's branch model — and
+# does so from any branch, so the current-branch check below cannot see it. PR
+# creation is where the push policy stops; merging always asks, whatever the policy.
+if echo "$cmd" | grep -qE '(^|[[:space:];&|(])[[:space:]]*gh[[:space:]]+pr[[:space:]]+merge([[:space:]]|$)'; then
+  ask "gh pr merge は PR を base ブランチ（通常 main）へ取り込みます。自動の範囲は PR 作成までなので、マージは確認が必要です。"
 fi
 
 # Merge / rebase into main/master → confirm.

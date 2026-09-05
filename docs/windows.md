@@ -93,7 +93,7 @@ substitutes these; nothing else in the file is machine-specific.
 | `env.SSL_CERT_FILE`, `env.CARGO_HTTP_CAINFO` | `/etc/ssl/cert.pem` | your CA bundle, or delete both keys and let the tools use the system store |
 | `env.EDITOR`, `env.VISUAL` | `nano` | `notepad`, which blocks until the window closes, or `code --wait`. Git for Windows does ship `nano.exe`, but under `usr\bin`, which only its third PATH option adds — and it is an MSYS binary, which this route otherwise avoids |
 | `env.CLAUDE_KIT_COMMIT` | `auto` | `ask` to confirm every commit |
-| `env.CLAUDE_KIT_PUSH` | `ask` | `never`, or `auto` to push unprompted where a linter or CI exists |
+| `env.CLAUDE_KIT_PUSH` | `ask` | `never`, or `auto` to push and open PRs unprompted (main, force and `gh pr merge` still ask) |
 | `sandbox.filesystem.allowWrite` | generated from the code roots `install.sh` asks about | wherever you keep repos — pass `--code-root` to skip the question |
 | the five `~/Documents/claude-shared` paths | | where handoff docs should live, if not that |
 
