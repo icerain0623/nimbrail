@@ -9,7 +9,7 @@ The chat is disposable; the note is the artifact.
 
 ## The note
 
-`<default shared root>/research/<topic-slug>.md` — research usually spans projects, so it lives under the default shared root; a project-exclusive investigation may use `<shared>/<project>/research/` instead (say which in the header).
+`<default shared root>/research/<topic-slug>.md` — research usually spans projects, so it lives under the default shared root; a project-exclusive investigation may use `<shared>/<project>/research/` instead (say which in the header — the location, not why).
 
 ```markdown
 # <topic> — research note

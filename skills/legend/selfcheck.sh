@@ -141,8 +141,9 @@ if [ "$outline" = 1 ]; then
 fi
 
 found=0
-show() {  # indent a captured multi-line result
-  echo "  ${1//$'\n'/$'\n'  }"
+show() {  # indent a captured multi-line result. sed, not ${1//…}: bash's
+  # pattern substitution goes quadratic on a result with hundreds of lines.
+  printf '%s\n' "$1" | sed 's/^/  /'
 }
 
 # Prose only: fenced code is excluded, and so is the label bold that opens a
@@ -255,6 +256,26 @@ if printf '%s\n' "$jprose" | LC_ALL=C awk '{ x = $0; j += gsub(/[\343-\351]/, ""
     if [ "$rc" -ne 0 ]; then show "perl が失敗 (exit $rc)"; found=1
     elif [ -n "$out" ]; then show "$out"; found=1
     else show none; fi
+  fi
+
+  # Instructions recorded as content: a sentence justified by what Claude was
+  # told, or a parenthetical naming the user as the source of a decision.
+  # "ユーザーが…" as a product's user is a spec, and a decision table's source
+  # column ("| ユーザー指摘 |") has no parenthesis, so neither matches.
+  echo "指示の記録（Claude が言われたことは本文に要らない）"
+  if out="$(grep -nE 'CLAUDE\.md.{0,6}(により|に従|の指示)|の指示(により|で|に従)|と言われた|と言われて[^い]|[（(]([0-9]{4}-[0-9]{2}-[0-9]{2} ?)?ユーザー(の)?(要望|指摘|判断|指示|希望)' <<<"$jprose")"; then
+    show "$out"; found=1
+  else
+    show none
+  fi
+
+  # Shop links in a document that says the item was bought.
+  echo "購入済みの通販リンク（型番と用途だけ残す）"
+  if grep -qE '購入済み|購入した|買った|入手済み|注文済み' <<<"$jprose" &&
+     out="$(grep -noE 'https?://[^ )]*(//(www\.)?amazon\.|kakaku\.com|tsukumo|yodobashi|biccamera|rakuten\.co\.jp|sofmap|pc-koubou|dospara|mercari|/shop\.|shop\.[a-z]|store\.)[^ )]*' <<<"$jprose")"; then
+    show "$out"; found=1
+  else
+    show none
   fi
 
   jout="$(read_blocks ja)"; rc=$?

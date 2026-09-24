@@ -59,6 +59,8 @@ Structure first; it is where a Claude-written document is hardest to read, and f
 - Each appended section is folded into the place the reader needs it, and what it superseded goes — all of them, since a half-folded document keeps two orders. A research notebook's log is the exception: it is the record, so its conclusion is what gets reordered.
 - A section the reader only needs when something goes wrong, or only to understand why, moves to an appendix.
 - A cross-reference the reader must follow to understand the passage in front of them means the two belong together.
+- Instructions the writer was given are not content. A sentence that exists because Claude was told to do or avoid something (「CLAUDE.md により…使わない」, 「（ユーザー要望）」) goes; the instruction lives in CLAUDE.md or memory. A decision the reader must know stays, without its provenance.
+- Once an item is bought, its shop links and price comparisons go; the model and what it is for stay.
 
 Then:
 
