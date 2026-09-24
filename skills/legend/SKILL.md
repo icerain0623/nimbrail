@@ -1,6 +1,6 @@
 ---
 name: legend
-description: Revision pass that strips the AI-writing tells from a document — decorative bold, tables for non-tabular data, nested bullets, rules — against a measured density, plus the conventions for one someone executes (runbook, deploy procedure, handover): one paste per code block with its expected result, recovery in an appendix.
+description: Revision pass over a finished document — strips the AI-writing tells (decorative bold, tables for non-tabular data, nested bullets, rules) against a measured density, then reads it for structure and, in Japanese prose, sentence load, changing only what buys the reader something; plus the conventions for one someone executes (runbook, deploy procedure, handover): one paste per code block with its expected result, recovery in an appendix.
 disable-model-invocation: true
 ---
 
@@ -14,9 +14,19 @@ After the draft exists, not before. Style rules carried through generation are p
 
 Slash-only for the same reason. A model-invocable skill puts its description in every context window whether or not a document is being written, and could fire mid-task; this one costs nothing until `/legend` is typed. `monsoon` names it once a session has produced a handoff document, which is the trigger a manually-invoked skill otherwise never gets.
 
-Two layers. Layer 1 applies to any document written to a file. Layer 2 adds to it when the document is executed step by step.
+Two layers with a reading pass between them. Layer 1 and the reading pass apply to any document written to a file; Layer 2 adds to them when the document is executed step by step.
 
 Chat replies are out of scope. By the time this could be invoked the reply is already written, so `config/CLAUDE.md`'s Tone owns that surface and this skill must not restate it.
+
+## Revise, don't sweep
+
+Layer 1 and Layer 2 are counts and conventions, meant to reach every instance. The reading pass and `readability.md` are judgement, and judgement applied everywhere becomes the next tell: in coji/natural-japanese's blind test, a revision that converted every heading and every list beat the original on reader value and lost on reading as human-written. For those:
+
+- Default is keep. Change a passage only when you can name what the reader gains; when changes reach a third of the document, tell the user why.
+- After revising, count each kind of change. One that reached every instance of its kind is a sweep — restore the ones that bought nothing.
+- Add nothing the draft did not say: no stance on a point it left open, no 未定 promoted to a decision in a heading. The draft may be the only record of what was actually known.
+- Raw traces — quoted speech, arrows and shorthand, uneven sections — stay unless they block reading.
+- A flagged spot left as it is gets a one-word reason (固有名詞, 技術用語, 文脈上必要) in the report to the user. An unexplained keep is a skipped check.
 
 ## Layer 1 — markup, any document
 
@@ -25,100 +35,52 @@ Every rule here is settled by a count rather than by taste. That is the whole re
 - **Bold** — ceiling 1.5 per 1000 characters of prose, the number `lint-skills.sh` already enforces against this repo's own skill bodies. It marks a branch where only one arm can be taken, or a warning whose absence causes damage. Not a word being emphasised mid-sentence, and not a label that repeats.
 - **Tables** — only for genuinely two-axis data, where the reader crosses a row against a column. A list of items carrying one attribute each is a list. Tone caps tables at "a minimum"; this is what the minimum means in a file.
 - **Bullets** — one level. A nested bullet means the parent should have been a heading, or the whole thing a sentence.
-- **Headings** — plain text. No emoji, no decorative punctuation.
+- **Headings** — plain text, no decorative punctuation.
+- **Emoji and symbol markers** (⚠ ✅ ❌ ★) — none, in headings or body. A warning is said in words where it applies, bold if missing it causes damage.
 - **Horizontal rules** — none. Headings already separate sections, and a rule between them is a second separator doing the same job.
 - Personal paths, hostnames and usernames are placeholders.
 
-Japanese prose carries three more, taken from coji/natural-japanese (MIT), whose human-vs-AI corpus set the numbers; the checks there that need a morphological analyser stay out.
+Japanese prose carries five more. The first three are taken from coji/natural-japanese (MIT), whose human-vs-AI corpus set the numbers; the checks there that need a morphological analyser stay out.
 
 - **Stock phrases** — the closing tics (と言えるでしょう, まとめると, いかがでしたか), the empty intensifiers (非常に重要, 鍵となる), the hollow lead-ins (見ていきましょう), the translationese (することができる). Each hit is deleted or replaced by the fact it stood in for. The list lives in `selfcheck.sh`.
 - **Contrast** — 「〜ではなく」「〜だけでなく」 at most twice per document. From the third, correcting a misreading has become a template.
 - **Sentence rhythm** — over five or more sentences, the coefficient of variation of sentence length stays at or above 0.25. Human prose in that corpus sits near 0.7 and generated prose near 0.4; below the floor every sentence is the same length, and the reader hears it.
+- **Dashes** — 「—」 joining clauses is carried over from English: measured 2026-09-25, Claude's Japanese documents ran about 275 per 100,000 characters against 1.5 in human prose. From the third in a document, each becomes 。, 、 or a connective; a heading's subtitle dash may stay.
+- **Verbal tics** — Claude's habit words (効く, 黙って, 同じ形, 入口, 束ねる), each near zero in the same human prose, listed once a family reaches three in a document. Each hit that stands in for a specific effect ("the reorganization 効いた") is replaced by that effect; one that names a real mechanism (a filter 効く) stays. The list lives in `selfcheck.sh`.
+
+## Reading pass — any document
+
+Judgement, run once the markup noise is gone.
+
+Start from the skeleton: only the headings and each paragraph's first sentence (`selfcheck.sh --outline` prints them). The argument should hold from those alone.
+
+Structure first; it is where a Claude-written document is hardest to read, and fixing sentences inside a bad order does not help. Such a document grows in the order things were learned — dated 追記 sections, research rounds, 0.5 and 5.5 inserted between steps — and the reader needs the order of their own question:
+
+- Each appended section is folded into the place the reader needs it, and what it superseded goes — all of them, since a half-folded document keeps two orders. A research notebook's log is the exception: it is the record, so its conclusion is what gets reordered.
+- A section the reader only needs when something goes wrong, or only to understand why, moves to an appendix.
+- A cross-reference the reader must follow to understand the passage in front of them means the two belong together.
+- Instructions the writer was given are not content. A sentence that exists because Claude was told to do or avoid something (「CLAUDE.md により…使わない」, 「（ユーザー要望）」) goes; the instruction lives in CLAUDE.md or memory. A decision the reader must know stays, without its provenance.
+- Once an item is bought, its shop links and price comparisons go; the model and what it is for stay.
+- Steps someone runs and the findings behind them are two documents. Propose the split — which part goes where, and which copy of a duplicated procedure is the source — rather than doing it unasked; a procedure kept in two places drifts.
+
+Then:
+
+- The conclusion is in the title and the first sentence. Background that delays it moves below or goes.
+- A heading carries its section's conclusion where finding the content would cost the reader. Short or obvious sections keep their label — converting every heading is the sweep above.
+- A term gets what it does before its name, at first use.
+- The same template three times running — definition sentences, section internals, sentence openers — is varied or merged.
+- Certainty is labelled (推定, 未確認) rather than dissolved into hedged endings, and opinion is marked as the writer's.
+- An analysis ends on what follows from it, not a restated summary. A findings report keeps Tone's form instead.
+- In an explanatory document, a setup and reveal staged across sections is a second story the reader must track. Keep at most one.
+
+Then, for Japanese prose, sentence level: `readability.md` beside this file, applied front to back. `selfcheck.sh` points at the four a reader skims past in a long document — long sentences, kanji runs, 「の」 chains, stock double negatives. They are regex stand-ins for natural-japanese's morphological checks, without its guards, so expect false hits: each is a line to read, not a fix.
 
 ## Layer 2 — a document someone executes
 
-Runbook, deploy procedure, work instruction, handover. The reader has their hands on a keyboard, often under time pressure, sometimes on a machine that is not theirs; every rule below follows from that. A findings report is a different shape and Tone's "Reporting findings" owns it — do not blend the two.
-
-### Order
-
-- The body is executable top to bottom. Never send the reader backwards.
-- Recovery — diagnosis, rollback — is an appendix at the end, never interleaved with the happy path.
-- No section that only points elsewhere. When a section's whole content is "performed in §X", move that one line to the caller and delete the section.
-- Section numbers are consecutive. Delete a section and renumber, then fix every cross-reference.
-- One file. What is needed under pressure must not live in a second document — the machine the work happens on may be one you cannot carry files to.
-- No checkboxes; plain `-` bullets. `tasks.md` is the exception, because it holds state.
-
-### What not to write
-
-- Background, history, why the decision was reached. Keep the one sentence that would change what the operator does; drop the rest.
-- Scope disclaimers — "this document does not cover…", "…is handled separately".
-- Comparisons with other environments. Write this environment's values and nothing else.
-- The same warning twice. It goes once, at the point of use.
-
-### Command blocks
-
-The fixed shape is **block → expected result → what to do when it differs**.
-
-- One block = one paste = one judgement. If the operator has to decide something mid-way, split the block.
-- Every block is followed by its expected result. A command that prints nothing says so — silence is otherwise indistinguishable from a command that never ran.
-- A destructive command gets its own block, one line. Being impossible to paste as a batch is the safety device.
-- Chain `cd` with `&&`, never `;` — under `;` the rest of the line runs in the wrong directory.
-- A block containing a placeholder says to substitute before pasting.
-- When the work spans machines or shells, label every block with where it runs.
-- Environment-dependent values are defined up front, followed immediately by a block that verifies they took — which also catches a half-pasted definition.
-
-Five shapes, in the form they appear in the document:
-
-出力のあるコマンド。
-
-```bash
-systemctl is-active myapp
-```
-
-期待結果: `active` と表示される。`inactive` の場合は付録 A-1 へ。
-
-出力の無いコマンド。何も出ないことを明記する。
-
-```bash
-install -d -m 755 "$DEPLOY_DIR/releases"
-```
-
-期待結果: 何も出力されない。`Permission denied` が出た場合は実行ユーザーを確認する。
-
-破壊的操作。1行だけの独立ブロックにする。
-
-```bash
-rm -rf "$DEPLOY_DIR/releases/$OLD_RELEASE"
-```
-
-期待結果: 何も出力されない。貼る前に `$OLD_RELEASE` が空でないことを目視する。
-
-プレースホルダと実行場所。
-
-【踏み台サーバー】`<...>` を置き換えてから貼る。
-
-```bash
-ssh <ユーザー名>@<ホスト名>
-```
-
-期待結果: プロンプトが `<ホスト名>` のものに変わる。
-
-変数定義と、その直後の確認。
-
-```bash
-DEPLOY_DIR=/srv/myapp && RELEASE=2026-08-26
-```
-
-```bash
-echo "$DEPLOY_DIR" && echo "$RELEASE"
-```
-
-期待結果: 上で定義した2行がそのまま出る。空行が出たら貼り付けが途中で切れているので、定義から貼り直す。
-
-Fine-grained sequential steps get `####` headings, so the operator can name which one they are on.
+Runbook, deploy procedure, work instruction, handover: when the document is executed step by step, read `runbook.md` beside this file and apply it on top of the above. A findings report is a different shape and Tone's "Reporting findings" owns it — do not blend the two.
 
 ## Finish
 
-`bash <skill-dir>/selfcheck.sh [--exec] <file>` — Layer 1 by default, `--exec` adds Layer 2. It reports the bold density against the ceiling, every table and nested bullet and horizontal rule for you to judge, the three Japanese counts when the prose is Japanese, and under `--exec` the code blocks with no expected result plus every `§` reference to resolve by eye.
+`bash <skill-dir>/selfcheck.sh [--exec | --outline] <file>` — Layer 1 by default, `--exec` adds Layer 2. It reports the bold density against the ceiling, every table, nested bullet, horizontal rule, emoji or symbol marker and appended-section heading for you to judge, the Japanese counts and the reading-load pointers when the prose is Japanese, and under `--exec` the code blocks with no expected result plus every `§` reference to resolve by eye.
 
 It finds omissions, not bad judgement. A clean run is not a review, and deleting bold to silence the density is not the point.
