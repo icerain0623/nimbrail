@@ -40,11 +40,12 @@ Every rule here is settled by a count rather than by taste. That is the whole re
 - **Horizontal rules** — none. Headings already separate sections, and a rule between them is a second separator doing the same job.
 - Personal paths, hostnames and usernames are placeholders.
 
-Japanese prose carries three more, taken from coji/natural-japanese (MIT), whose human-vs-AI corpus set the numbers; the checks there that need a morphological analyser stay out.
+Japanese prose carries four more. The first three are taken from coji/natural-japanese (MIT), whose human-vs-AI corpus set the numbers; the checks there that need a morphological analyser stay out.
 
 - **Stock phrases** — the closing tics (と言えるでしょう, まとめると, いかがでしたか), the empty intensifiers (非常に重要, 鍵となる), the hollow lead-ins (見ていきましょう), the translationese (することができる). Each hit is deleted or replaced by the fact it stood in for. The list lives in `selfcheck.sh`.
 - **Contrast** — 「〜ではなく」「〜だけでなく」 at most twice per document. From the third, correcting a misreading has become a template.
 - **Sentence rhythm** — over five or more sentences, the coefficient of variation of sentence length stays at or above 0.25. Human prose in that corpus sits near 0.7 and generated prose near 0.4; below the floor every sentence is the same length, and the reader hears it.
+- **Verbal tics** — Claude's habit words (効く, 刺さる, 噛み合う, 罠を踏む), listed once a family reaches three in a document. Each hit that stands in for a specific effect ("the reorganization 効いた") is replaced by that effect; one that names a real mechanism (a filter 効く) stays. The list lives in `selfcheck.sh`.
 
 ## Reading pass — any document
 
@@ -76,6 +77,6 @@ Runbook, deploy procedure, work instruction, handover: when the document is exec
 
 ## Finish
 
-`bash <skill-dir>/selfcheck.sh [--exec | --outline] <file>` — Layer 1 by default, `--exec` adds Layer 2. It reports the bold density against the ceiling, every table, nested bullet, horizontal rule, emoji or symbol marker and appended-section heading for you to judge, the three Japanese counts and the reading-load pointers when the prose is Japanese, and under `--exec` the code blocks with no expected result plus every `§` reference to resolve by eye.
+`bash <skill-dir>/selfcheck.sh [--exec | --outline] <file>` — Layer 1 by default, `--exec` adds Layer 2. It reports the bold density against the ceiling, every table, nested bullet, horizontal rule, emoji or symbol marker and appended-section heading for you to judge, the Japanese counts and the reading-load pointers when the prose is Japanese, and under `--exec` the code blocks with no expected result plus every `§` reference to resolve by eye.
 
 It finds omissions, not bad judgement. A clean run is not a review, and deleting bold to silence the density is not the point.

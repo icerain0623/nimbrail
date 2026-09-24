@@ -221,6 +221,26 @@ if printf '%s\n' "$jprose" | LC_ALL=C awk '{ x = $0; j += gsub(/[\343-\351]/, ""
   n="$(printf '%s' "$hits" | grep -c .)"
   if [ "$n" -ge 3 ]; then show "${n} 回"$'\n'"$hits"; found=1; else show "${n} 回"; fi
 
+  # Claude's habit words. Each is also a real word (a filter 効く), so nothing
+  # is flagged below three per family, and every hit is a line to judge. 効 is
+  # matched only in its verb forms (効果 / 効率 / 有効 stay out); 肝 and 筋 only
+  # in their figurative frames.
+  echo "口癖（3 回以上の族を並べる。具体的な効果の代わりなら、その効果を書く）"
+  if ! command -v perl >/dev/null; then
+    show "perl が無いので未実行"; found=1
+  else
+    out="$(printf '%s\n' "$jprose" | perl -CSD -Mutf8 -ne '
+      BEGIN { @fam = (["効く", qr/効[くいかきけこっ]/], ["刺さる", qr/刺さ[るらりっれ]/],
+                      ["噛み合う", qr/噛み合/], ["踏む", qr/踏[むまみめんっ]/],
+                      ["肝", qr/肝(?=[にだではがを])/], ["筋", qr/筋(?:が(?:通|良|悪|立)|だ|です)/]) }
+      for my $f (@fam) { my ($name, $re) = @$f; while (/$re/g) { push @{$hit{$name}}, "$.:$&" } }
+      END { for my $f (@fam) { my $h = $hit{$f->[0]} or next; next if @$h < 3;
+              printf "%s %d 回: %s\n", $f->[0], scalar @$h, join(" ", @$h) } }')"; rc=$?
+    if [ "$rc" -ne 0 ]; then show "perl が失敗 (exit $rc)"; found=1
+    elif [ -n "$out" ]; then show "$out"; found=1
+    else show none; fi
+  fi
+
   jout="$(read_blocks ja)"; rc=$?
   echo "文長の変動係数（5 文以上で 0.25 未満なら単調）"
   if [ "$rc" -ne 0 ]; then
