@@ -59,8 +59,29 @@ path_hit() { # <path> <haystack>
 # Only the segment that actually deletes is searched for a shared root. Testing
 # the whole command denied `mv <root>/a.md /tmp/ && rm -rf /tmp/a.md`, where the
 # root is merely mentioned — and a deny cannot be waved through.
+# A `cd` into a root makes a later deletion with a relative argument a deletion
+# inside it (`cd <root> && rm -rf proj`); the narrowed rm guard below no longer
+# asks on that, so this guard has to see it.
+hits_root() { # <segment>
+  local root
+  while IFS= read -r root; do
+    [ -z "$root" ] && continue
+    path_hit "$root" "$1" || path_hit "${root/#$HOME/~}" "$1" && return 0
+  done < <(shared_roots)
+  return 1
+}
+in_root=0
 # shellcheck disable=SC2020  # mapping each separator to a newline is the intent
 while IFS= read -r seg; do
+  if echo "$seg" | grep -qE '^[[:space:]]*cd([[:space:]]|$)'; then
+    hits_root "$seg" && in_root=1 || in_root=0
+    continue
+  fi
+  if [ "$in_root" = 1 ] \
+     && echo "$seg" | grep -qE '^[[:space:]]*(rm|rmdir|trash)[[:space:]]' \
+     && echo "$seg" | sed -E 's/^[[:space:]]*[a-z]+//' | grep -qE '(^|[[:space:]])[^-/~$[:space:]][^[:space:]]*'; then
+    deny "claude-shared 配下の削除は禁止です（git 管理外のため復元できません）。/permafrost で凍結してください（mv は許可されています）。"
+  fi
   echo "$seg" | grep -qE '^[[:space:]]*(rm|rmdir|trash)[[:space:]]' \
     || echo "$seg" | grep -qE '\bfind\b.*-delete' \
     || continue
@@ -80,17 +101,34 @@ done < <(printf '%s\n' "$cmd" | tr ';|&' '\n\n\n')
 # A. File system destruction
 # ============================================================
 
-# rm carrying BOTH a recursive flag and a force flag, aimed at an absolute path,
-# home, or a top-level glob. `rm` is anchored to command position so `git rm`
-# and words like "charm"/"form" do not trigger. Relative paths (node_modules,
-# ./dist, src/foo) are intentionally NOT flagged — only /, ~, $HOME, * targets.
+# rm carrying BOTH a recursive flag and a force flag, whose own argument is the
+# root or home itself, a bare `*`, or one level below root or home (/usr, ~/foo,
+# /*). Anything deeper is left to the auto-mode classifier: a hook ask prompts
+# even in auto mode, and 2026-09 transcripts showed nearly every one of these
+# asks was temp-dir cleanup. Arguments are judged per rm segment — matching an
+# absolute path anywhere in the command caught `W=/tmp/x; rm -rf "$W"`.
 # shellcheck disable=SC2016  # `$HOME` is matched literally in the command text, not expanded
-if echo "$cmd" | grep -qE '(^|[|&;])[[:space:]]*rm[[:space:]]' \
-   && echo "$cmd" | grep -qE '(-[a-zA-Z]*r|--recursive)' \
-   && echo "$cmd" | grep -qE '(-[a-zA-Z]*f|--force)' \
-   && echo "$cmd" | grep -qE '([[:space:]]|=)(/|~|\$HOME|\*)'; then
-  warn "危険なrm操作を検出: 再帰的・強制削除が絶対パス/ホーム/グロブを対象にしています"
+rm_hits_top() {
+  local seg t
+  # shellcheck disable=SC2020  # mapping each separator to a newline is the intent
+  while IFS= read -r seg; do
+    echo "$seg" | grep -qE '^[[:space:]]*rm[[:space:]]' || continue
+    echo "$seg" | grep -qE '[[:space:]](-[a-zA-Z]*[rR]|--recursive)' || continue
+    echo "$seg" | grep -qE '[[:space:]](-[a-zA-Z]*f|--force)' || continue
+    for t in $seg; do
+      t=${t//\"/}; t=${t//\'/}; t=${t//\$\{HOME\}/\$HOME}
+      case $t in rm|-*) continue ;; esac
+      [ "$t" != "/" ] && t=${t%/}
+      echo "$t" | grep -qE '^(/|~|\$HOME|\*|/[^/]+|(~|\$HOME)/[^/]+)$' && return 0
+    done
+  done < <(printf '%s\n' "$cmd" | tr ';|&' '\n\n\n')
+  return 1
+}
+set -f  # the word loop above must not glob-expand `*`
+if rm_hits_top; then
+  warn "危険なrm操作を検出: 再帰的・強制削除がルート/ホームそのもの、またはその直下を対象にしています"
 fi
+set +f
 
 # ============================================================
 # B. Git destructive operations

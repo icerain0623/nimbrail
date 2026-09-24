@@ -23,17 +23,23 @@ cmd=$(echo "$HOOK_INPUT" | jq -r '.tool_input.command')
 # Only process direct npm/pnpm/yarn commands, not embedded in scripts (node -e, python -c, etc.)
 echo "$cmd" | grep -qE '(node|python|ruby|perl)[[:space:]]+-[ec]' && exit 0
 
-# Strip shell operators: everything after |, &&, ;, >, 2>&1 etc.
-install_part=$(echo "$cmd" | sed -E 's/[[:space:]]*([|;&]|[0-9]*>[>&]*|>[>&]?).*//')
-
-# Verify install_part actually contains an install command
-echo "$install_part" | grep -qE '(npm (install|i|add)|pnpm add|yarn add)' || exit 0
+# Take the first shell segment that STARTS with an install command (after env
+# assignments or `mise exec --`). Matching anywhere let a commit message or
+# heredoc that merely mentions `pnpm add` feed its prose to npm view.
+# shellcheck disable=SC2020  # mapping each separator to a newline is the intent
+install_part=$(printf '%s\n' "$cmd" | tr ';|&' '\n\n\n' \
+  | sed -E 's/[[:space:]]*[0-9]*>.*//' \
+  | grep -m1 -E '^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]+)*(mise exec --[[:space:]]+)?(npm (install|i|add)|pnpm add|yarn add)([[:space:]]|$)')
+[ -z "$install_part" ] && exit 0
 
 # Skip: no-arg installs (npm install, npm ci, etc.)
 echo "$install_part" | grep -qE '(npm (install|i|ci)|pnpm install|yarn install?)[[:space:]]*$' && exit 0
 
 # Extract package names (strip flags like -D, --save-dev, etc.)
-pkgs=$(echo "$install_part" | sed -nE 's/.*(npm (install|i|add)|pnpm add|yarn add)[[:space:]]+//p' | tr ' ' '\n' | grep -vE '^-' | head -5)
+# Keep only tokens shaped like a package spec: an unexpanded `$VAR` or a quoted
+# fragment cannot be looked up, and asking npm about it only yields a false alarm.
+pkgs=$(echo "$install_part" | sed -nE 's/.*(npm (install|i|add)|pnpm add|yarn add)[[:space:]]+//p' | tr ' ' '\n' | grep -vE '^-' \
+  | grep -E '^(@[A-Za-z0-9._~-]+/)?[A-Za-z0-9._~-]+(@[A-Za-z0-9._~^<>=|*+-]*)?$' | head -5)
 [ -z "$pkgs" ] && exit 0
 
 # Known trusted scopes

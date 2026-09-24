@@ -176,9 +176,18 @@ expect_stdout block-dev-servers.sh 'echo "-- npm run dev --"' none
 expect_stdout block-dev-servers.sh "grep 'npm run dev' notes.md" none
 expect_stdout block-dev-servers.sh 'git commit -m "vite serve was flaky"' none
 
+# ── check-package-safety: prose mentioning an install is not an install ───────
+# All of these exit before `npm view`, so the suite stays offline.
+expect_stdout check-package-safety.sh 'git commit -m "docs: pnpm add で入れる。corepack 経由"' none
+expect_stdout check-package-safety.sh "echo 'pnpm add 一発' > notes.md" none
+expect_stdout check-package-safety.sh 'npm i -g pnpm@${PNPM_VERSION}' none
+expect_stdout check-package-safety.sh 'pnpm install --frozen-lockfile' none
+
 # ── warn-dangerous: rm -rf guard ──────────────────────────────────────────────
-for c in "rm -rf /" "rm -fr /etc/passwd" "rm -rf /usr/local" "rm --recursive --force /var" "rm -rf ~/foo" "rm -rf \$HOME/x" "rm -rf *"; do expect_stdout warn-dangerous.sh "$c" ask; done
-for c in "rm -rf node_modules" "rm -rf ./dist" "rm -rf src/foo" "rm file.txt" "git rm -r foo"; do expect_stdout warn-dangerous.sh "$c" none; done
+# Asks only on root/home themselves, `*`, or one level below them; deeper targets
+# are the auto-mode classifier's to judge.
+for c in "rm -rf /" "rm -rf /*" "rm --recursive --force /var" "rm -rf /usr/" "rm -rf ~" "rm -rf ~/" "rm -rf ~/foo" "rm -rf \$HOME" "rm -rf \$HOME/x" 'rm -rf "${HOME}/x"' "rm -rf *" "echo ok && rm -Rf ~/Developers"; do expect_stdout warn-dangerous.sh "$c" ask; done
+for c in "rm -rf node_modules" "rm -rf ./dist" "rm -rf src/foo" "rm file.txt" "git rm -r foo" "rm -fr /etc/passwd" "rm -rf /usr/local" 'rm -rf "$TMPDIR/x"' "rm -rf /private/tmp/claude-501/s/scratchpad/t" 'W=/tmp/x; rm -rf "$W"' "rm -rf ~/Developers/foo/dist" "rm -r /tmp/x"; do expect_stdout warn-dangerous.sh "$c" none; done
 
 # ── warn-dangerous: destructive SQL only via a db client (DELETE dead-code regression) ──
 expect_stdout warn-dangerous.sh "psql -c 'DROP TABLE users'" ask
@@ -306,11 +315,11 @@ expect_shared "rm /tmp/scratch/a.md"                        none
 expect_shared "cat /sh/claude-shared/foo/report.md"         none
 expect_shared "rm -rf /sh/claude-shared"                    deny   # the root itself
 # Regression: a substring test also denied siblings that merely share the prefix.
-# They must escape the shared-root deny; `rm -rf <abs path>` then still draws the
-# generic ask from section A, which is the correct outcome for that command.
+# They must escape the shared-root deny; the rm guard leaves a path this deep to
+# the classifier.
 expect_shared "rm /sh/claude-shared-old/x.md"               none
 expect_shared "rm /sh/claude-sharedX/x.md"                  none
-expect_shared "rm -rf /sh/claude-shared-old"                ask
+expect_shared "rm -rf /sh/claude-shared-old"                none
 # The tilde form — how these paths are actually written, and the case the seam's
 # absolute roots hid: the guard only ever matched absolute paths.
 expect_shared_home() { # <cmd> <deny|ask|none>
@@ -324,17 +333,19 @@ expect_shared_home() { # <cmd> <deny|ask|none>
 }
 expect_shared_home "rm -rf ~/Documents/claude-shared/proj"      deny
 expect_shared_home "rm /fake/home/Documents/claude-shared/a.md" deny
-expect_shared_home "rm -rf ~/Documents/claude-shared-old"       ask   # boundary still holds
+expect_shared_home "rm -rf ~/Documents/claude-shared-old"       none  # boundary still holds
 # A root merely MENTIONED beside an unrelated deletion is not a deletion of it.
-# What matters is that these are no longer DENY (unwaivable); the generic rm guard
-# below still asks on any command carrying an absolute path, which is correct.
-expect_shared "mv /sh/claude-shared/a.md /tmp/ && rm -rf /tmp/a.md"       ask
+# What matters is that these are no longer DENY (unwaivable).
+expect_shared "mv /sh/claude-shared/a.md /tmp/ && rm -rf /tmp/a.md"       none
 expect_shared "cp /sh/claude-shared/a.md /tmp/; rm /tmp/a.md"             none
 # …while the same shape genuinely deleting inside the root is still denied.
 expect_shared "cp /sh/claude-shared/a.md /tmp/; rm /sh/claude-shared/a.md" deny
-# Known gap, asserted so it stays visible: the rm carries no path, so the root is
-# invisible to a per-segment check. The generic guard still asks.
-expect_shared "cd /sh/claude-shared && rm -rf proj"                       ask
+# A `cd` into the root turns a relative deletion into one inside it...
+expect_shared "cd /sh/claude-shared && rm -rf proj"                       deny
+expect_shared_home "cd ~/Documents/claude-shared/p; rm a.md"             deny
+# ...but not an absolute one elsewhere, nor one after leaving the root.
+expect_shared "cd /sh/claude-shared && rm -rf /tmp/x"                     none
+expect_shared "cd /sh/claude-shared && cd /tmp && rm -rf x"               none
 
 # ── branch-guard: once per session per repo, regardless of tree state ─────────
 # mktemp -d is not usable here: the sandbox denies the system TMPDIR. Try the
