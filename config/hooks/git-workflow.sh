@@ -7,6 +7,9 @@
 # The Write|Edit half of branch-first (nudge before editing on main) is branch-guard.sh.
 
 cmd=$(jq -r '.tool_input.command')
+# Heredoc bodies are data unless fed to a shell — see lib-strip-heredoc.sh.
+strip="$(dirname "${BASH_SOURCE[0]}")/lib-strip-heredoc.sh"
+[ -f "$strip" ] && cmd=$(printf '%s' "$cmd" | bash "$strip")
 
 ask() {
   cat <<HOOK_JSON
@@ -36,12 +39,14 @@ commit_policy="${CLAUDE_KIT_COMMIT:-auto}"
 push_policy="${CLAUDE_KIT_PUSH:-ask}"
 
 # Hard guard: never delete the main/master branch (local or remote).
+# The branch name must sit in the same command as the delete — `[^;&|]` stops the
+# match at a separator, so `git branch -d feat && git pull origin main` passes.
 # Local: git branch -d/-D main|master
-if echo "$cmd" | grep -qE 'git[[:space:]]+branch[[:space:]]+(-[a-zA-Z]*[dD][a-zA-Z]*[[:space:]]+)(.*[[:space:]])?(main|master)([[:space:]]|$)'; then
+if echo "$cmd" | grep -qE 'git[[:space:]]+branch[[:space:]]+(-[a-zA-Z]*[dD][a-zA-Z]*[[:space:]]+)([^;&|]*[[:space:]])?(main|master)([[:space:]]|$)'; then
   deny "main/master ブランチの削除は禁止です。"
 fi
 # Remote: git push ... --delete main|master  OR  git push origin :main
-if echo "$cmd" | grep -qE 'git[[:space:]]+push[[:space:]]+.*(--delete[[:space:]]+.*(main|master)|:[[:space:]]*(main|master))([[:space:]]|$)'; then
+if echo "$cmd" | grep -qE 'git[[:space:]]+push[[:space:]]+[^;&|]*(--delete[[:space:]]+[^;&|]*(main|master)|:[[:space:]]*(main|master))([[:space:]]|$)'; then
   deny "リモートの main/master ブランチの削除は禁止です。"
 fi
 

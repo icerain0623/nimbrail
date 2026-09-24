@@ -4,6 +4,9 @@
 # so hand it back: the user runs it themselves via the `!` prefix.
 
 cmd=$(jq -r '.tool_input.command')
+# Heredoc bodies are data unless fed to a shell — see lib-strip-heredoc.sh.
+strip="$(dirname "${BASH_SOURCE[0]}")/lib-strip-heredoc.sh"
+[ -f "$strip" ] && cmd=$(printf '%s' "$cmd" | bash "$strip")
 
 deny() {
   cat <<HOOK_JSON

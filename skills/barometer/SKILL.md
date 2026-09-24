@@ -23,7 +23,8 @@ commit here.
   fix per hook.
 - Orphans: files under `~/.claude/hooks` and `~/.claude/skills` this repo does not own —
   installed by hand or by another tool, and invisible to `lint-skills.sh`.
-- `settings.local.json`: confirm it exists and is gitignored.
+- `settings.local.json` is optional (`gh`'s keyring login needs no PAT there); when it
+  exists, confirm it is gitignored.
 
 ## B. Harness drift (does what the kit assumes still exist?)
 

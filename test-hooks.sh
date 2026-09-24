@@ -180,13 +180,16 @@ expect_stdout block-dev-servers.sh 'git commit -m "vite serve was flaky"' none
 # All of these exit before `npm view`, so the suite stays offline.
 expect_stdout check-package-safety.sh 'git commit -m "docs: pnpm add で入れる。corepack 経由"' none
 expect_stdout check-package-safety.sh "echo 'pnpm add 一発' > notes.md" none
+# shellcheck disable=SC2016  # `$VAR` is part of the command text under test, not expanded here
 expect_stdout check-package-safety.sh 'npm i -g pnpm@${PNPM_VERSION}' none
 expect_stdout check-package-safety.sh 'pnpm install --frozen-lockfile' none
 
 # ── warn-dangerous: rm -rf guard ──────────────────────────────────────────────
 # Asks only on root/home themselves, `*`, or one level below them; deeper targets
 # are the auto-mode classifier's to judge.
+# shellcheck disable=SC2016  # `$VAR` is part of the command text under test, not expanded here
 for c in "rm -rf /" "rm -rf /*" "rm --recursive --force /var" "rm -rf /usr/" "rm -rf ~" "rm -rf ~/" "rm -rf ~/foo" "rm -rf \$HOME" "rm -rf \$HOME/x" 'rm -rf "${HOME}/x"' "rm -rf *" "echo ok && rm -Rf ~/Developers"; do expect_stdout warn-dangerous.sh "$c" ask; done
+# shellcheck disable=SC2016  # `$VAR` is part of the command text under test, not expanded here
 for c in "rm -rf node_modules" "rm -rf ./dist" "rm -rf src/foo" "rm file.txt" "git rm -r foo" "rm -fr /etc/passwd" "rm -rf /usr/local" 'rm -rf "$TMPDIR/x"' "rm -rf /private/tmp/claude-501/s/scratchpad/t" 'W=/tmp/x; rm -rf "$W"' "rm -rf ~/Developers/foo/dist" "rm -r /tmp/x"; do expect_stdout warn-dangerous.sh "$c" none; done
 
 # ── warn-dangerous: destructive SQL only via a db client (DELETE dead-code regression) ──
@@ -346,6 +349,21 @@ expect_shared_home "cd ~/Documents/claude-shared/p; rm a.md"             deny
 # ...but not an absolute one elsewhere, nor one after leaving the root.
 expect_shared "cd /sh/claude-shared && rm -rf /tmp/x"                     none
 expect_shared "cd /sh/claude-shared && cd /tmp && rm -rf x"               none
+
+# ── heredoc bodies are data (lib-strip-heredoc.sh) — unless fed to a shell ────
+# The 2026-09-24 misfire: a python string holding `; rm a.md … <root>` was denied.
+expect_shared $'python3 - <<\'PY\'\ns = "x; rm a.md /sh/claude-shared/p"\nPY'  none
+expect_shared $'bash <<EOF\nrm -rf /sh/claude-shared/proj\nEOF'            deny
+expect_stdout block-dev-servers.sh $'git commit -F - <<\'EOF\'\nnpm run dev is blocked now\nEOF' none
+expect_stdout block-dev-servers.sh $'sh -s <<EOF\nnpm run dev\nEOF'         deny
+expect_stdout block-dev-servers.sh 'grep x <<< "npm run dev"'              none
+expect_stdout check-package-safety.sh $'cat > README.md <<EOF\npnpm add left-pad\nEOF' none
+expect_denied $'cat > notes.md <<-END\n\tssh host\n\tEND'                  none
+expect_denied $'zsh <<EOF\nssh host\nEOF'                                  deny
+
+# ── git-workflow: the main/master delete guard stays inside one command ───────
+expect_stdout git-workflow.sh "git branch -d feat/x && git log --oneline main"  none
+expect_stdout git-workflow.sh "git branch -d feat/x; git branch -D main"        deny
 
 # ── branch-guard: once per session per repo, regardless of tree state ─────────
 # mktemp -d is not usable here: the sandbox denies the system TMPDIR. Try the

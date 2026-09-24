@@ -4,6 +4,9 @@
 
 HOOK_INPUT=$(cat)
 cmd=$(echo "$HOOK_INPUT" | jq -r '.tool_input.command')
+# Heredoc bodies are data unless fed to a shell — see lib-strip-heredoc.sh.
+strip="$(dirname "${BASH_SOURCE[0]}")/lib-strip-heredoc.sh"
+[ -f "$strip" ] && cmd=$(printf '%s' "$cmd" | bash "$strip")
 
 block() {
   echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"'"$1"'"}}' >&2

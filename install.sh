@@ -253,6 +253,7 @@ normalize_roots() { # <path...> -> one normalized root per line
   local p q abs raw=() out=() nested
   for p in "$@"; do
     [ -n "$p" ] || continue
+    # shellcheck disable=SC2088  # matching a literal `~` the user typed, not expanding it
     case "$p" in
       /*)         abs="$p" ;;
       "~"|"~/"*)  abs="$(expand_tilde "$p")" ;;
@@ -797,6 +798,7 @@ if [ "$NO_SETTINGS" = 0 ]; then
     code_roots_json="$(printf '%s\n' "${CODE_ROOTS[@]}" | jq -R . | jq -s -c .)"
   fi
   if command -v jq >/dev/null 2>&1; then
+    # shellcheck disable=SC2015  # the cleanup is meant to run when either jq or mv fails
     jq --argjson r "$code_roots_json" '.codeRoots = $r' "$SHARED_DIRS_JSON" \
       > "$SHARED_DIRS_JSON.tmp.$$" && mv "$SHARED_DIRS_JSON.tmp.$$" "$SHARED_DIRS_JSON" || {
         rm -f "$SHARED_DIRS_JSON.tmp.$$"

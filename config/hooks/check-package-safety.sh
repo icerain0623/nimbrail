@@ -19,6 +19,9 @@ JSON
 # Read hook input from stdin
 HOOK_INPUT=$(cat)
 cmd=$(echo "$HOOK_INPUT" | jq -r '.tool_input.command')
+# Heredoc bodies are data unless fed to a shell — see lib-strip-heredoc.sh.
+strip="$(dirname "${BASH_SOURCE[0]}")/lib-strip-heredoc.sh"
+[ -f "$strip" ] && cmd=$(printf '%s' "$cmd" | bash "$strip")
 
 # Only process direct npm/pnpm/yarn commands, not embedded in scripts (node -e, python -c, etc.)
 echo "$cmd" | grep -qE '(node|python|ruby|perl)[[:space:]]+-[ec]' && exit 0
