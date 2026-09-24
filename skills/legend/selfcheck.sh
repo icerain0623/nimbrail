@@ -178,6 +178,16 @@ if out="$(grep -nE '^[ \t]+([-*+]|[0-9]+\.)[ \t]+' <<<"$scan")"; then show "$out
 echo "区切り線"
 if out="$(grep -nE '^[ \t]*(-{3,}|\*{3,}|_{3,})[ \t]*$' <<<"$scan")"; then show "$out"; found=1; else show none; fi
 
+# The reading pass's structure rule: a heading that marks when it was written
+# rather than what the reader needs — a date, 追記, a research round, or a
+# number wedged between steps (0.5, 5.5).
+echo "追記で積まれた見出し（読み手の問いの順に畳めるか）"
+if out="$(grep -nE '^#+[ \t].*(追記|[0-9]{4}-[0-9]{2}-[0-9]{2}|ラウンド[ \t]*[0-9]|[Rr]ound[ \t]*[0-9])|^#+[ \t]+[0-9]+\.[0-9]+([ \t.]|$)' <<<"$scan")"; then
+  show "$out"; found=1
+else
+  show none
+fi
+
 # Japanese prose: counts from coji/natural-japanese (MIT), whose human-vs-AI
 # corpus set the thresholds. Code lines are blanked rather than dropped so line
 # numbers still match the file. LC_ALL=C because this awk counts bytes: a

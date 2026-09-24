@@ -29,7 +29,7 @@ The chat is disposable; the note is the artifact.
 1. **On invoke**: settle the topic; if a note exists, read it and resume from its `Next:`. Otherwise create it. Put the user's question into `Open questions`.
 2. **Write as you go.** Append each significant finding and refresh `結論(現時点)` as you find it; record each source's URL and one-line verdict immediately after reading it. Anything you answer in chat goes into the note before (or as) you answer it.
 3. **Heavy sweeps**: when the topic needs exhaustive multi-angle coverage, run the sweep here — one angle per round, each round's findings landing in the note before the next starts, so a dead context loses at most one round. A wide parallel fan-out is a delegation decision under the global Delegation rule; cirrus stays the notebook the results land in either way.
-4. **On close**: update the header (`Status` / `Next` / `Open questions`) first, then summarize in chat. Always give the note's path.
+4. **On close**: update the header (`Status` / `Next` / `Open questions`) first. Then rewrite `結論(現時点)` so it reads without the log: in the order of the reader's question (the answer, then what to do, then what it rests on), each claim naming the finding it rests on, overturned findings left out, and every open question either answered or left open by name. The log is ordered by discovery, which suits resuming and not reading. Then summarize in chat. Always give the note's path.
 
 ## Rules
 
