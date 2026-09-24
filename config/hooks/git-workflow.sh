@@ -79,7 +79,7 @@ fi
 if echo "$cmd" | grep -qE '\bgit[[:space:]]+(merge|rebase)\b'; then
   branch="${CLAUDE_HOOK_BRANCH:-$(git branch --show-current 2>/dev/null)}"
   if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
-    ask "現在のブランチが '$branch' です。main への merge/rebase は明示的な確認が必要です（CLAUDE.md の Git Workflow）。"
+    ask "現在のブランチが '$branch' です。main への merge/rebase は明示的な確認が必要です。"
   fi
 fi
 
@@ -159,7 +159,7 @@ if echo "$cmd" | grep -qE '(^|[[:space:];&|(])[[:space:]]*git[[:space:]]+worktre
       *) inside=1 ;;
     esac
     if [ "$inside" = 1 ]; then
-      deny "worktree を repo 内に作ろうとしています（${wt_path}）。兄弟ディレクトリ <repo>-worktrees/<branch>/ に作ってください（CLAUDE.md の Git）。"
+      deny "worktree を repo 内に作ろうとしています（${wt_path}）。兄弟ディレクトリ <repo>-worktrees/<branch>/ に作ってください。"
     fi
   fi
 fi
