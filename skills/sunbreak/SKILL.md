@@ -10,7 +10,7 @@ The clearing after the storm — look back over recent sessions and surface what
 
 ## Where transcripts live
 
-`~/.claude/projects/<slug>/*.jsonl`, one file per session, where `<slug>` is a project's absolute path with `/` replaced by `-`. sunbreak is cross-project by nature — sweep slugs across projects, newest mtime first, capping to the most recent only when the volume would overflow the context budget.
+`~/.claude/projects/<slug>/*.jsonl`, one file per session, where `<slug>` is a project's absolute path with `/` replaced by `-` — so every slug begins with `-`, and a path starting with one reaches `stat` / `du` as an option unless `--` precedes it. sunbreak is cross-project by nature — sweep slugs across projects, newest mtime first, capping to the most recent only when the volume would overflow the context budget.
 
 ## Steps
 

@@ -23,6 +23,7 @@ Warm regardless of age: guides and reports the user wrote by hand. The 4-week ru
 
 - Dest — at the shared root, *outside* the per-project working dir, and provenance-preserving: `<shared-root>/permafrost/<project>/<YYYY-MM-DD>_<HHMMSS>_<name>/`. `mkdir -p` then `mv -n`.
 - On partial failure, finish the rest and report per-item success/failure.
+- Confirm each move by `mv`'s exit status, never by listing the dest: the cold store is Read-denied, so `ls` / `find` there only hits the deny. The per-item report is the record of what was frozen; nothing inventories the cold store afterwards.
 
 ## Thaw
 

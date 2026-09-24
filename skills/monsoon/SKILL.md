@@ -32,3 +32,4 @@ The recurring router: it inspects state, picks the next step, and delegates to a
 - State which branch and which conditions it observed, which numbered step matched and which earlier steps it ruled out, and which skill it is delegating to — the routing is otherwise invisible until it fires.
 - Mutable workflow state lives in the in-session task list or the `tasks.md` ledger.
 - monsoon only routes — defer to the dedicated skill for the actual work. Exception: committing has no dedicated skill; do it with the built-in harness behavior.
+- A target with `disable-model-invocation` in its frontmatter (petrichor, squall, …) is handed over as `/<name>` for the user to type — the Skill tool refuses it.

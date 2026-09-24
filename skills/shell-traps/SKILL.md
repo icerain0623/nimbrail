@@ -29,6 +29,11 @@ whichever skill happened to hit one.
 - **`ls` is often aliased to `eza`**, where `-t` means `--time FIELD` rather than
   sort-by-time, so `ls -t <files>` eats the first filename as the field name and
   fails. Call `command ls`, or use `find`/`stat` when the output is being parsed.
+- BSD `sed` has no GNU `addr,+N` range (`invalid command code ,`). Use absolute
+  line numbers (`sed -n '10,24p'`) or awk.
+- **A filename starting with `-` is read as an option** by `stat`, `du`, `ls` and the
+  rest — every line of a loop fails, silently once stderr is dropped. Put `--` before
+  the operands, or prefix `./`.
 
 ## Handing a one-liner to a human
 
