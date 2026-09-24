@@ -35,7 +35,8 @@ Every rule here is settled by a count rather than by taste. That is the whole re
 - **Bold** — ceiling 1.5 per 1000 characters of prose, the number `lint-skills.sh` already enforces against this repo's own skill bodies. It marks a branch where only one arm can be taken, or a warning whose absence causes damage. Not a word being emphasised mid-sentence, and not a label that repeats.
 - **Tables** — only for genuinely two-axis data, where the reader crosses a row against a column. A list of items carrying one attribute each is a list. Tone caps tables at "a minimum"; this is what the minimum means in a file.
 - **Bullets** — one level. A nested bullet means the parent should have been a heading, or the whole thing a sentence.
-- **Headings** — plain text. No emoji, no decorative punctuation.
+- **Headings** — plain text, no decorative punctuation.
+- **Emoji and symbol markers** (⚠ ✅ ❌ ★) — none, in headings or body. A warning is said in words where it applies, bold if missing it causes damage.
 - **Horizontal rules** — none. Headings already separate sections, and a rule between them is a second separator doing the same job.
 - Personal paths, hostnames and usernames are placeholders.
 
@@ -75,6 +76,6 @@ Runbook, deploy procedure, work instruction, handover: when the document is exec
 
 ## Finish
 
-`bash <skill-dir>/selfcheck.sh [--exec | --outline] <file>` — Layer 1 by default, `--exec` adds Layer 2. It reports the bold density against the ceiling, every table, nested bullet, horizontal rule and appended-section heading for you to judge, the three Japanese counts and the reading-load pointers when the prose is Japanese, and under `--exec` the code blocks with no expected result plus every `§` reference to resolve by eye.
+`bash <skill-dir>/selfcheck.sh [--exec | --outline] <file>` — Layer 1 by default, `--exec` adds Layer 2. It reports the bold density against the ceiling, every table, nested bullet, horizontal rule, emoji or symbol marker and appended-section heading for you to judge, the three Japanese counts and the reading-load pointers when the prose is Japanese, and under `--exec` the code blocks with no expected result plus every `§` reference to resolve by eye.
 
 It finds omissions, not bad judgement. A clean run is not a review, and deleting bold to silence the density is not the point.

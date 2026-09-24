@@ -178,6 +178,20 @@ if out="$(grep -nE '^[ \t]+([-*+]|[0-9]+\.)[ \t]+' <<<"$scan")"; then show "$out
 echo "区切り線"
 if out="$(grep -nE '^[ \t]*(-{3,}|\*{3,}|_{3,})[ \t]*$' <<<"$scan")"; then show "$out"; found=1; else show none; fi
 
+# Emoji and symbol markers. Extended_Pictographic covers ⚠ ✅ ❌ ★ and the
+# emoji blocks; ✓ sits outside it and is named. It also holds arrows (↔) and
+# © ® ™, which prose uses as text, so those are excluded. Fenced code is skipped.
+echo "絵文字・記号の印（言葉にする）"
+if ! command -v perl >/dev/null; then
+  show "perl が無いので未実行"; found=1
+elif out="$(perl -CSD -Mutf8 -ne '$inb = !$inb if /^\s*```/; next if $inb || /^\s*```/;
+             my @m = /((?![\x{2190}-\x{21FF}\x{A9}\x{AE}\x{2122}])\p{Extended_Pictographic}|\x{2713})/g;
+             printf "%d: %s\n", $., join(" ", @m) if @m' <<<"$scan")" && [ -n "$out" ]; then
+  show "$out"; found=1
+else
+  show none
+fi
+
 # The reading pass's structure rule: a heading that marks when it was written
 # rather than what the reader needs — a date, 追記, a research round, or a
 # number wedged between steps (0.5, 5.5).
