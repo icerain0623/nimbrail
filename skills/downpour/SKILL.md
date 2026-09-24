@@ -34,7 +34,7 @@ The orchestrator is the main-loop Claude itself, and what this skill supplies is
 ## Wave end
 
 - Run the batched quality review (medium effort). Auto-apply high-confidence fixes only, as a separate commit; behavior changes are forbidden, since a verified 完了条件 must not break. Re-run `check` after that commit, and on failure undo with `git revert` — never rewrite history — recording applied-then-reverted in the final report. Uncertain findings go to the final report for the human.
-- Report token consumption at the wave boundary so the human can decide whether to continue, then recompute the unblocked set and continue.
+- Recompute the unblocked set and dispatch the next wave, reporting token consumption in that same message — the report is a status note, not a stop; only the Stop & escalate conditions end the run.
 
 ## Stop & escalate
 

@@ -411,7 +411,7 @@
       "go"
     ]
   },
-  "effortLevel": "high",
+  "effortLevel": "medium",
   "skipWorkflowUsageWarning": true,
   "skipAutoPermissionPrompt": true
 }
