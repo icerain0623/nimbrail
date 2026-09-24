@@ -222,12 +222,15 @@ if printf '%s\n' "$jprose" | LC_ALL=C awk '{ x = $0; j += gsub(/[\343-\351]/, ""
   if [ "$n" -ge 3 ]; then show "${n} 回"$'\n'"$hits"; found=1; else show "${n} 回"; fi
 
   # Dashes joining clauses. Headings are listed too; a subtitle dash there may
-  # stay. cirrus's own note format ("— source: URL", "- URL — verdict") is a
-  # field separator, not prose, so those lines are left out.
+  # stay. cirrus's own note format ("— source: URL", "- URL — verdict", the
+  # latter also as a Markdown link) is a field separator, not prose, so those
+  # separators are dropped before counting.
   echo "ダッシュ「—」（3 回で型になる。。、や接続詞にする）"
-  dl="$(grep -nE '—|―' <<<"$jprose" | grep -vE '— source:|^[0-9]+:[ \t]*- https?://[^ ]+( , https?://[^ ]+)* —' || true)"
-  hits="$(printf '%s' "$dl" | awk -F: 'NF { c = gsub(/—|―/, "&"); printf "%s%s(%d)", (n++ ? " " : ""), $1, c }')"
-  n="$(printf '%s' "$dl" | grep -oE '—|―' | grep -c . || true)"
+  dl="$(printf '%s\n' "$jprose" | perl -CSD -Mutf8 -ne '
+      s/\s*— source:.*//; s/^(\s*- (?:https?:\/\/\S+(?: , https?:\/\/\S+)*|\[[^]]*\]\([^)]*\))) —/$1/;
+      my $c = () = /—|―/g; print "$.:$c\n" if $c')"
+  hits="$(printf '%s' "$dl" | awk -F: 'NF { printf "%s%s(%d)", (n++ ? " " : ""), $1, $2 }')"
+  n="$(printf '%s' "$dl" | awk -F: '{ t += $2 } END { print t + 0 }')"
   if [ "$n" -ge 3 ]; then show "${n} 回: ${hits}"; found=1; else show "${n} 回"; fi
 
   # Claude's habit words: each ran near zero per 100,000 characters in human
