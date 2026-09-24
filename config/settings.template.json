@@ -322,6 +322,17 @@
           }
         ]
       }
+    ],
+    "PermissionDenied": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/log-permission-denied.sh",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
