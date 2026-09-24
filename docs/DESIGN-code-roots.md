@@ -1,4 +1,4 @@
-<!-- squall detailed design, 2026-08-16. Spec: <shared-root>/nimbrail/petrichor-plan/00-overview.md (D1–D21 / F-1–F-11). -->
+<!-- squall detailed design, 2026-08-16. Spec: SPEC-code-roots.md (D1–D21 / F-1–F-11). -->
 
 # コードルート可変化 — 詳細設計
 

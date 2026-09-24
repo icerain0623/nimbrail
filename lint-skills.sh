@@ -104,8 +104,9 @@ echo "[7] backticked skill-shaped references resolve to a skill"
 # the repo (harness / plugins). Add to it when prose gains a new such name.
 SKILLS=""
 for d in "$REPO"/skills/*/; do SKILLS="$SKILLS $(basename "${d%/}")"; done
-KNOWN_OTHER="cache-dir deep-research disable-model-invocation ignore-scripts
-in-progress min-release-age state-dir store-dir unrs-resolver update-config"
+KNOWN_OTHER="cache-dir chrome-devtools-mcp claude-in-chrome deep-research
+disable-model-invocation frontend-design ignore-scripts in-progress
+min-release-age state-dir store-dir unrs-resolver update-config"
 # Slash references that resolve outside this repo. Worth keeping written down:
 # concluding that `/verify` didn't exist, because it is in neither skills/ nor
 # ~/.claude/skills, is a mistake this list prevents repeating.
