@@ -1,6 +1,6 @@
 ---
 name: legend
-description: Revision pass that strips the AI-writing tells from a document — decorative bold, tables for non-tabular data, nested bullets, rules — against a measured density, plus the conventions for one someone executes (runbook, deploy procedure, handover): one paste per code block with its expected result, recovery in an appendix.
+description: Revision pass over a finished document — strips the AI-writing tells (decorative bold, tables for non-tabular data, nested bullets, rules) against a measured density, then reads it for structure and, in Japanese prose, sentence load, changing only what buys the reader something; plus the conventions for one someone executes (runbook, deploy procedure, handover): one paste per code block with its expected result, recovery in an appendix.
 disable-model-invocation: true
 ---
 
@@ -14,9 +14,19 @@ After the draft exists, not before. Style rules carried through generation are p
 
 Slash-only for the same reason. A model-invocable skill puts its description in every context window whether or not a document is being written, and could fire mid-task; this one costs nothing until `/legend` is typed. `monsoon` names it once a session has produced a handoff document, which is the trigger a manually-invoked skill otherwise never gets.
 
-Two layers. Layer 1 applies to any document written to a file. Layer 2 adds to it when the document is executed step by step.
+Two layers with a reading pass between them. Layer 1 and the reading pass apply to any document written to a file; Layer 2 adds to them when the document is executed step by step.
 
 Chat replies are out of scope. By the time this could be invoked the reply is already written, so `config/CLAUDE.md`'s Tone owns that surface and this skill must not restate it.
+
+## Revise, don't sweep
+
+Every rule below is easy to apply everywhere, and applied everywhere it becomes the next tell: in coji/natural-japanese's blind comparison, a revision that turned every heading into a conclusion and every list into prose beat the original on reader value and lost on reading as human-written.
+
+- Default is keep. Change a passage only when you can name what the reader gains; when changes reach a third of the document, tell the user why.
+- After revising, count each kind of change. One that reached every instance of its kind is a sweep — restore the ones that bought nothing.
+- Add nothing the draft did not say: no stance on a point it left open, no 未定 promoted to a decision in a heading. The draft may be the only record of what was actually known.
+- Raw traces — quoted speech, arrows and shorthand, uneven sections — stay unless they block reading.
+- A flagged spot left as it is gets a one-word reason (固有名詞, 技術用語, 文脈上必要) in the report to the user. An unexplained keep is a skipped check.
 
 ## Layer 1 — markup, any document
 
@@ -34,6 +44,22 @@ Japanese prose carries three more, taken from coji/natural-japanese (MIT), whose
 - **Stock phrases** — the closing tics (と言えるでしょう, まとめると, いかがでしたか), the empty intensifiers (非常に重要, 鍵となる), the hollow lead-ins (見ていきましょう), the translationese (することができる). Each hit is deleted or replaced by the fact it stood in for. The list lives in `selfcheck.sh`.
 - **Contrast** — 「〜ではなく」「〜だけでなく」 at most twice per document. From the third, correcting a misreading has become a template.
 - **Sentence rhythm** — over five or more sentences, the coefficient of variation of sentence length stays at or above 0.25. Human prose in that corpus sits near 0.7 and generated prose near 0.4; below the floor every sentence is the same length, and the reader hears it.
+
+## Reading pass — any document
+
+Layer 1 is settled by counts; this is judgement, run once the markup noise is gone.
+
+Start from the skeleton: only the headings and each paragraph's first sentence (`selfcheck.sh --outline` prints them). The argument should hold from those alone. Then:
+
+- The conclusion is in the title and the first sentence. Background that delays it moves below or goes.
+- A heading carries its section's conclusion where finding the content would cost the reader. Short or obvious sections keep their label — converting every heading is the sweep above.
+- A term gets what it does before its name, at first use.
+- The same template three times running — definition sentences, section internals, sentence openers — is varied or merged.
+- Certainty is labelled (推定, 未確認) rather than dissolved into hedged endings, and opinion is marked as the writer's.
+- A report ends on what follows from it, not a restated summary.
+- In an explanatory document, a setup and reveal staged across sections (思い込み→異変→種明かし) is a second story the reader must track. Keep at most one.
+
+Then, for Japanese prose, sentence level: `readability.md` beside this file, applied front to back. `selfcheck.sh` points at the four a reader skims past in a long document — sentences over 90 characters, kanji runs of seven or more, 「の」 three in a row, stock double negatives. They are regex stand-ins for natural-japanese's morphological checks, without its guards, so expect false hits: each is a line to read, not a fix.
 
 ## Layer 2 — a document someone executes
 
@@ -119,6 +145,6 @@ Fine-grained sequential steps get `####` headings, so the operator can name whic
 
 ## Finish
 
-`bash <skill-dir>/selfcheck.sh [--exec] <file>` — Layer 1 by default, `--exec` adds Layer 2. It reports the bold density against the ceiling, every table and nested bullet and horizontal rule for you to judge, the three Japanese counts when the prose is Japanese, and under `--exec` the code blocks with no expected result plus every `§` reference to resolve by eye.
+`bash <skill-dir>/selfcheck.sh [--exec] <file>` — Layer 1 by default, `--exec` adds Layer 2. It reports the bold density against the ceiling, every table and nested bullet and horizontal rule for you to judge, the three Japanese counts and the reading-load pointers when the prose is Japanese, and under `--exec` the code blocks with no expected result plus every `§` reference to resolve by eye. `--outline` prints the skeleton for the reading pass instead.
 
 It finds omissions, not bad judgement. A clean run is not a review, and deleting bold to silence the density is not the point.

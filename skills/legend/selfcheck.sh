@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Mechanical omission check for a legend-style document. It finds what is
 # missing or overgrown, never what is wrong — a clean run is not a review.
-#   bash selfcheck.sh [--exec] <file>
+#   bash selfcheck.sh [--exec | --outline] <file>
 # Default is Layer 1 (markup, any document); --exec adds Layer 2 (a document
-# someone executes step by step).
+# someone executes step by step); --outline prints the skeleton for the reading
+# pass and nothing else.
 #
 # Everything is held in a variable rather than a temp file. An earlier version
 # used mktemp, which the sandbox denies, and every check then reported "none"
@@ -13,11 +14,15 @@ set -uo pipefail
 BOLD_BUDGET="${BOLD_BUDGET:-1.5}"   # per 1000 chars of prose; matches lint-skills.sh [12]
 
 exec_layer=0
-if [ "${1:-}" = "--exec" ]; then exec_layer=1; shift; fi
+outline=0
+case "${1:-}" in
+  --exec)    exec_layer=1; shift ;;
+  --outline) outline=1; shift ;;
+esac
 
 f="${1:-}"
 if [ -z "$f" ] || [ ! -f "$f" ]; then
-  echo "usage: bash selfcheck.sh [--exec] <file>" >&2
+  echo "usage: bash selfcheck.sh [--exec | --outline] <file>" >&2
   exit 2
 fi
 
@@ -31,6 +36,25 @@ scan="$(awk 'NR == 1 && /^---[ \t]*$/ { fm = 1; print ""; next }
 if [ -z "$scan" ]; then
   echo "読み込めない、または空: $f" >&2
   exit 2
+fi
+
+# Skeleton for the reading pass: headings, and the first sentence of each
+# paragraph. A list or table block is one placeholder line — its items are not
+# the argument. LC_ALL=C so 。 is matched and cut as a byte string.
+if [ "$outline" = 1 ]; then
+  LC_ALL=C awk '
+    /^[ \t]*```/                 { inb = !inb; prev = "code"; next }
+    inb                          { next }
+    /^[ \t]*$/                   { prev = "blank"; next }
+    /^#/                         { printf "L%d %s\n", NR, $0; prev = "head"; next }
+    /^[ \t]*(\||[-*+][ \t]|[0-9]+\.[ \t])/ {
+                                   if (prev != "list") printf "L%d   （リスト・表）\n", NR
+                                   prev = "list"; next }
+    prev == "list" && /^[ \t]+/  { next }
+    prev != "para"               { s = $0; i = index(s, "。"); if (i) s = substr(s, 1, i + 2)
+                                   printf "L%d   %s\n", NR, s }
+                                 { prev = "para" }' <<<"$scan"
+  exit 0
 fi
 
 found=0
@@ -112,6 +136,38 @@ if printf '%s\n' "$jprose" | LC_ALL=C awk '{ x = $0; j += gsub(/[\343-\351]/, ""
     show "文 $1・平均 $2 字・変動係数 $3 — 0.25 未満"; found=1
   else
     show "文 $1・平均 $2 字・変動係数 $3"
+  fi
+
+  # Reading load: the four pointers from natural-japanese's --reading-load lane
+  # that a reader skims past in a long document. Regex stands in for its
+  # morphological analyser, so its proper-noun and part-of-speech guards are gone
+  # and false hits are expected. Headings and table rows are skipped; inline
+  # code, link targets and bold markers are stripped before measuring. Missing
+  # perl is reported, not passed — see the mktemp note at the top.
+  echo "読解負荷（指さし。読んで引っかからなければ触らない）"
+  if ! command -v perl >/dev/null; then
+    show "perl が無いので未実行"; found=1
+  else
+    out="$(printf '%s\n' "$jprose" | perl -CSD -Mutf8 -ne '
+      next if /^\s*(#|\|)/;
+      my $t = $_; chomp $t;
+      $t =~ s/`[^`]*`/ /g; $t =~ s/\[([^\]]*)\]\([^)]*\)/$1/g; $t =~ s/\*\*//g;
+      $t =~ s/^\s*(?:[-*+]|\d+\.)\s+//;
+      for my $s (split /(?<=[。！？])/, $t) {
+        (my $x = $s) =~ s/^\s+|\s+$//g;
+        my $j = () = $x =~ /[\p{Hiragana}\p{Katakana}\p{Han}ー]/g;
+        next if $j < 0.3 * length $x;   # English prose quoting Japanese has no 。 to split on
+        printf "L%d 一文 %d 字（目安 90）: %s…\n", $., length $x, substr($x, 0, 24) if length $x > 90;
+      }
+      while ($t =~ /([\x{4E00}-\x{9FFF}々]{7,})/g) { printf "L%d 漢字 %d 字連続: %s\n", $., length $1, $1 }
+      my $no = qr/(?<![こそあども])の(?![でにはがをかだ])/;
+      printf "L%d 「の」3 連: %s\n", $., $1 if $t =~ /($no[^、。の]{1,6}$no[^、。の]{1,6}$no)/;
+      printf "L%d 二重否定: %s\n", $., $1
+        if $t =~ /(ないわけでは(?:ない|ありません)|ないと[はも](?:言え|いえ|限ら)(?:ない|ません)|なく[はも](?:ない|ありません)|ないことは(?:ない|ありません)|ないでも(?:ない|ありません))/;
+    ')"; rc=$?
+    if [ "$rc" -ne 0 ]; then show "perl が失敗 (exit $rc)"; found=1
+    elif [ -n "$out" ]; then show "$out"; found=1
+    else show none; fi
   fi
 fi
 
