@@ -77,7 +77,7 @@ while (my $l = <STDIN>) {
   if ($l =~ /^#/) { flush(); push @ev, ['head', $., $l]; $blk = 'head'; next }
   if ($l =~ /^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/) { flush(); $blk = 'rule'; next }
   if ($l =~ /^\s*\|/) { flush(); push @ev, ['table', $.] if $blk ne 'table'; $blk = 'table'; next }
-  if ($l =~ /^\s*(?:[-*+]|\d+[.)])\s+(.*)/) {
+  if ($l =~ /^\s*(?:[-*+]|\d+′?[.)])\s+(.*)/) {
     flush(); push @ev, ['list', $.] if $blk ne 'list'; $blk = 'list';
     push @ev, ['item', $., clean($1), [[0, $.]]]; next;
   }
@@ -301,8 +301,8 @@ fi
 
 [ "$exec_layer" = 1 ] || exit "$found"
 
-# A fence closes a block; the expected result must appear within the next 3
-# lines, which allows one blank line and a location label before it.
+# A fence closes a block; the expected result (期待結果 / Expect) must appear
+# within the next 3 lines, which allows one blank line and a location label.
 echo "期待結果の無いコードブロック"
 out="$(awk '
   { line[NR] = $0 }
@@ -314,7 +314,7 @@ out="$(awk '
       inb = 0
       ok = 0
       for (j = i + 1; j <= i + 3 && j <= NR; j++)
-        if (line[j] ~ /期待/) ok = 1
+        if (line[j] ~ /期待|[Ee]xpect/) ok = 1
       if (!ok) printf "L%d\n", start
     }
   }' <<<"$scan")"

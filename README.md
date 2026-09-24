@@ -8,26 +8,51 @@ My portable [Claude Code](https://claude.com/claude-code) setup — config **and
 >
 > Runs on **macOS and Linux, including WSL**, and a few values are still author-specific — both are covered under [Prerequisites](#prerequisites).
 
-## Layout
+## Workflow
+
+The lifecycle — weather names, with what each station is *for* in parens:
 
 ```
-nimbrail/
-├── install.sh                 # asks 3 questions, then symlinks everything below into ~/.claude
-├── test-hooks.sh              # behavioral regression suite for config/hooks/*.sh
-├── test-install.sh            # renders settings.json into a throwaway HOME and asserts on the result
-├── lint.sh                    # shellcheck over install/test/statusline + the hooks (brew install shellcheck)
-├── lint-skills.sh             # skill conventions: frontmatter, slash-only rail, shared-root, cross-references
-├── docs/                      # promoted petrichor specs (downpour, permafrost)
-├── config/
-│   ├── CLAUDE.md              # global instructions       → ~/.claude/CLAUDE.md
-│   ├── settings.template.json # permissions/sandbox/hooks → ~/.claude/settings.json (COPIED, not linked; carries no PAT)
-│   ├── statusline.sh          #                           → ~/.claude/statusline.sh
-│   ├── gitignore_global       # wired via core.excludesfile
-│   ├── npmrc                  # supply-chain hardening    → ~/.npmrc (ignore-scripts + min-release-age)
-│   └── hooks/*.sh             # Pre/PostToolUse hooks     → ~/.claude/hooks/
-├── skills/<name>/             # authored skills           → ~/.claude/skills/<name>/ — each one is described under Workflow
-└── .claude/CLAUDE.md          # project-scoped rules for working on nimbrail itself
+petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
+   plan/what       design/how + config    build    recurring
 ```
+
+It's a **loop, not a one-shot line**, and you enter it sized to the work:
+
+- **Small / clear change → express lane.** Skip the planning stations and just build → `check` → confirm real behavior → commit (`monsoon` handles the git side). Don't run the full rail for a one-file fix.
+- **Substantial / underspecified → start at `petrichor`** and walk the rail. When that feature ships, the next substantial one re-enters at `petrichor` — that's the loop closing. `monsoon` is the hub that triages which path a new piece of work takes.
+
+Each step ends by pointing you to the next, so you follow the prompts instead of memorizing the chain.
+
+0. **New / empty project — `petrichor`.** Interview to a spec, kept **outside the repo** in `<shared-root>/<project>/petrichor-plan/00-overview.md`. When done, petrichor offers to copy just that spec into the repo as `SPEC.md`.
+
+0′. **Existing codebase, no spec — `overcast`.** Reverse-engineer the As-Is into the same spec artifact — 機能 IDs from routes/commands, acceptance criteria from tests, real permissions from auth code — every statement confidence-marked (事実/推定/不明), unknowns asked once in a batched round. Inherited code then rides the same rail (squall / forecast / weathering). This is also where Serena onboarding is judged and offered, and it asks before indexing.
+
+1. **Design + config — `squall`.** Detailed design: reads the spec + existing code and produces repo design artifacts — dev-environment/README, coding conventions (Lint), DB physical schema, module/process design, API (OpenAPI)/sequence designs, infra detail — then records the `.claude/` config (`project.md` that `monsoon` reads + `CLAUDE.md` conventions) and enables opt-ins like release notes on confirmation. Explore-first, not an interview. (Skip the parts that don't apply.)
+
+2. **Build.** Coding is not driven by a separate skill. Branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing, and log anything noticed in passing to `findings.md`. At a checkpoint, run `/monsoon` to route the next step (`check` → commit → push / PR / …). For an autonomously-runnable stretch of the ledger, `/downpour` burns it down wave by wave — subagents implement, fresh-context verifiers judge the EARS completion conditions, the orchestrator alone commits and writes the ledger (spec: `docs/SPEC-downpour.md`).
+
+3. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and routes to the next sensible step: triage new work by size, `check` and commit what's uncommitted, `release-note` / `forecast` before a release, push or open a PR as far as your `--push` policy allows, `clean-branches` once merged branches pile up, `weathering` on spec drift, `permafrost` on stale shared docs, and `synoptic` when nothing is pending here — this router only ever sees the current repo. It reports which condition matched and which earlier ones it ruled out, so the routing is legible instead of arriving as a verdict. Read-only steps run automatically; deletions are always proposed first. Where commits and pushes sit on that line is the install-time policy (see [Setup](#setup-on-a-new-machine)), enforced by the hook rather than by this paragraph.
+
+Authored skills come in two invocation modes. Seven are **slash-only** (`disable-model-invocation`) — the rail plus `sunbreak` and `legend`. For the rail the reason is that a heavy interview should never auto-fire from a stray phrase; for `legend` it is that a model-invocable skill puts its description in *every* context window, and a set of writing rules is the last thing that should sit there while you work. Everything else below *also* triggers from context (descriptions are tuned to fire on the right intent and stay quiet otherwise), or you can call it directly for a single step:
+
+- `check` — run lint/typecheck (`full` adds test+build); logs to the shared root (default `~/Documents/claude-shared/`)
+- `calibrate` — tune continuous UI values (spacing, color, radius, shadow, timing) with sliders in the browser — ships the panel it pastes in, extracts hardcoded values into tokens first, applies what comes back
+- `release-note` — update `RELEASE_NOTE.md` from commits since the last tag (opt-in per repo)
+- `clean-branches` — delete merged local branches (remote on request); main/master is hook-protected
+- `private-scan` — scan the outgoing commit range — not just the tip — for private identifiers (home-dir and vault paths, `~/Library`, emails, internal hosts) before a push or PR publishes them; read-only, proposes
+- `windshear` — OWASP coverage over the standing codebase, not the diff: enumerate the attack surface (entry points, authz decisions, raw query sites, egress, sinks, config, supply chain, logging, failure paths), then mark every OWASP Top 10:2025 category (edition and per-category probe pinned in `catalogue.md`) 対策あり (with the `file:line` where it is *enforced*) / 不在 / 該当なし. The empty cell is the finding — a control missing everywhere never shows up in a diff, so `/security-review` cannot see it. Read-only, proposes
+- `forecast` — generate a pre-release scenario-test checklist from the spec (coverage-traced to 機能 IDs)
+- `legend` — revision pass over a written document. Layer 1, any file: strips the AI-writing markup tells — decorative bold (against the same 1.5/1000 density `lint-skills.sh` holds this repo to), tables for non-tabular data, nested bullets, rules, emoji and symbol markers (⚠ ✅); Japanese prose adds stock phrases, 「ではなく」 repetition, sentence-length variation, clause-joining dashes and Claude's habit words (効く, 黙って), with thresholds from coji/natural-japanese's corpus. Between the layers, a reading pass by judgement, structure first — appended 追記 sections and research rounds folded into the reader's order, diagnosis moved to an appendix, instructions the writer was given and shop links for items already bought taken out, steps and findings proposed as separate documents — then the skeleton of headings and first sentences, conclusion first, terms explained at first use, and for Japanese a sentence-load catalog (`readability.md`) with regex pointers at long sentences, kanji runs, 「の」 chains and double negatives. It changes only what buys the reader something — a rule swept across every instance becomes the next tell. Layer 2 (`runbook.md`, read only for a document someone *executes* — runbook, deploy, handover): top-to-bottom order, one paste per code block with its expected result and branch, recovery in an appendix. Runs *after* drafting on purpose — style rules carried through generation are paid for in accuracy. Ships `selfcheck.sh`
+- `weathering` — spec-drift report: where the code and `SPEC.md` disagree (+ stale ja+en rendering); edits on confirmation
+- `synoptic` — cross-project current position — reads each ledger's head + live git, ranks by what blocks you (your verification first), regenerates `status.md`, recommends one next action, and logs any ledger defect it trips over to that project's `TODO.md` so it stops being re-found every run. `monsoon` routes one project and runs this one once that project has nothing pending, which is what keeps `status.md` current
+- `barometer` — kit-vs-environment drift: live `~/.claude` against this repo (copied `settings.json`, symlink integrity, orphans) + whether the harness surface the kit assumes still exists. Read-only, proposes. Run it after upgrading Claude Code
+- `permafrost` — the claude-shared information-lifecycle mechanism — freeze completed/stale docs into a hard-invisible cold store (Read/grep-denied, write-only; `thaw` to read) and keep warm files thin (eviction). Enforcement lives in `settings.json` + `config/CLAUDE.md`; the skill runs the sweep/thaw and proposes its own candidates
+- `cirrus` — incremental research notebook — findings persist to Obsidian as found, resumable after context death; on close the conclusion is rewritten in the reader's order so it reads without the log; a procedure found along the way gets its own file
+- `sunbreak` — **slash-only** (listed here, not on the rail) — review past transcripts; write an Obsidian report (global vs project-specific lessons), applied later
+- `python-setup` — set up a sandbox-safe Python venv
+- `node-sandbox-setup` — unblock pnpm + mise under the sandbox (symptom→fix for the install dance)
+- `shell-traps` — zsh/BSD traps that fail silently — word splitting, glob aborts, aliased `ls`, ASI in pasted one-liners
 
 ## Prerequisites
 
@@ -72,24 +97,20 @@ files — pick a directory you can write to (an Obsidian vault subfolder works w
 The answer is stored in `~/.claude/shared-dirs.json` and substituted into the
 `settings.json` copy, which is what makes the sandbox willing to write there.
 
-| | |
-|---|---|
-| default | `~/Documents/claude-shared` (just press Enter) |
-| non-interactive | `./install.sh --shared-dir ~/vault/claude-docs` |
-| change it later | re-run with `--shared-dir <new path>`, then move the old contents across yourself — the script repoints, it never moves your files |
-| one project elsewhere | add an `"overrides"` entry (project root → its own dir) in `shared-dirs.json`; re-runs preserve it |
+- default: `~/Documents/claude-shared` (just press Enter)
+- non-interactive: `./install.sh --shared-dir ~/vault/claude-docs`
+- change it later: re-run with `--shared-dir <new path>`, then move the old contents across yourself — the script repoints, it never moves your files
+- one project elsewhere: add an `"overrides"` entry (project root → its own dir) in `shared-dirs.json`; re-runs preserve it
 
 Second, **where you keep repositories.** The permission rules and the sandbox
 write-roots are generated from the answer, so the template ships none of its own — an
 install that settles on nothing writes neither, and says so rather than leaving you to
 discover it one denied edit at a time.
 
-| | |
-|---|---|
-| offered | the directories among `~/Developers`, `~/Documents/GitHub`, `~/src`, `~/code`, `~/repos`, `~/projects`, `~/ghq`, `~/work`, `~/dev` that hold at least one repository |
-| non-interactive | `./install.sh --code-root ~/src --code-root ~/work` (repeat the flag; it replaces the stored list rather than adding to it) |
-| stored in | `~/.claude/shared-dirs.json` as `codeRoots`, which is also where `synoptic` reads them from |
-| re-runs | inherited silently once set; a root that has since disappeared is reported, never dropped for you |
+- offered: the directories among `~/Developers`, `~/Documents/GitHub`, `~/src`, `~/code`, `~/repos`, `~/projects`, `~/ghq`, `~/work`, `~/dev` that hold at least one repository
+- non-interactive: `./install.sh --code-root ~/src --code-root ~/work` (repeat the flag; it replaces the stored list rather than adding to it)
+- stored in: `~/.claude/shared-dirs.json` as `codeRoots`, which is also where `synoptic` reads them from
+- re-runs: inherited silently once set; a root that has since disappeared is reported, never dropped for you
 
 It then asks **how much git it may do on its own.** Both answers are enforced by the
 `git-workflow` hook, not by good intentions.
@@ -142,53 +163,26 @@ Restart Claude Code.
 - `settings.json` follows the same flow but is a *copy*, so your machine-local tweaks (and the real PAT in `settings.local.json`) survive.
 - Which also means **a changed default in `settings.template.json` does not reach an existing machine on its own** — and this README describes what a *fresh* install gets. A re-run offers the diff and keeps your file; `--yes` takes the repo version but shelves everything `/config` has written into it since. For a one-key change (the `EDITOR` default moving to nano, say) the least disruptive route is to edit those lines in `~/.claude/settings.json` yourself and leave the rest alone. That file is also the only one whose edits need a Claude Code restart.
 
-## Workflow
-
-The lifecycle — weather names, with what each station is *for* in parens:
+## Layout
 
 ```
-petrichor(要件) → squall(詳細設計+設定) → 実装 → monsoon(巡回)
-   plan/what       design/how + config    build    recurring
+nimbrail/
+├── install.sh                 # asks 3 questions, then symlinks everything below into ~/.claude
+├── test-hooks.sh              # behavioral regression suite for config/hooks/*.sh
+├── test-install.sh            # renders settings.json into a throwaway HOME and asserts on the result
+├── lint.sh                    # shellcheck over install/test/statusline + the hooks (brew install shellcheck)
+├── lint-skills.sh             # skill conventions: frontmatter, slash-only rail, shared-root, cross-references
+├── docs/                      # promoted petrichor specs (downpour, permafrost)
+├── config/
+│   ├── CLAUDE.md              # global instructions       → ~/.claude/CLAUDE.md
+│   ├── settings.template.json # permissions/sandbox/hooks → ~/.claude/settings.json (COPIED, not linked; carries no PAT)
+│   ├── statusline.sh          #                           → ~/.claude/statusline.sh
+│   ├── gitignore_global       # wired via core.excludesfile
+│   ├── npmrc                  # supply-chain hardening    → ~/.npmrc (ignore-scripts + min-release-age)
+│   └── hooks/*.sh             # Pre/PostToolUse hooks     → ~/.claude/hooks/
+├── skills/<name>/             # authored skills           → ~/.claude/skills/<name>/ — each one is described under Workflow
+└── .claude/CLAUDE.md          # project-scoped rules for working on nimbrail itself
 ```
-
-It's a **loop, not a one-shot line**, and you enter it sized to the work:
-
-- **Small / clear change → express lane.** Skip the planning stations and just build → `check` → confirm real behavior → commit (`monsoon` handles the git side). Don't run the full rail for a one-file fix.
-- **Substantial / underspecified → start at `petrichor`** and walk the rail. When that feature ships, the next substantial one re-enters at `petrichor` — that's the loop closing. `monsoon` is the hub that triages which path a new piece of work takes.
-
-Each step ends by pointing you to the next, so you follow the prompts instead of memorizing the chain.
-
-0. **New / empty project — `petrichor`.** Interview to a spec, kept **outside the repo** in `<shared-root>/<project>/petrichor-plan/00-overview.md`. When done, petrichor offers to copy just that spec into the repo as `SPEC.md`.
-
-0′. **Existing codebase, no spec — `overcast`.** Reverse-engineer the As-Is into the same spec artifact — 機能 IDs from routes/commands, acceptance criteria from tests, real permissions from auth code — every statement confidence-marked (事実/推定/不明), unknowns asked once in a batched round. Inherited code then rides the same rail (squall / forecast / weathering). This is also where Serena onboarding is judged and offered, and it asks before indexing.
-
-1. **Design + config — `squall`.** Detailed design: reads the spec + existing code and produces repo design artifacts — dev-environment/README, coding conventions (Lint), DB physical schema, module/process design, API (OpenAPI)/sequence designs, infra detail — then records the `.claude/` config (`project.md` that `monsoon` reads + `CLAUDE.md` conventions) and enables opt-ins like release notes on confirmation. Explore-first, not an interview. (Skip the parts that don't apply.)
-
-2. **Build.** Coding is not driven by a separate skill. Branch before coding (a worktree per agent when work runs in parallel), keep an in-flight `feedback.md` (blockers + open questions) in the shared dir, route spec/design gaps back instead of guessing, and log anything noticed in passing to `findings.md`. At a checkpoint, run `/monsoon` to route the next step (`check` → commit → push / PR / …). For an autonomously-runnable stretch of the ledger, `/downpour` burns it down wave by wave — subagents implement, fresh-context verifiers judge the EARS completion conditions, the orchestrator alone commits and writes the ledger (spec: `docs/SPEC-downpour.md`).
-
-3. **Every time after — `monsoon`.** Reads `.claude/project.md` + live git state and routes to the next sensible step: triage new work by size, `check` and commit what's uncommitted, `release-note` / `forecast` before a release, push or open a PR as far as your `--push` policy allows, `clean-branches` once merged branches pile up, `weathering` on spec drift, `permafrost` on stale shared docs, and `synoptic` when nothing is pending here — this router only ever sees the current repo. It reports which condition matched and which earlier ones it ruled out, so the routing is legible instead of arriving as a verdict. Read-only steps run automatically; deletions are always proposed first. Where commits and pushes sit on that line is the install-time policy above, enforced by the hook rather than by this paragraph.
-
-Authored skills come in two invocation modes. Seven are **slash-only** (`disable-model-invocation`) — the rail plus `sunbreak` and `legend`. For the rail the reason is that a heavy interview should never auto-fire from a stray phrase; for `legend` it is that a model-invocable skill puts its description in *every* context window, and a set of writing rules is the last thing that should sit there while you work. Everything else below *also* triggers from context (descriptions are tuned to fire on the right intent and stay quiet otherwise), or you can call it directly for a single step:
-
-| skill | what it does |
-| --- | --- |
-| `check` | run lint/typecheck (`full` adds test+build); logs to the shared root (default `~/Documents/claude-shared/`) |
-| `calibrate` | tune continuous UI values (spacing, color, radius, shadow, timing) with sliders in the browser — ships the panel it pastes in, extracts hardcoded values into tokens first, applies what comes back |
-| `release-note` | update `RELEASE_NOTE.md` from commits since the last tag (opt-in per repo) |
-| `clean-branches` | delete merged local branches (remote on request); main/master is hook-protected |
-| `private-scan` | scan the outgoing commit range — not just the tip — for private identifiers (home-dir and vault paths, `~/Library`, emails, internal hosts) before a push or PR publishes them; read-only, proposes |
-| `windshear` | OWASP coverage over the standing codebase, not the diff: enumerate the attack surface (entry points, authz decisions, raw query sites, egress, sinks, config, supply chain, logging, failure paths), then mark every OWASP Top 10:2025 category (edition and per-category probe pinned in `catalogue.md`) 対策あり (with the `file:line` where it is *enforced*) / 不在 / 該当なし. The empty cell is the finding — a control missing everywhere never shows up in a diff, so `/security-review` cannot see it. Read-only, proposes |
-| `forecast` | generate a pre-release scenario-test checklist from the spec (coverage-traced to 機能 IDs) |
-| `legend` | revision pass over a written document. Layer 1, any file: strips the AI-writing markup tells — decorative bold (against the same 1.5/1000 density `lint-skills.sh` holds this repo to), tables for non-tabular data, nested bullets, rules, emoji and symbol markers (⚠ ✅); Japanese prose adds stock phrases, 「ではなく」 repetition, sentence-length variation, clause-joining dashes and Claude's habit words (効く, 黙って), with thresholds from coji/natural-japanese's corpus. Between the layers, a reading pass by judgement, structure first — appended 追記 sections and research rounds folded into the reader's order, diagnosis moved to an appendix, instructions the writer was given and shop links for items already bought taken out, steps and findings proposed as separate documents — then the skeleton of headings and first sentences, conclusion first, terms explained at first use, and for Japanese a sentence-load catalog (`readability.md`) with regex pointers at long sentences, kanji runs, 「の」 chains and double negatives. It changes only what buys the reader something — a rule swept across every instance becomes the next tell. Layer 2 (`runbook.md`, read only for a document someone *executes* — runbook, deploy, handover): top-to-bottom order, one paste per code block with its expected result and branch, recovery in an appendix. Runs *after* drafting on purpose — style rules carried through generation are paid for in accuracy. Ships `selfcheck.sh` |
-| `weathering` | spec-drift report: where the code and `SPEC.md` disagree (+ stale ja+en rendering); edits on confirmation |
-| `synoptic` | cross-project current position — reads each ledger's head + live git, ranks by what blocks you (your verification first), regenerates `status.md`, recommends one next action, and logs any ledger defect it trips over to that project's `TODO.md` so it stops being re-found every run. `monsoon` routes one project and runs this one once that project has nothing pending, which is what keeps `status.md` current |
-| `barometer` | kit-vs-environment drift: live `~/.claude` against this repo (copied `settings.json`, symlink integrity, orphans) + whether the harness surface the kit assumes still exists. Read-only, proposes. Run it after upgrading Claude Code |
-| `permafrost` | the claude-shared information-lifecycle mechanism — freeze completed/stale docs into a hard-invisible cold store (Read/grep-denied, write-only; `thaw` to read) and keep warm files thin (eviction). Enforcement lives in `settings.json` + `config/CLAUDE.md`; the skill runs the sweep/thaw and proposes its own candidates |
-| `cirrus` | incremental research notebook — findings persist to Obsidian as found, resumable after context death; on close the conclusion is rewritten in the reader's order so it reads without the log; a procedure found along the way gets its own file |
-| `sunbreak` | **slash-only** (listed here, not on the rail) — review past transcripts; write an Obsidian report (global vs project-specific lessons), applied later |
-| `python-setup` | set up a sandbox-safe Python venv |
-| `node-sandbox-setup` | unblock pnpm + mise under the sandbox (symptom→fix for the install dance) |
-| `shell-traps` | zsh/BSD traps that fail silently — word splitting, glob aborts, aliased `ls`, ASI in pasted one-liners |
 
 ## Secrets
 
