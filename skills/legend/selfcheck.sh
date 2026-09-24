@@ -28,8 +28,10 @@ fi
 
 # YAML frontmatter is not prose, and its `---` delimiters are not horizontal
 # rules. Blank those lines rather than dropping them, so reported line numbers
-# still match the file the author is editing.
-scan="$(awk 'NR == 1 && /^---[ \t]*$/ { fm = 1; print ""; next }
+# still match the file the author is editing. CR is dropped here so a CRLF file
+# reads like any other.
+scan="$(awk '{ sub(/\r$/, "") }
+             NR == 1 && /^---[ \t]*$/ { fm = 1; print ""; next }
              fm && /^---[ \t]*$/       { fm = 0; print ""; next }
              fm                        { print ""; next }
                                        { print }' "$f")"
@@ -38,23 +40,104 @@ if [ -z "$scan" ]; then
   exit 2
 fi
 
-# Skeleton for the reading pass: headings, and the first sentence of each
-# paragraph. A list or table block is one placeholder line — its items are not
-# the argument. LC_ALL=C so 。 is matched and cut as a byte string.
+# One reader of blocks and sentences, shared by --outline and the Japanese
+# checks, so "a sentence" means one thing. Paragraph lines are joined before
+# splitting, so a wrapped sentence is whole; a list item without closing 。！？
+# is a fragment, not a sentence. Backticks, link targets and bold markers are
+# stripped before measuring. The thresholds live here and nowhere else.
+#   outline — headings, one placeholder per list or table block, and each
+#             paragraph's first sentence
+#   ja      — "STATS <sentences> <mean> <cv>", then reading-load pointers: the
+#             four from natural-japanese's --reading-load lane that a reader
+#             skims past in a long document. Regex stands in for its
+#             morphological analyser, so its proper-noun and part-of-speech
+#             guards are gone and false hits are expected.
+read -r -d '' READER <<'PERL' || true
+use strict; use warnings;
+my ($LONG, $KANJI) = (90, 7);
+my $mode = shift;
+my (@ev, @buf, $inb, $blk);
+$blk = '';
+sub clean { my $t = shift; $t =~ s/`([^`]*)`/$1/g; $t =~ s/\[([^\]]*)\]\([^)]*\)/$1/g;
+            $t =~ s/\*\*//g; $t =~ s/\s{2,}/ /g; $t =~ s/^\s+|\s+$//g; $t }
+sub flush {
+  return unless @buf;
+  my ($t, @off) = ('');
+  for my $p (@buf) {
+    $t .= ' ' if $t =~ /[\x00-\x7F]\z/ && $p->[1] =~ /\A[\x00-\x7F]/;
+    push @off, [length $t, $p->[0]]; $t .= $p->[1];
+  }
+  push @ev, ['para', $buf[0][0], $t, \@off]; @buf = ();
+}
+while (my $l = <STDIN>) {
+  chomp $l;
+  if ($l =~ /^\s*```/) { flush(); $inb = !$inb; $blk = 'code'; next }
+  next if $inb;
+  if ($l =~ /^\s*$/) { flush(); next }
+  if ($l =~ /^#/) { flush(); push @ev, ['head', $., $l]; $blk = 'head'; next }
+  if ($l =~ /^\s*(?:-{3,}|\*{3,}|_{3,})\s*$/) { flush(); $blk = 'rule'; next }
+  if ($l =~ /^\s*\|/) { flush(); push @ev, ['table', $.] if $blk ne 'table'; $blk = 'table'; next }
+  if ($l =~ /^\s*(?:[-*+]|\d+[.)])\s+(.*)/) {
+    flush(); push @ev, ['list', $.] if $blk ne 'list'; $blk = 'list';
+    push @ev, ['item', $., clean($1), [[0, $.]]]; next;
+  }
+  if ($blk eq 'list' && !@buf && $l =~ /^\s+\S/) { push @ev, ['item', $., clean($l), [[0, $.]]]; next }
+  (my $s = $l) =~ s/^\s*>\s?//;
+  push @buf, [$., clean($s)]; $blk = 'para';
+}
+flush();
+
+if ($mode eq 'outline') {
+  for my $e (@ev) {
+    my ($k, $n, $t) = @$e;
+    if    ($k eq 'head')  { print "L$n $t\n" }
+    elsif ($k eq 'list')  { print "L$n   （リスト）\n" }
+    elsif ($k eq 'table') { print "L$n   （表）\n" }
+    elsif ($k eq 'para')  { my ($first) = split /(?<=[。！？])|(?<=[.!?])\s+/, $t; print "L$n   $first\n" }
+  }
+  exit 0;
+}
+
+sub line_at { my ($pos, $off) = @_; my $n = $off->[0][1];
+              for (@$off) { last if $_->[0] > $pos; $n = $_->[1] } $n }
+my $no  = qr/(?<![こそあど])の(?![でにはがをかだ])/;
+my $neg = qr/(ない(?:わけで|こと)[はも](?:ない|ありません)|ないと[はも](?:言え|いえ|言い切れ)(?:ない|ません)|ないと[はも]限(?:らない|りません)|ないでも(?:ない|ありません)|(?<![少危汚切幼])なく[はも](?:ない|ありません))/;
+my (@len, @hit);
+for my $e (@ev) {
+  my ($k, undef, $t, $off) = @$e;
+  next unless $k eq 'para' || $k eq 'item';
+  my $pos = 0;
+  for my $s (split /(?<=[。！？])/, $t) {
+    my $at = $pos; $pos += length $s;
+    next if $k eq 'item' && $s !~ /[。！？]\s*$/;
+    (my $x = $s) =~ s/^\s+|\s+$//g;
+    my $j = () = $x =~ /[\p{Hiragana}\p{Katakana}\p{Han}ー]/g;
+    next if length $x < 2 || $j < 0.3 * length $x;   # English prose has no 。 to split on
+    push @len, length $x;
+    push @hit, [line_at($at, $off), sprintf("一文 %d 字（目安 %d）: %s…", length $x, $LONG, substr($x, 0, 24))]
+      if length $x > $LONG;
+  }
+  while ($t =~ /([\x{4E00}-\x{9FFF}々]{$KANJI,})/g) {
+    push @hit, [line_at($-[1], $off), sprintf("漢字 %d 字連続: %s", length $1, $1)] }
+  while ($t =~ /($no[^、。の]{1,6}$no[^、。の]{1,6}$no)/g) { push @hit, [line_at($-[1], $off), "「の」3 連: $1"] }
+  while ($t =~ /$neg/g) { push @hit, [line_at($-[1], $off), "二重否定: $1"] }
+}
+my ($n, $s, $ss) = (scalar @len, 0, 0);
+$s += $_, $ss += $_ * $_ for @len;
+my $m = $n ? $s / $n : 0; my $v = $n ? $ss / $n - $m * $m : 0; $v = 0 if $v < 0;
+printf "STATS %d %.1f %.2f\n", $n, $m, $m ? sqrt($v) / $m : 0;
+printf "L%d %s\n", @$_ for sort { $a->[0] <=> $b->[0] } @hit;
+PERL
+
+# Missing or failing perl is reported, not passed — see the mktemp note at the top.
+read_blocks() {
+  command -v perl >/dev/null || { echo "perl が無いので未実行"; return 127; }
+  perl -CSD -Mutf8 -e "$READER" "$1" <<<"$scan"
+}
+
 if [ "$outline" = 1 ]; then
-  LC_ALL=C awk '
-    /^[ \t]*```/                 { inb = !inb; prev = "code"; next }
-    inb                          { next }
-    /^[ \t]*$/                   { prev = "blank"; next }
-    /^#/                         { printf "L%d %s\n", NR, $0; prev = "head"; next }
-    /^[ \t]*(\||[-*+][ \t]|[0-9]+\.[ \t])/ {
-                                   if (prev != "list") printf "L%d   （リスト・表）\n", NR
-                                   prev = "list"; next }
-    prev == "list" && /^[ \t]+/  { next }
-    prev != "para"               { s = $0; i = index(s, "。"); if (i) s = substr(s, 1, i + 2)
-                                   printf "L%d   %s\n", NR, s }
-                                 { prev = "para" }' <<<"$scan"
-  exit 0
+  read_blocks outline
+  exit $?
 fi
 
 found=0
@@ -70,8 +153,8 @@ prose="$(awk '/^[ \t]*```/ {inb=!inb; next} inb {next} {print}' <<<"$scan")"
 chars="$(printf '%s' "$prose" | wc -m | tr -d ' ')"
 if [ "${chars:-0}" -gt 0 ]; then
   bolds="$(printf '%s\n' "$prose" | awk '{
-      n = gsub(/\*\*[^*]+\*\*/, "")
-      if (n > 0 && $0 ~ /^[ \t]*([-*+]|[0-9]+\.)[ \t]+/) n--
+      n = gsub(/\*\*[^*]+\*\*/, "&")
+      if (n > 0 && $0 ~ /^[ \t]*([-*+]|[0-9]+\.)[ \t]+\*\*/) n--
       t += n
     } END { print t + 0 }')"
   read -r density over < <(awk -v b="$bolds" -v c="$chars" -v cap="$BOLD_BUDGET" \
@@ -95,19 +178,18 @@ if out="$(grep -nE '^[ \t]+([-*+]|[0-9]+\.)[ \t]+' <<<"$scan")"; then show "$out
 echo "区切り線"
 if out="$(grep -nE '^[ \t]*(-{3,}|\*{3,}|_{3,})[ \t]*$' <<<"$scan")"; then show "$out"; found=1; else show none; fi
 
-# Japanese prose: three counts from coji/natural-japanese (MIT), whose human-vs-AI
-# corpus set the thresholds; its detectors that need a morphological analyser stay
-# out. Code lines are blanked rather than dropped so line numbers still match the
-# file. LC_ALL=C because this awk counts bytes: a character is then bytes minus
-# UTF-8 continuation bytes, and 。！？ are matched as byte strings. Runs when a
-# fifth of the characters are Japanese (lead bytes E3–E9: kana, CJK punctuation,
+# Japanese prose: counts from coji/natural-japanese (MIT), whose human-vs-AI
+# corpus set the thresholds. Code lines are blanked rather than dropped so line
+# numbers still match the file. LC_ALL=C because this awk counts bytes: a
+# character is then bytes minus UTF-8 continuation bytes. Runs when a fifth of
+# the characters are Japanese (lead bytes E3–E9: kana, CJK punctuation,
 # ideographs) — an English document quoting a few Japanese terms is not one.
 jprose="$(awk '/^[ \t]*```/ {inb=!inb; print ""; next} inb {print ""; next} {print}' <<<"$scan")"
 if printf '%s\n' "$jprose" | LC_ALL=C awk '{ x = $0; j += gsub(/[\343-\351]/, "", x)
                                               gsub(/[\200-\277]/, "", x); c += length(x) }
                                             END { exit !(j > 0 && j / (j + c) >= 0.2) }'; then
   echo "常套句（削るか、代わりに立っている事実を書く）"
-  phrases='と言えるでしょう|と言えるだろう|と言えます|ということになるでしょう|のではないでしょうか|大切なのは|結論から言うと|結論として|いかがでしたか|いかがでしょうか|まとめると|総じて|非常に重要|極めて重要|言うまでもなく|言うまでもありません|まさしく|それでは、|このような中|ここで注目したいのは|見ていきましょう|紹介していきます|解説していきます|深掘りしていきます|一概には言えません|個人差がありますが|あくまで一例ですが|核心的|鍵となる|根本的な|多角的|包括的|総合的|掘り下げる|深掘りする|言語化する|について見ていく|を探求する|することができ(る|ます|た)|することが可能(です|だ|になる)|することによって|であることは間違いない|に他ならない'
+  phrases='と言えるでしょう|と言えるだろう|と言えます|ということになるでしょう|のではないでしょうか|大切なのは|結論から言うと|結論として|いかがでしたか|いかがでしょうか|まとめると|総じて|非常に重要|極めて重要|言うまでもなく|言うまでもありません|まさしく|それでは、|このような中|ここで注目したいのは|見ていきましょう|紹介していきます|解説していきます|深掘りしていきます|一概には言えません|個人差がありますが|あくまで一例ですが|核心的|鍵となる|根本的な|多角的|包括的|総合的|掘り下げる|深掘りする|言語化する|について見ていく|を探求する|することができ(る|ます|た)|することが可能(です|だ|になる)|することによって|という形にな(る|ります)|的な部分|であることは間違いない|に他ならない'
   if out="$(grep -noE "$phrases" <<<"$jprose")"; then show "$out"; found=1; else show none; fi
 
   echo "対比の反復「〜ではなく」「〜だけでなく」（3 回で型になる）"
@@ -115,59 +197,24 @@ if printf '%s\n' "$jprose" | LC_ALL=C awk '{ x = $0; j += gsub(/[\343-\351]/, ""
   n="$(printf '%s' "$hits" | grep -c .)"
   if [ "$n" -ge 3 ]; then show "${n} 回"$'\n'"$hits"; found=1; else show "${n} 回"; fi
 
-  # Paragraph prose only: headings, table rows and list items are fragments, not
-  # sentences. Fewer than 5 sentences is reported without a verdict.
+  jout="$(read_blocks ja)"; rc=$?
   echo "文長の変動係数（5 文以上で 0.25 未満なら単調）"
-  stats="$(printf '%s\n' "$jprose" \
-    | LC_ALL=C awk '/^[ \t]*(#|\||[-*+][ \t]|[0-9]+\.[ \t])/ { next }
-                    NF == 0 { next }
-                    { gsub(/。|！|？/, "&\n"); print }' \
-    | LC_ALL=C awk '{ x = $0; gsub(/^[ \t]+|[ \t]+$/, "", x); if (x == "") next
-                      gsub(/[\200-\277]/, "", x); l = length(x); if (l < 2) next
-                      n++; s += l; ss += l * l }
-                    END { if (n == 0) { print "0 0 0"; exit }
-                          m = s / n; v = ss / n - m * m; if (v < 0) v = 0
-                          printf "%d %.1f %.2f\n", n, m, sqrt(v) / m }')"
-  # shellcheck disable=SC2086  # intentional word splitting: three numbers
-  set -- $stats
-  if [ "$1" -lt 5 ]; then
-    show "文 $1 — 5 未満、判定なし"
-  elif awk -v c="$3" 'BEGIN { exit !(c < 0.25) }'; then
-    show "文 $1・平均 $2 字・変動係数 $3 — 0.25 未満"; found=1
+  if [ "$rc" -ne 0 ]; then
+    show "${jout:-perl が失敗 (exit $rc)}"; found=1
   else
-    show "文 $1・平均 $2 字・変動係数 $3"
-  fi
+    # shellcheck disable=SC2086  # intentional word splitting: STATS and three numbers
+    set -- ${jout%%$'\n'*}
+    if [ "$2" -lt 5 ]; then
+      show "文 $2 — 5 未満、判定なし"
+    elif awk -v c="$4" 'BEGIN { exit !(c < 0.25) }'; then
+      show "文 $2・平均 $3 字・変動係数 $4 — 0.25 未満"; found=1
+    else
+      show "文 $2・平均 $3 字・変動係数 $4"
+    fi
 
-  # Reading load: the four pointers from natural-japanese's --reading-load lane
-  # that a reader skims past in a long document. Regex stands in for its
-  # morphological analyser, so its proper-noun and part-of-speech guards are gone
-  # and false hits are expected. Headings and table rows are skipped; inline
-  # code, link targets and bold markers are stripped before measuring. Missing
-  # perl is reported, not passed — see the mktemp note at the top.
-  echo "読解負荷（指さし。読んで引っかからなければ触らない）"
-  if ! command -v perl >/dev/null; then
-    show "perl が無いので未実行"; found=1
-  else
-    out="$(printf '%s\n' "$jprose" | perl -CSD -Mutf8 -ne '
-      next if /^\s*(#|\|)/;
-      my $t = $_; chomp $t;
-      $t =~ s/`[^`]*`/ /g; $t =~ s/\[([^\]]*)\]\([^)]*\)/$1/g; $t =~ s/\*\*//g;
-      $t =~ s/^\s*(?:[-*+]|\d+\.)\s+//;
-      for my $s (split /(?<=[。！？])/, $t) {
-        (my $x = $s) =~ s/^\s+|\s+$//g;
-        my $j = () = $x =~ /[\p{Hiragana}\p{Katakana}\p{Han}ー]/g;
-        next if $j < 0.3 * length $x;   # English prose quoting Japanese has no 。 to split on
-        printf "L%d 一文 %d 字（目安 90）: %s…\n", $., length $x, substr($x, 0, 24) if length $x > 90;
-      }
-      while ($t =~ /([\x{4E00}-\x{9FFF}々]{7,})/g) { printf "L%d 漢字 %d 字連続: %s\n", $., length $1, $1 }
-      my $no = qr/(?<![こそあども])の(?![でにはがをかだ])/;
-      printf "L%d 「の」3 連: %s\n", $., $1 if $t =~ /($no[^、。の]{1,6}$no[^、。の]{1,6}$no)/;
-      printf "L%d 二重否定: %s\n", $., $1
-        if $t =~ /(ないわけでは(?:ない|ありません)|ないと[はも](?:言え|いえ|限ら)(?:ない|ません)|なく[はも](?:ない|ありません)|ないことは(?:ない|ありません)|ないでも(?:ない|ありません))/;
-    ')"; rc=$?
-    if [ "$rc" -ne 0 ]; then show "perl が失敗 (exit $rc)"; found=1
-    elif [ -n "$out" ]; then show "$out"; found=1
-    else show none; fi
+    echo "読解負荷（指さし。読んで引っかからなければ触らない）"
+    pointers="$(sed 1d <<<"$jout")"
+    if [ -n "$pointers" ]; then show "$pointers"; found=1; else show none; fi
   fi
 fi
 

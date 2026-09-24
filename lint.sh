@@ -12,7 +12,7 @@ if ! command -v shellcheck >/dev/null 2>&1; then
 fi
 
 FILES=("$REPO/install.sh" "$REPO/lint.sh" "$REPO/test-hooks.sh" "$REPO/test-install.sh"
-       "$REPO/config/statusline.sh" "$REPO"/config/hooks/*.sh)
+       "$REPO/config/statusline.sh" "$REPO"/config/hooks/*.sh "$REPO"/skills/*/*.sh)
 
 # shellcheck disable=SC2086
 shellcheck "${FILES[@]}"

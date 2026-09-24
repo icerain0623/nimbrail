@@ -5,9 +5,9 @@ Condensed from coji/natural-japanese `references/readability-antipatterns.md` (M
 Two constraints hold for every fix:
 
 - Shorter is a tie-breaker, not a goal. Check first that the facts survive and that subject and predicate, modifier and head still pair; only between candidates equal on both, prefer the shorter. Splitting a sentence often adds characters, and that is the correct result.
-- A fix changes form. Meaning, order and amount of information stay.
+- A fix changes how something is said, never what: every fact, condition and exception survives. Reordering words or sentences is fine; losing or adding a claim is not.
 
-Document-level structure — conclusion first, terms, templates, So What — is the reading pass in `SKILL.md`, not here.
+Document-level structure — conclusion first, terms, templates, So What — is the reading pass in `SKILL.md`, not here. The letters follow the source catalog; its E (paragraph layout) and G (stock phrases) are Layer 1's.
 
 ## A. Negation and nested conditions
 
@@ -31,7 +31,7 @@ Check the condition still maps one-to-one onto the original, exceptions and prem
 
 Japanese puts the predicate last, so every character between a word and what it attaches to is held in memory.
 
-B1 Sentence too long. One idea per sentence matters more than the count; 90 characters is where `selfcheck.sh` points, 40–60 the often-quoted target, and neither is absolute. A sentence long because it names its actors explicitly is not shortened back.
+B1 Sentence too long. One idea per sentence matters more than the count; 40–60 characters is the often-quoted target, `selfcheck.sh` points well past it, and neither is absolute. A sentence long because it names its actors explicitly is not shortened back.
 
 - Before: システムが起動しない場合にログを確認して原因を特定し設定ファイルを修正してから再起動すれば直ることが多いが、稀にハードウェア故障が原因であることもある問題への対応手順を以下に示す。
 - After: 以下に、システムが起動しない問題への対応手順を示す。まずログを確認して原因を特定する。次に設定ファイルを修正し、再起動する。これで直ることが多いが、稀にハードウェア故障が原因の場合もある。
@@ -43,8 +43,8 @@ B2 ねじれ. A long clause between subject and predicate, and the predicate no 
 
 B3 Modifier order. Long modifiers first, short ones nearest the head (本多勝一's rule); the reverse makes the reader re-parse at the end.
 
-- Before: 白い、庭に面した窓から差し込む光を浴びながら眠っている猫を見た本を読んでいた。
-- After: 庭に面した窓から差し込む光を浴びながら眠っている猫を見た、白い本を読んでいた。
+- Before: 白い父が学生時代に神田の古書店で買った本を読んだ。
+- After: 父が学生時代に神田の古書店で買った白い本を読んだ。
 
 B4 読点. A comma marks a syntactic break, not a breath. 「彼は笑いながら走ってきた友人に手を振った」 does not say who is laughing until a comma or a reordering does.
 
@@ -52,7 +52,7 @@ B5 Ambiguous attachment (黒い髪の美しい少女). Fix it with word order, n
 
 B6 「〜が、〜が、」. Conjunctive が serves both contrast and plain linking; twice in one sentence and the real contrast disappears. Split at it.
 
-- Before: 本ライブラリはリトライ機構を提供しますが、全エラーで再送するわけではなく、上限の設定も必要です。
+- Before: 本ライブラリはリトライ機構を提供しますが、すべてのエラーで再送するわけではありませんが、再送回数の上限は設定が必要です。
 - After: 本ライブラリはリトライ機構を提供します。ただし、すべてのエラーで再送するわけではありません。再送回数の上限も設定が必要です。
 
 B7 こそあど. When 「これ」 has more than one candidate in the previous sentence, name the thing.
@@ -90,16 +90,30 @@ This looks like the opposite of Layer 1's lists-into-prose, and it is the same r
 
 H1 Repetition. Delete only a restatement that adds nothing. A sentence adding a condition or a consequence is not repetition; when unsure, keep.
 
-- Before: このAPIは冪等です。同じリクエストを何度送っても結果は変わりません。つまり、再送しても安全だということです。
+- Before: このAPIは冪等です。同じリクエストを何度送っても結果は変わりません。つまり、何回呼んでも同じ結果になるということです。
 - After: このAPIは冪等で、同じリクエストを何度送っても結果は変わりません。
+
+「つまり、再送しても安全です」なら帰結なので残す。
 
 H2 Topic jump. No bridge between paragraphs, or two topics in one. Bridge or split; sentence order and logic stay.
 
 H3 Connectives. 「また」「さらに」「加えて」 on every sentence is padding; none at all leaves the reader to guess. Cut the mechanical ones, keep contrast and condition.
 
-- Before: また、ログも出力されます。さらに、メトリクスも送信されます。加えて、アラートも発火します。
-- After: ログの出力、メトリクスの送信、アラートの発火も行われます。
+- Before: 処理が失敗すると、ログが出力されます。また、メトリクスも送信されます。さらに、アラートも発火します。
+- After: 処理が失敗すると、ログが出力され、メトリクスが送信され、アラートが発火します。
 
 ## Final read
 
 Read it through as the reader. A sentence that does not parse on the first read still holds one of the above. Recheck the direction of every folded double negative, and every sentence deleted under H1 for a condition or exception it was carrying.
+
+## License
+
+The catalog above is condensed from coji/natural-japanese, used under the MIT License:
+
+Copyright (c) 2026 coji
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

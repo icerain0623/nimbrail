@@ -20,7 +20,7 @@ Chat replies are out of scope. By the time this could be invoked the reply is al
 
 ## Revise, don't sweep
 
-Every rule below is easy to apply everywhere, and applied everywhere it becomes the next tell: in coji/natural-japanese's blind comparison, a revision that turned every heading into a conclusion and every list into prose beat the original on reader value and lost on reading as human-written.
+Layer 1 and Layer 2 are counts and conventions, meant to reach every instance. The reading pass and `readability.md` are judgement, and judgement applied everywhere becomes the next tell: in coji/natural-japanese's blind test, a revision that converted every heading and every list beat the original on reader value and lost on reading as human-written. For those:
 
 - Default is keep. Change a passage only when you can name what the reader gains; when changes reach a third of the document, tell the user why.
 - After revising, count each kind of change. One that reached every instance of its kind is a sweep — restore the ones that bought nothing.
@@ -47,7 +47,7 @@ Japanese prose carries three more, taken from coji/natural-japanese (MIT), whose
 
 ## Reading pass — any document
 
-Layer 1 is settled by counts; this is judgement, run once the markup noise is gone.
+Judgement, run once the markup noise is gone.
 
 Start from the skeleton: only the headings and each paragraph's first sentence (`selfcheck.sh --outline` prints them). The argument should hold from those alone. Then:
 
@@ -56,10 +56,10 @@ Start from the skeleton: only the headings and each paragraph's first sentence (
 - A term gets what it does before its name, at first use.
 - The same template three times running — definition sentences, section internals, sentence openers — is varied or merged.
 - Certainty is labelled (推定, 未確認) rather than dissolved into hedged endings, and opinion is marked as the writer's.
-- A report ends on what follows from it, not a restated summary.
-- In an explanatory document, a setup and reveal staged across sections (思い込み→異変→種明かし) is a second story the reader must track. Keep at most one.
+- An analysis ends on what follows from it, not a restated summary. A findings report keeps Tone's form instead.
+- In an explanatory document, a setup and reveal staged across sections is a second story the reader must track. Keep at most one.
 
-Then, for Japanese prose, sentence level: `readability.md` beside this file, applied front to back. `selfcheck.sh` points at the four a reader skims past in a long document — sentences over 90 characters, kanji runs of seven or more, 「の」 three in a row, stock double negatives. They are regex stand-ins for natural-japanese's morphological checks, without its guards, so expect false hits: each is a line to read, not a fix.
+Then, for Japanese prose, sentence level: `readability.md` beside this file, applied front to back. `selfcheck.sh` points at the four a reader skims past in a long document — long sentences, kanji runs, 「の」 chains, stock double negatives. They are regex stand-ins for natural-japanese's morphological checks, without its guards, so expect false hits: each is a line to read, not a fix.
 
 ## Layer 2 — a document someone executes
 
@@ -145,6 +145,6 @@ Fine-grained sequential steps get `####` headings, so the operator can name whic
 
 ## Finish
 
-`bash <skill-dir>/selfcheck.sh [--exec] <file>` — Layer 1 by default, `--exec` adds Layer 2. It reports the bold density against the ceiling, every table and nested bullet and horizontal rule for you to judge, the three Japanese counts and the reading-load pointers when the prose is Japanese, and under `--exec` the code blocks with no expected result plus every `§` reference to resolve by eye. `--outline` prints the skeleton for the reading pass instead.
+`bash <skill-dir>/selfcheck.sh [--exec | --outline] <file>` — Layer 1 by default, `--exec` adds Layer 2. It reports the bold density against the ceiling, every table and nested bullet and horizontal rule for you to judge, the three Japanese counts and the reading-load pointers when the prose is Japanese, and under `--exec` the code blocks with no expected result plus every `§` reference to resolve by eye.
 
 It finds omissions, not bad judgement. A clean run is not a review, and deleting bold to silence the density is not the point.
