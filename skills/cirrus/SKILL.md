@@ -34,5 +34,6 @@ The chat is disposable; the note is the artifact.
 ## Rules
 
 - Edit append-first: only `結論(現時点)` gets rewritten (always the latest view). A past finding stays even when overturned, annotated "→ superseded by ◯◯ below".
+- The note holds findings, not steps. A procedure that emerges goes to its own file or the project's task ledger, and the note links to it.
 - No unsourced knowledge in the note — statements from model memory are marked "(未検証・記憶ベース)".
 - Keep credentials out of the note: it persists to Obsidian, outside the repo, where nothing scrubs it later.

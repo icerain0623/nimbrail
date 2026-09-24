@@ -61,6 +61,7 @@ Structure first; it is where a Claude-written document is hardest to read, and f
 - A cross-reference the reader must follow to understand the passage in front of them means the two belong together.
 - Instructions the writer was given are not content. A sentence that exists because Claude was told to do or avoid something (「CLAUDE.md により…使わない」, 「（ユーザー要望）」) goes; the instruction lives in CLAUDE.md or memory. A decision the reader must know stays, without its provenance.
 - Once an item is bought, its shop links and price comparisons go; the model and what it is for stay.
+- Steps someone runs and the findings behind them are two documents. Propose the split — which part goes where, and which copy of a duplicated procedure is the source — rather than doing it unasked; a procedure kept in two places drifts.
 
 Then:
 
