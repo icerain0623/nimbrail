@@ -40,12 +40,13 @@ Every rule here is settled by a count rather than by taste. That is the whole re
 - **Horizontal rules** — none. Headings already separate sections, and a rule between them is a second separator doing the same job.
 - Personal paths, hostnames and usernames are placeholders.
 
-Japanese prose carries four more. The first three are taken from coji/natural-japanese (MIT), whose human-vs-AI corpus set the numbers; the checks there that need a morphological analyser stay out.
+Japanese prose carries five more. The first three are taken from coji/natural-japanese (MIT), whose human-vs-AI corpus set the numbers; the checks there that need a morphological analyser stay out.
 
 - **Stock phrases** — the closing tics (と言えるでしょう, まとめると, いかがでしたか), the empty intensifiers (非常に重要, 鍵となる), the hollow lead-ins (見ていきましょう), the translationese (することができる). Each hit is deleted or replaced by the fact it stood in for. The list lives in `selfcheck.sh`.
 - **Contrast** — 「〜ではなく」「〜だけでなく」 at most twice per document. From the third, correcting a misreading has become a template.
 - **Sentence rhythm** — over five or more sentences, the coefficient of variation of sentence length stays at or above 0.25. Human prose in that corpus sits near 0.7 and generated prose near 0.4; below the floor every sentence is the same length, and the reader hears it.
-- **Verbal tics** — Claude's habit words (効く, 刺さる, 噛み合う, 罠を踏む), listed once a family reaches three in a document. Each hit that stands in for a specific effect ("the reorganization 効いた") is replaced by that effect; one that names a real mechanism (a filter 効く) stays. The list lives in `selfcheck.sh`.
+- **Dashes** — 「—」 joining clauses is carried over from English: measured 2026-09-25, Claude's Japanese documents ran about 275 per 100,000 characters against 1.5 in human prose. From the third in a document, each becomes 。, 、 or a connective; a heading's subtitle dash may stay.
+- **Verbal tics** — Claude's habit words (効く, 黙って, 同じ形, 入口, 束ねる), each near zero in the same human prose, listed once a family reaches three in a document. Each hit that stands in for a specific effect ("the reorganization 効いた") is replaced by that effect; one that names a real mechanism (a filter 効く) stays. The list lives in `selfcheck.sh`.
 
 ## Reading pass — any document
 
