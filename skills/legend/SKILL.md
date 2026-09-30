@@ -1,6 +1,6 @@
 ---
 name: legend
-description: Revision pass over a finished document — strips the AI-writing tells (decorative bold, tables for non-tabular data, nested bullets, rules) against a measured density, then reads it for structure and, in Japanese prose, sentence load, changing only what buys the reader something; plus the conventions for one someone executes (runbook, deploy procedure, handover): one paste per code block with its expected result, recovery in an appendix.
+description: "Revision pass over a finished document — strips the AI-writing tells (decorative bold, tables for non-tabular data, nested bullets, rules) against a measured density, then reads it for structure and, in Japanese prose, sentence load, changing only what buys the reader something; plus the conventions for one someone executes (runbook, deploy procedure, handover): one paste per code block with its expected result, recovery in an appendix."
 disable-model-invocation: true
 ---
 
