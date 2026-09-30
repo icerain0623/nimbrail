@@ -222,7 +222,9 @@ if printf '%s\n' "$jprose" | LC_ALL=C awk '{ x = $0; j += gsub(/[\343-\351]/, ""
   n="$(printf '%s' "$hits" | grep -c .)"
   if [ "$n" -ge 3 ]; then show "${n} 回"$'\n'"$hits"; found=1; else show "${n} 回"; fi
 
-  # Dashes joining clauses. Headings are listed too; a subtitle dash there may
+  # Dashes joining clauses: measured 2026-09-25, Claude's Japanese documents
+  # ran about 275 per 100,000 characters against 1.5 in human prose. Headings
+  # are listed too; a subtitle dash there may
   # stay. cirrus's own note format ("— source: URL", "- URL — verdict", the
   # latter also as a Markdown link) is a field separator, not prose, so those
   # separators are dropped before counting.
@@ -234,12 +236,56 @@ if printf '%s\n' "$jprose" | LC_ALL=C awk '{ x = $0; j += gsub(/[\343-\351]/, ""
   n="$(printf '%s' "$dl" | awk -F: '{ t += $2 } END { print t + 0 }')"
   if [ "$n" -ge 3 ]; then show "${n} 回: ${hits}"; found=1; else show "${n} 回"; fi
 
+  # Half-width space at a Japanese–ASCII boundary, as a share of all such
+  # boundaries. Measured 2026-10-01: 65 of 89 human documents spaced under a
+  # fifth of them and 10 spaced nearly all, while Claude's median was 0.85 —
+  # a house style that spaces is a convention, so the reader's project decides.
+  # Fewer than 10 boundaries is too few to call. Link targets are dropped.
+  echo "和欧間の半角空白（境界の 2 割超。空けない。プロジェクトが空ける流儀なら揃える）"
+  if ! command -v perl >/dev/null; then
+    show "perl が無いので未実行"; found=1
+  else
+    out="$(printf '%s\n' "$jprose" | perl -CSD -Mutf8 -ne '
+      BEGIN { $J = qr/[\x{3040}-\x{30FF}\x{4E00}-\x{9FFF}]/; $A = qr/[A-Za-z0-9]/ }
+      s/\]\([^)]*\)/]/g; s{https?://\S+}{}g;
+      my $s = () = /(?<=$J) (?=$A)|(?<=$A) (?=$J)/g; my $n = () = /(?<=$J)(?=$A)|(?<=$A)(?=$J)/g;
+      $S += $s; $N += $n; push @l, $. if $s;
+      END { my $t = $S + $N; exit 0 unless $t;
+            printf "%d / %d 境界 (%.2f)%s\n", $S, $t, $S / $t,
+              ($t >= 10 && $S / $t > 0.2) ? " — 行: " . join(" ", @l[0 .. ($#l < 9 ? $#l : 9)]) . (@l > 10 ? " ほか" : "") : "" }')"; rc=$?
+    if [ "$rc" -ne 0 ]; then show "perl が失敗 (exit $rc)"; found=1
+    elif [ -z "$out" ]; then show "境界なし"
+    else show "$out"; case "$out" in *"— 行:"*) found=1 ;; esac; fi
+  fi
+
+  # Parentheses opened in Japanese prose, per 1000 Japanese characters.
+  # Measured 2026-10-01: human documents ran median 2.5 and 90th percentile
+  # 10.5, Claude's median 20. A reading or an abbreviation stays; a restatement
+  # or an aside is the tell. 「](」 is a Markdown link and never matches.
+  echo "括弧（和文 1000 字あたり 10 超。言い換えと余談は外し、条件は文に入れる）"
+  if ! command -v perl >/dev/null; then
+    show "perl が無いので未実行"; found=1
+  else
+    out="$(printf '%s\n' "$jprose" | perl -CSD -Mutf8 -ne '
+      my $p = () = /（|(?<=[\x{3040}-\x{30FF}\x{4E00}-\x{9FFF}])\(/g;
+      $j += () = /[\x{3040}-\x{30FF}\x{4E00}-\x{9FFF}]/g; $P += $p; push @l, "$.($p)" if $p;
+      END { exit 0 unless $j; my $d = $P * 1000 / $j;
+            printf "%.1f / 10 — %d 個、和文 %d 字%s\n", $d, $P, $j, $d > 10 ?
+              " — 行: " . join(" ", @l[0 .. ($#l < 9 ? $#l : 9)]) . (@l > 10 ? " ほか" : "") : "" }')"; rc=$?
+    if [ "$rc" -ne 0 ]; then show "perl が失敗 (exit $rc)"; found=1
+    else show "$out"; case "$out" in *"— 行:"*) found=1 ;; esac; fi
+  fi
+
   # Claude's habit words: each ran near zero per 100,000 characters in human
   # prose while Claude's documents used it several times (measured 2026-09-25;
-  # 踏む and 肝 were dropped because human prose used them as much). Each is
-  # also a real word (a filter 効く), so nothing is flagged below three per
-  # family, and every hit is a line to judge. 効 is matched only in its verb
-  # forms (効果 / 効率 / 有効 stay out); 筋 only in its figurative frames.
+  # 踏む and 肝 were dropped because human prose used them as much). The
+  # failure and placement metaphors from nanaism/yomiyasu's catalog joined on
+  # a 2026-10-01 re-measurement (壊れる 9.7 against 0.7, 落ちる 18.8 against
+  # 1.7); its buzzwords (解像度, 腹落ち, 手触り, 本質) showed no gap and stay
+  # out. Each is also a real word (a filter 効く), so nothing is flagged below
+  # three per family, and every hit is a line to judge. 効 is matched only in
+  # its verb forms (効果 / 効率 / 有効 stay out); 筋 only in its figurative
+  # frames; 落ち leaves 落ち着く out.
   echo "口癖（3 回以上の族を並べる。具体的な効果の代わりなら、その効果を書く）"
   if ! command -v perl >/dev/null; then
     show "perl が無いので未実行"; found=1
@@ -249,7 +295,10 @@ if printf '%s\n' "$jprose" | LC_ALL=C awk '{ x = $0; j += gsub(/[\343-\351]/, ""
                       ["噛み合う", qr/噛み合/], ["黙って", qr/黙って/], ["同じ形", qr/同じ形/],
                       ["入口・導線", qr/入口|導線/], ["別物", qr/別物/], ["束ねる", qr/束ね/],
                       ["畳む", qr/畳[むまみめんっ]/], ["薄い", qr/薄[いくかさ]/], ["本命", qr/本命/],
-                      ["筋", qr/筋(?:が(?:通|良|悪|立)|だ|です)/]) }
+                      ["筋", qr/筋(?:が(?:通|良|悪|立)|だ|です)/],
+                      ["壊れる", qr/壊[れさしせ]/], ["落ちる", qr/落ち(?!着)[るたてなま]/],
+                      ["崩れる", qr/崩れ/], ["潰す", qr/潰[すしさせれ]/], ["添える", qr/添え[るてたま]/],
+                      ["混ざる", qr/混ざ[るらりっれ]/], ["土台", qr/土台/]) }
       for my $f (@fam) { my ($name, $re) = @$f; while (/$re/g) { push @{$hit{$name}}, "$.:$&" } }
       END { for my $f (@fam) { my $h = $hit{$f->[0]} or next; next if @$h < 3;
               printf "%s %d 回: %s\n", $f->[0], scalar @$h, join(" ", @$h) } }')"; rc=$?
