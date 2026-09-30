@@ -71,7 +71,12 @@ C2 サ変 nominalisation and 「の」 chains. Freezing actions into nouns pushe
 
 C3 Stacked passives (〜と考えられている, 対応が求められている). Who acts goes missing; name the actor where it matters.
 
-C4 Katakana density (ステークホルダーとのアラインメントをコミットする). Use the plain word when one exists and the reader may not share the vocabulary.
+C4 Missing actor. A sentence should say, on its own, who does what to what. Two shapes hide it: a tool or concept acting as a person would (設定が守ってくれる, ログが教えてくれる), and a pronoun or 両者 / 片方 whose referent sits sentences back. Name the actor — the reader, the operator, the system — and put the object beside it. The draft decides who that is: an actor it does not name is asked about, not supplied. From nanaism/yomiyasu (MIT).
+
+- Before: 設定ファイルを置いておけば、あとはキャッシュが面倒を見てくれる。
+- After: 設定ファイルを置くと、ビルドツールは2回目以降の依存解決をキャッシュから読む。
+
+C5 Katakana density (ステークホルダーとのアラインメントをコミットする). Use the plain word when one exists and the reader may not share the vocabulary.
 
 ## D. Padding
 
@@ -117,3 +122,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+C4, the failure metaphors in `selfcheck.sh`'s habit-word list, and its half-width-space and parenthesis checks are adapted from nanaism/yomiyasu, under the same MIT License terms:
+
+Copyright (c) 2026 nanaism
