@@ -47,7 +47,7 @@ Japanese prose carries seven more. The first three are taken from coji/natural-j
 - **Sentence rhythm** — over five or more sentences, the coefficient of variation of sentence length stays at or above 0.25. Human prose in that corpus sits near 0.7 and generated prose near 0.4; below the floor every sentence is the same length, and the reader hears it.
 - **Dashes** — 「—」 joining clauses is carried over from English, and human prose almost never uses it. From the third in a document, each becomes 。, 、 or a connective; a heading's subtitle dash may stay.
 - **Verbal tics** — Claude's habit words (効く, 黙って, 入口; 壊れる, 落ちる via nanaism/yomiyasu, MIT), near zero in human prose, listed once a family reaches three in a document. Each hit that stands in for a specific effect or state change ("the reorganization 効いた") is replaced by it; one that names a real mechanism (a filter 効く) stays. The list lives in `selfcheck.sh`.
-- **Half-width spaces** between Japanese and Latin — none, from a fifth of the boundaries; a project whose documents consistently space is matched instead.
+- **Half-width spaces** between Japanese and Latin letters or digits — none, from a fifth of the boundaries; a project that consistently spaces is matched.
 - **Parentheses** — at most 10 per 1000 Japanese characters. A reading or an abbreviation stays; a restatement goes, and an aside carrying a condition moves into the sentence.
 
 ## Reading pass — any document

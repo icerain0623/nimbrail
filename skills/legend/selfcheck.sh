@@ -52,6 +52,8 @@ fi
 #             skims past in a long document. Regex stands in for its
 #             morphological analyser, so its proper-noun and part-of-speech
 #             guards are gone and false hits are expected.
+# What counts as a Japanese character, for every perl pass in this script.
+JA_CLASS='our $J = qr/[\p{sc=Hiragana}\p{sc=Katakana}\p{sc=Han}ー]/;'
 read -r -d '' READER <<'PERL' || true
 use strict; use warnings;
 my ($LONG, $KANJI) = (90, 7);
@@ -111,7 +113,7 @@ for my $e (@ev) {
     my $at = $pos; $pos += length $s;
     next if $k eq 'item' && $s !~ /[。！？]\s*$/;
     (my $x = $s) =~ s/^\s+|\s+$//g;
-    my $j = () = $x =~ /[\p{Hiragana}\p{Katakana}\p{Han}ー]/g;
+    my $j = () = $x =~ /$J/g;
     next if length $x < 2 || $j < 0.3 * length $x;   # English prose has no 。 to split on
     push @len, length $x;
     push @hit, [line_at($at, $off), sprintf("一文 %d 字（目安 %d）: %s…", length $x, $LONG, substr($x, 0, 24))]
@@ -132,7 +134,24 @@ PERL
 # Missing or failing perl is reported, not passed — see the mktemp note at the top.
 read_blocks() {
   command -v perl >/dev/null || { echo "perl が無いので未実行"; return 127; }
-  perl -CSD -Mutf8 -e "$READER" "$1" <<<"$scan"
+  perl -CSD -Mutf8 -e "$JA_CLASS$READER" "$1" <<<"$scan"
+}
+
+# One per-line perl check over the Japanese prose ($jprose, set below). Code
+# spans become a placeholder that is neither Japanese nor Latin, so nothing
+# inside them is counted. The check prints its result and sets $? = 3 in END
+# when it flags; any other non-zero exit is a failure, reported, not passed.
+JA_PRELUDE='sub first10 { join(" ", @_[0 .. ($#_ < 9 ? $#_ : 9)]) . (@_ > 10 ? " ほか" : "") }
+            s/`[^`]*`/\x{FFFC}/g;'
+ja_check() {
+  command -v perl >/dev/null || { show "perl が無いので未実行"; found=1; return; }
+  local out rc
+  out="$(printf '%s\n' "$jprose" | perl -CSD -Mutf8 -ne "$JA_CLASS$JA_PRELUDE$1")"; rc=$?
+  case "$rc" in
+    0) show "$out" ;;
+    3) show "$out"; found=1 ;;
+    *) show "perl が失敗 (exit $rc)"; found=1 ;;
+  esac
 }
 
 if [ "$outline" = 1 ]; then
@@ -224,57 +243,45 @@ if printf '%s\n' "$jprose" | LC_ALL=C awk '{ x = $0; j += gsub(/[\343-\351]/, ""
 
   # Dashes joining clauses: measured 2026-09-25, Claude's Japanese documents
   # ran about 275 per 100,000 characters against 1.5 in human prose. Headings
-  # are listed too; a subtitle dash there may
-  # stay. cirrus's own note format ("— source: URL", "- URL — verdict", the
-  # latter also as a Markdown link) is a field separator, not prose, so those
-  # separators are dropped before counting.
+  # are listed too. cirrus's own note format ("— source: URL", "- URL —
+  # verdict", the latter also as a Markdown link) is a field separator, not
+  # prose, so those separators are dropped before counting.
   echo "ダッシュ「—」（3 回で型になる。。、や接続詞にする）"
-  dl="$(printf '%s\n' "$jprose" | perl -CSD -Mutf8 -ne '
-      s/\s*— source:.*//; s/^(\s*- (?:https?:\/\/\S+(?: , https?:\/\/\S+)*|\[[^]]*\]\([^)]*\))) —/$1/;
-      my $c = () = /—|―/g; print "$.:$c\n" if $c')"
-  hits="$(printf '%s' "$dl" | awk -F: 'NF { printf "%s%s(%d)", (n++ ? " " : ""), $1, $2 }')"
-  n="$(printf '%s' "$dl" | awk -F: '{ t += $2 } END { print t + 0 }')"
-  if [ "$n" -ge 3 ]; then show "${n} 回: ${hits}"; found=1; else show "${n} 回"; fi
+  ja_check '
+    s/\s*— source:.*//; s/^(\s*- (?:https?:\/\/\S+(?: , https?:\/\/\S+)*|\[[^]]*\]\([^)]*\))) —/$1/;
+    my $c = () = /—|―/g; if ($c) { $n += $c; push @l, "$.($c)" }
+    END { $n += 0; if ($n >= 3) { print "$n 回: @l\n"; $? = 3 } else { print "$n 回\n" } }'
 
-  # Half-width space at a Japanese–ASCII boundary, as a share of all such
-  # boundaries. Measured 2026-10-01: 65 of 89 human documents spaced under a
-  # fifth of them and 10 spaced nearly all, while Claude's median was 0.85 —
-  # a house style that spaces is a convention, so the reader's project decides.
-  # Fewer than 10 boundaries is too few to call. Link targets are dropped.
-  echo "和欧間の半角空白（境界の 2 割超。空けない。プロジェクトが空ける流儀なら揃える）"
-  if ! command -v perl >/dev/null; then
-    show "perl が無いので未実行"; found=1
-  else
-    out="$(printf '%s\n' "$jprose" | perl -CSD -Mutf8 -ne '
-      BEGIN { $J = qr/[\x{3040}-\x{30FF}\x{4E00}-\x{9FFF}]/; $A = qr/[A-Za-z0-9]/ }
-      s/\]\([^)]*\)/]/g; s{https?://\S+}{}g;
-      my $s = () = /(?<=$J) (?=$A)|(?<=$A) (?=$J)/g; my $n = () = /(?<=$J)(?=$A)|(?<=$A)(?=$J)/g;
-      $S += $s; $N += $n; push @l, $. if $s;
-      END { my $t = $S + $N; exit 0 unless $t;
-            printf "%d / %d 境界 (%.2f)%s\n", $S, $t, $S / $t,
-              ($t >= 10 && $S / $t > 0.2) ? " — 行: " . join(" ", @l[0 .. ($#l < 9 ? $#l : 9)]) . (@l > 10 ? " ほか" : "") : "" }')"; rc=$?
-    if [ "$rc" -ne 0 ]; then show "perl が失敗 (exit $rc)"; found=1
-    elif [ -z "$out" ]; then show "境界なし"
-    else show "$out"; case "$out" in *"— 行:"*) found=1 ;; esac; fi
-  fi
+  # Measured 2026-10-01 over natural-japanese's web corpus plus two tutorials:
+  # 65 of 89 human documents spaced under a fifth of their Japanese–Latin
+  # boundaries and 10 spaced nearly all; Claude's median share was 0.85.
+  # Fewer than 10 boundaries is too few to call. A code span's edge is not a
+  # boundary: ja_check has already replaced the span with a placeholder.
+  echo "和欧間の半角空白（英字・数字との境界の 2 割以上。空けないか、プロジェクトの流儀に揃える）"
+  ja_check '
+    BEGIN { $A = qr/[A-Za-z0-9]/ }
+    s/\]\([^)]*\)/]/g; s{https?://\S+}{}g;
+    my $s = () = /(?<=$J) (?=$A)|(?<=$A) (?=$J)/g; my $n = () = /(?<=$J)(?=$A)|(?<=$A)(?=$J)/g;
+    $S += $s; $N += $n; push @l, $. if $s;
+    END { my $t = $S + $N;
+          if (!$t) { print "境界なし\n" }
+          else { printf "%d / %d 境界 (%.2f)", $S, $t, $S / $t;
+                 if ($t < 10) { print " — 10 未満、判定なし\n" }
+                 elsif ($S / $t >= 0.2) { print " — 行: ", first10(@l), "\n"; $? = 3 }
+                 else { print "\n" } } }'
 
-  # Parentheses opened in Japanese prose, per 1000 Japanese characters.
-  # Measured 2026-10-01: human documents ran median 2.5 and 90th percentile
-  # 10.5, Claude's median 20. A reading or an abbreviation stays; a restatement
-  # or an aside is the tell. 「](」 is a Markdown link and never matches.
-  echo "括弧（和文 1000 字あたり 10 超。言い換えと余談は外し、条件は文に入れる）"
-  if ! command -v perl >/dev/null; then
-    show "perl が無いので未実行"; found=1
-  else
-    out="$(printf '%s\n' "$jprose" | perl -CSD -Mutf8 -ne '
-      my $p = () = /（|(?<=[\x{3040}-\x{30FF}\x{4E00}-\x{9FFF}])\(/g;
-      $j += () = /[\x{3040}-\x{30FF}\x{4E00}-\x{9FFF}]/g; $P += $p; push @l, "$.($p)" if $p;
-      END { exit 0 unless $j; my $d = $P * 1000 / $j;
-            printf "%.1f / 10 — %d 個、和文 %d 字%s\n", $d, $P, $j, $d > 10 ?
-              " — 行: " . join(" ", @l[0 .. ($#l < 9 ? $#l : 9)]) . (@l > 10 ? " ほか" : "") : "" }')"; rc=$?
-    if [ "$rc" -ne 0 ]; then show "perl が失敗 (exit $rc)"; found=1
-    else show "$out"; case "$out" in *"— 行:"*) found=1 ;; esac; fi
-  fi
+  # Measured 2026-10-01 on the same corpora, per 1000 Japanese characters:
+  # human median 2.5 and 90th percentile 10.5, Claude's median 20. Under 500
+  # Japanese characters a few readings would cross the line, so it is not
+  # called. 「](」 is a Markdown link and never matches.
+  echo "括弧（和文 1000 字あたり 10 超。言い換えは外し、条件は文に入れる）"
+  ja_check '
+    my $p = () = /（|(?<=$J)\(/g; $j += () = /$J/g; $P += $p; push @l, "$.($p)" if $p;
+    END { $P += 0; $j += 0; my $d = $j ? $P * 1000 / $j : 0;
+          printf "%.1f / 10 — %d 個、和文 %d 字", $d, $P, $j;
+          if ($j < 500) { print " — 500 字未満、判定なし\n" }
+          elsif ($d > 10) { print " — 行: ", first10(@l), "\n"; $? = 3 }
+          else { print "\n" } }'
 
   # Claude's habit words: each ran near zero per 100,000 characters in human
   # prose while Claude's documents used it several times (measured 2026-09-25;
@@ -283,29 +290,23 @@ if printf '%s\n' "$jprose" | LC_ALL=C awk '{ x = $0; j += gsub(/[\343-\351]/, ""
   # a 2026-10-01 re-measurement (壊れる 9.7 against 0.7, 落ちる 18.8 against
   # 1.7); its buzzwords (解像度, 腹落ち, 手触り, 本質) showed no gap and stay
   # out. Each is also a real word (a filter 効く), so nothing is flagged below
-  # three per family, and every hit is a line to judge. 効 is matched only in
-  # its verb forms (効果 / 効率 / 有効 stay out); 筋 only in its figurative
-  # frames; 落ち leaves 落ち着く out.
-  echo "口癖（3 回以上の族を並べる。具体的な効果の代わりなら、その効果を書く）"
-  if ! command -v perl >/dev/null; then
-    show "perl が無いので未実行"; found=1
-  else
-    out="$(printf '%s\n' "$jprose" | perl -CSD -Mutf8 -ne '
-      BEGIN { @fam = (["効く", qr/効[くいかきけこっ]/], ["刺さる", qr/刺さ[るらりっれ]/],
-                      ["噛み合う", qr/噛み合/], ["黙って", qr/黙って/], ["同じ形", qr/同じ形/],
-                      ["入口・導線", qr/入口|導線/], ["別物", qr/別物/], ["束ねる", qr/束ね/],
-                      ["畳む", qr/畳[むまみめんっ]/], ["薄い", qr/薄[いくかさ]/], ["本命", qr/本命/],
-                      ["筋", qr/筋(?:が(?:通|良|悪|立)|だ|です)/],
-                      ["壊れる", qr/壊[れさしせ]/], ["落ちる", qr/落ち(?!着)[るたてなま]/],
-                      ["崩れる", qr/崩れ/], ["潰す", qr/潰[すしさせれ]/], ["添える", qr/添え[るてたま]/],
-                      ["混ざる", qr/混ざ[るらりっれ]/], ["土台", qr/土台/]) }
-      for my $f (@fam) { my ($name, $re) = @$f; while (/$re/g) { push @{$hit{$name}}, "$.:$&" } }
-      END { for my $f (@fam) { my $h = $hit{$f->[0]} or next; next if @$h < 3;
-              printf "%s %d 回: %s\n", $f->[0], scalar @$h, join(" ", @$h) } }')"; rc=$?
-    if [ "$rc" -ne 0 ]; then show "perl が失敗 (exit $rc)"; found=1
-    elif [ -n "$out" ]; then show "$out"; found=1
-    else show none; fi
-  fi
+  # three per family. 効 is matched only in its verb forms (効果 / 効率 / 有効
+  # stay out); 筋 only in its figurative frames; 壊 not after 破 崩 損 倒 決 全,
+  # whose compounds are plain words.
+  echo "口癖（3 回以上の族を並べる。具体的な効果や状態変化の代わりなら、それを書く）"
+  ja_check '
+    BEGIN { @fam = (["効く", qr/効[くいかきけこっ]/], ["刺さる", qr/刺さ[るらりっれ]/],
+                    ["噛み合う", qr/噛み合/], ["黙って", qr/黙って/], ["同じ形", qr/同じ形/],
+                    ["入口・導線", qr/入口|導線/], ["別物", qr/別物/], ["束ねる", qr/束ね/],
+                    ["畳む", qr/畳[むまみめんっ]/], ["薄い", qr/薄[いくかさ]/], ["本命", qr/本命/],
+                    ["筋", qr/筋(?:が(?:通|良|悪|立)|だ|です)/],
+                    ["壊れる・壊す", qr/(?<![破崩損倒決全])壊[れさしすせ]/], ["落ちる", qr/落ち[るたてなま]/],
+                    ["崩れる", qr/崩れ/], ["潰す", qr/潰[すしさせれ]/], ["添える", qr/添え[るてたま]/],
+                    ["混ざる", qr/混ざ[るらりっれ]/], ["土台", qr/土台/]) }
+    for my $f (@fam) { my ($name, $re) = @$f; while (/$re/g) { push @{$hit{$name}}, "$.:$&" } }
+    END { for my $f (@fam) { my $h = $hit{$f->[0]} or next; next if @$h < 3;
+            printf "%s %d 回: %s\n", $f->[0], scalar @$h, join(" ", @$h); $? = 3 }
+          print "none\n" unless $? == 3 }'
 
   # Instructions recorded as content: a sentence justified by what Claude was
   # told, or a parenthetical naming the user as the source of a decision.
